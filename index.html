@@ -6,8 +6,9 @@
 <title>DWQ Flood and Post-Fire Toolkit</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap">
 <style>
+/* Colors and fonts: the same set the tool pages use. Change a color here and the whole home page follows. */
 :root{
   --bg:#f3f6f5; --surface:#ffffff; --sunken:#eaf0ef; --ink:#16252a; --muted:#56696e; --line:#d3dddc;
   --accent:#0b6a78; --accent-ink:#ffffff; --accent-soft:#dcedef;
@@ -26,22 +27,90 @@
   --accent:#55b6c5; --accent-ink:#06252a; --accent-soft:#173439;
   --silt:#dba84f; --silt-bg:#2c2413; --good:#6dc48c; --good-bg:#14281b; --bad:#ec8a78; --bad-bg:#331b16; color-scheme:dark}
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;margin:0}
-.wrap{max-width:1100px;margin:0 auto;padding:32px max(16px,env(safe-area-inset-right,0px)) 56px max(16px,env(safe-area-inset-left,0px))}
-h1,h2{font-family:var(--f-display);font-weight:700;line-height:1.15;margin:0;text-wrap:balance}
-h1{font-size:clamp(30px,4.5vw,44px)} h2{font-size:21px}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.55;margin:0}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.1;margin:0;text-wrap:balance}
 p{margin:0}
-.eyebrow{font-family:var(--f-display);font-weight:600;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
-.lede{max-width:70ch;color:var(--muted);margin-top:10px}
-.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:28px}
-a.card{display:flex;flex-direction:column;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;color:var(--ink);text-decoration:none}
-a.card:hover{border-color:var(--accent)}
-a.card .n{font-family:var(--f-mono);font-size:13px;color:var(--accent)}
-a.card p{color:var(--muted);font-size:14.5px}
-.more{margin-top:28px;display:flex;flex-wrap:wrap;gap:10px 22px;font-size:14.5px}
-.more a{color:var(--accent)}
-.note{font-size:13px;color:var(--muted);margin-top:24px;max-width:80ch}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+/* Side margins for the whole page. Raise the middle number in clamp() for more space. */
+.wrap{max-width:1360px;margin:0 auto;padding-left:max(clamp(20px,4.5vw,64px),env(safe-area-inset-left,0px));padding-right:max(clamp(20px,4.5vw,64px),env(safe-area-inset-right,0px))}
+
+/* ---------- Hero banner ---------- */
+.hero{position:relative;overflow:hidden;color:#fff;background:#0b5561;border-bottom:4px solid #0b6a78}
+.hero .wrap{position:relative;padding-top:clamp(40px,5vw,64px);padding-bottom:clamp(44px,5vw,68px);display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:clamp(28px,4vw,56px);align-items:center}
+/* Right side of the banner: the five steps of a response */
+.steps-panel{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.25);border-radius:16px;padding:22px 24px;}
+.steps-panel h2{font-size:24px;color:#fff;margin-bottom:14px}
+.steps-panel ol{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.steps-panel li{display:grid;grid-template-columns:34px 1fr;gap:0 14px;align-items:start}
+.steps-panel .num{grid-row:span 2;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#fff;color:#0a4b55;font-family:var(--f-display);font-weight:700;font-size:18px}
+.steps-panel b{font-family:var(--f-display);font-size:20px;font-weight:700;color:#fff;line-height:1.2}
+.steps-panel b a{color:#fff;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.45)}
+.steps-panel b a:hover{border-bottom-color:#fff}
+.steps-panel span{font-size:15.5px;color:#d4ecef;line-height:1.4}
+.hero .eyebrow{display:inline-block;font-family:var(--f-display);font-weight:600;font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:#bfe6ec;margin-bottom:14px}
+.hero h1{font-size:clamp(38px,6vw,68px);max-width:15ch;color:#fff}
+.hero .lede{font-size:clamp(18px,2vw,21px);line-height:1.5;max-width:58ch;margin-top:18px;color:#e3f3f5}
+.hero .cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+.btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-body);font-weight:600;font-size:17px;padding:13px 22px;border-radius:999px;text-decoration:none;border:2px solid transparent}
+.btn.light{background:#fff;color:#0a4b55}
+.btn.light:hover{background:#e3f3f5}
+.btn.outline{border-color:rgba(255,255,255,.7);color:#fff}
+.btn.outline:hover{background:rgba(255,255,255,.12)}
+
+/* ---------- Section headings ---------- */
+section.block{padding:clamp(40px,6vw,72px) 0 0}
+.sec-head{display:flex;flex-direction:column;gap:8px;margin-bottom:26px}
+.sec-head .kicker{font-family:var(--f-display);font-weight:600;font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+.sec-head h2{font-size:clamp(30px,3.6vw,42px)}
+.sec-head p{color:var(--muted);font-size:18px;max-width:64ch}
+
+/* ---------- Tool cards: four across on wide screens ---------- */
+.tools{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
+a.tool{position:relative;display:flex;flex-direction:column;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px 22px 22px;text-decoration:none;color:var(--ink);transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease;border-top:5px solid var(--c,var(--accent))}
+a.tool:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(10,61,70,.14);border-color:var(--c,var(--accent))}
+.tool .icon{width:60px;height:60px;border-radius:16px;display:grid;place-items:center;background:var(--cs,var(--accent-soft));color:var(--c,var(--accent));margin-bottom:8px}
+.tool .icon svg{width:32px;height:32px}
+.tool .tag{font-family:var(--f-mono);font-size:14px;font-weight:500;color:var(--c,var(--accent));letter-spacing:.02em}
+.tool h3{font-size:28px}
+.tool p{color:var(--muted);font-size:17px;flex:1}
+.tool .go{margin-top:12px;font-weight:600;font-size:16px;color:var(--c,var(--accent))}
+.tool.t1{--c:#0b6a78;--cs:#dcedef}
+.tool.t2{--c:#2c7346;--cs:#e1f0e5}
+.tool.t3{--c:#8a5d14;--cs:#f6ecd8}
+.tool.t4{--c:#3d5a9e;--cs:#e3e9f6}
+
+/* ---------- Resource cards ---------- */
+.res{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:20px}
+a.r{display:flex;flex-direction:column;gap:6px;background:var(--sunken);border:1px solid var(--line);border-radius:12px;padding:20px 22px;text-decoration:none;color:var(--ink)}
+a.r:hover{border-color:var(--accent)}
+a.r h3{font-size:22px}
+a.r p{font-size:16px;color:var(--muted)}
+a.r .ext{font-size:15px;font-weight:600;color:var(--accent);margin-top:4px}
+
+footer{margin-top:clamp(48px,7vw,80px);border-top:1px solid var(--line);padding:26px 0 40px;color:var(--muted);font-size:15.5px}
+footer p+p{margin-top:6px}
+
+@media (max-width:1100px){
+  .tools{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:900px){
+  .hero .wrap{grid-template-columns:1fr}
+}
+@media (max-width:600px){
+  .tools{grid-template-columns:1fr}
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .tool.t1{--c:#55b6c5;--cs:#173439}
+  :root:not([data-theme="light"]) .tool.t2{--c:#6dc48c;--cs:#14281b}
+  :root:not([data-theme="light"]) .tool.t3{--c:#dba84f;--cs:#2c2413}
+  :root:not([data-theme="light"]) .tool.t4{--c:#8fa9e6;--cs:#1c2540}
+  :root:not([data-theme="light"]) a.tool:hover{box-shadow:0 12px 28px rgba(0,0,0,.4)}}
+:root[data-theme="dark"] .tool.t1{--c:#55b6c5;--cs:#173439}
+:root[data-theme="dark"] .tool.t2{--c:#6dc48c;--cs:#14281b}
+:root[data-theme="dark"] .tool.t3{--c:#dba84f;--cs:#2c2413}
+:root[data-theme="dark"] .tool.t4{--c:#8fa9e6;--cs:#1c2540}
+@media (prefers-reduced-motion:reduce){a.tool{transition:none}a.tool:hover{transform:none}}
 [hidden]{display:none!important}body{margin:0}img{max-width:100%}
 .site-nav{background:var(--surface);border-bottom:1px solid var(--line);font-family:var(--f-body)}
 .site-nav .in{max-width:1280px;margin:0 auto;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}
@@ -54,26 +123,116 @@ a.card p{color:var(--muted);font-size:14.5px}
 </head>
 <body>
 <script src="nav.js" data-root="" data-current="home"></script>
-<main class="wrap">
-  <span class="eyebrow">Utah Division of Water Quality</span>
-  <h1>Flood and Post-Fire Water Quality Toolkit</h1>
-  <p class="lede">Tools for responding to floods and post-fire runoff: what to do and when, who samples what, how to plan a sampling run, and where partners share plans and results.</p>
-  <div class="steps">
-    <a class="card" href="response-guide.html"><span class="n">Start here</span><h2>Response Guide</h2><p>Step-by-step response for floods and post-fire runoff: activation, deadlines, notifications, field safety, screening results against criteria, advisories and long-term monitoring.</p></a>
-    <a class="card" href="who-samples-what.html"><span class="n">Coordinate</span><h2>Who Samples What</h2><p>Decision tree and roles table showing which agency leads each kind of sampling, and how partners avoid duplicating effort.</p></a>
-    <a class="card" href="sap-builder.html"><span class="n">Plan</span><h2>SAP Builder</h2><p>Pick sites and parameters, price the run or a multi-year program, and produce a sampling and analysis plan for the crew, lab and partners.</p></a>
-    <a class="card" href="data-hub.html"><span class="n">Share</span><h2>Shared Sampling Data Hub</h2><p>Partners post planned trips, see overlaps, and upload and download results during an event.</p></a>
+
+<!-- ================= HERO BANNER =================
+     EDIT: the small line, the big title and the paragraph under it. -->
+<header class="hero">
+  <div class="wrap">
+  <div>
+    <span class="eyebrow">Utah Division of Water Quality</span>
+    <h1>Flood and Post&#8209;Fire Water Quality Response Toolkit</h1>
+    <p class="lede">Everything a response team needs to protect rivers, streams and lakes after a flood, spill or wildfire: what to do and when, who samples what, how to plan a sampling run, and one place for partners to share plans and results.</p>
+    <div class="cta">
+      <a class="btn light" href="response-guide.html">Start a response →</a>
+      <a class="btn outline" href="who-samples-what.html">See who samples what</a>
+    </div>
   </div>
-  <div class="more" id="more"></div>
-  <p class="note">Drafts for partner review. Tools save your work in your own browser; the data hub is shared when it is connected to the toolkit’s Google Sheet.</p>
+
+    <!-- EDIT: the five steps shown on the right side of the banner. -->
+    <aside class="steps-panel" aria-labelledby="flow-h">
+      <h2 id="flow-h">During an event</h2>
+      <ol>
+        <li><span class="num">1</span><b><a href="response-guide.html">Activate</a></b><span>Confirm the trigger, set the response level and start the clock.</span></li>
+        <li><span class="num">2</span><b><a href="who-samples-what.html">Coordinate</a></b><span>Sort out which agency samples which waters and who gets notified.</span></li>
+        <li><span class="num">3</span><b><a href="sap-builder.html">Plan</a></b><span>Choose sites and parameters, line up the lab and check the budget.</span></li>
+        <li><span class="num">4</span><b><a href="data-hub.html">Share</a></b><span>Post trips so nobody doubles up, then upload results for everyone.</span></li>
+        <li><span class="num">5</span><b><a href="response-guide.html">Communicate</a></b><span>Screen results against criteria and tell affected people first.</span></li>
+      </ol>
+    </aside>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ================= TOOL CARDS =================
+       EDIT: each card's tag, title and description. -->
+  <section class="block" aria-labelledby="tools-h">
+    <div class="sec-head">
+      <span class="kicker">The tools</span>
+      <h2 id="tools-h">Four tools, one response</h2>
+      <p>Each tool works on its own and links to the others. Your work saves in your own browser as you go.</p>
+    </div>
+    <div class="tools">
+      <a class="tool t1" href="response-guide.html">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.2 1.2L7 5M3.5 12l1.2 1.2L7 11M3.5 18l1.2 1.2L7 17"/></svg></span>
+        <span class="tag">Start here</span>
+        <h3>Response Guide</h3>
+        <p>Step-by-step flood and post-fire response: activation, response level, deadlines, notifications, field safety, screening results against criteria, advisories and long-term monitoring.</p>
+        <span class="go">Open the guide →</span>
+      </a>
+      <a class="tool t2" href="who-samples-what.html">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2.5" width="6" height="5" rx="1"/><rect x="2.5" y="16.5" width="6" height="5" rx="1"/><rect x="15.5" y="16.5" width="6" height="5" rx="1"/><path d="M12 7.5v4.5M5.5 16.5V12h13v4.5"/></svg></span>
+        <span class="tag">Coordinate</span>
+        <h3>Who Samples What</h3>
+        <p>A decision tree and roles table showing which agency leads each kind of sampling, who supports, and how partners stay in step without doubling up.</p>
+        <span class="go">Open the decision tree →</span>
+      </a>
+      <a class="tool t3" href="sap-builder.html">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17.5" rx="2"/><path d="M9 4V2.5h6V4"/><path d="M8.5 10h7M8.5 13.5h7M8.5 17h4"/></svg></span>
+        <span class="tag">Plan</span>
+        <h3>SAP Builder</h3>
+        <p>Pick sites and parameters, price a single run or a multi-year program, and print a sampling and analysis plan for the crew, the lab and partners.</p>
+        <span class="go">Build a plan →</span>
+      </a>
+      <a class="tool t4" href="data-hub.html">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5.5" rx="7.5" ry="3"/><path d="M4.5 5.5v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v-6"/><path d="M4.5 11.5v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v-6"/></svg></span>
+        <span class="tag">Share</span>
+        <h3>Shared Sampling Data Hub</h3>
+        <p>Partners post planned trips before crews go out, see overlaps at a glance, and upload and download results while an event is under way.</p>
+        <span class="go">Open the data hub →</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ================= RELATED RESOURCES =================
+       Protocol cards are added automatically when protocolLinks is filled in config.js. -->
+  <section class="block" aria-labelledby="res-h">
+    <div class="sec-head">
+      <span class="kicker">Related resources</span>
+      <h2 id="res-h">Plans and companion tools</h2>
+    </div>
+    <!-- EDIT: resource cards. Change the link inside href="..." or the wording. -->
+    <div class="res" id="res">
+      <a class="r" href="https://claude.ai/artifact/R9ffZtuJcCvn8dTeCDFcUq" target="_blank" rel="noopener">
+        <h3>Risk Communication Plan</h3>
+        <p>Who leads public messaging, message maps, templates for news releases and social media, and rumor control.</p>
+        <span class="ext">Open ↗</span>
+      </a>
+      <a class="r" href="https://christinemosborne.github.io/Post-fire-Best-Management-Practice-BMP-Tool-v2/" target="_blank" rel="noopener">
+        <h3>Post-Fire BMP Selection Tool</h3>
+        <p>Choose post-fire best management practices for a burned area, with notes on the downstream waters they protect.</p>
+        <span class="ext">Open ↗</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ================= FOOTER =================
+       EDIT: the note at the bottom of the page. -->
+  <footer>
+    <p>Draft toolkit for partner review. Utah Department of Environmental Quality, Division of Water Quality.</p>
+    <p>Results shared here are provisional. Validated data go to AWQMS and WQX through the normal process.</p>
+  </footer>
 </main>
+
 <script>
-(function(){var c=window.TOOLKIT_CONFIG||{},m=document.getElementById('more'),h='';
-if(c.riskCommPlanUrl)h+='<a href="'+c.riskCommPlanUrl+'" target="_blank" rel="noopener">Risk Communication Plan ↗</a>';
-if(c.bmpToolUrl)h+='<a href="'+c.bmpToolUrl+'" target="_blank" rel="noopener">Post-Fire BMP Selection Tool ↗</a>';
-if(c.protocolLinks&&c.protocolLinks.flood)h+='<a href="'+c.protocolLinks.flood+'" target="_blank" rel="noopener">Flood protocol ↗</a>';
-if(c.protocolLinks&&c.protocolLinks.fire)h+='<a href="'+c.protocolLinks.fire+'" target="_blank" rel="noopener">Post-fire protocol ↗</a>';
-m.innerHTML=h;})();
+/* Adds protocol cards once their links are filled in config.js (protocolLinks). */
+(function(){
+  var c=window.TOOLKIT_CONFIG||{},p=c.protocolLinks||{},box=document.getElementById('res'),list=[
+    [p.flood,'Flood Response Protocol','The full written flood and release protocol behind the Response Guide.'],
+    [p.fire,'Post-Fire Response Protocol','The full written post-fire runoff protocol behind the Response Guide.']];
+  list.forEach(function(x){if(!x[0])return;var a=document.createElement('a');a.className='r';a.href=x[0];a.target='_blank';a.rel='noopener';
+    a.innerHTML='<h3></h3><p></p><span class="ext">Open ↗</span>';a.querySelector('h3').textContent=x[1];a.querySelector('p').textContent=x[2];box.appendChild(a);});
+})();
 </script>
 </body>
 </html>
