@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap">
 <style>
-/* Layout: section list on the left, one section at a time in the middle, event details on the right.
+/* Layout: section list on the left, one short section at a time on the right.
    Same colors and fonts as the Response Guide. */
 :root{
   --bg:#f3f6f5; --surface:#ffffff; --sunken:#eaf0ef; --ink:#16252a; --muted:#56696e; --line:#d3dddc;
@@ -18,6 +18,8 @@
   --f-body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
   --r:6px;
+  /* Advisory colors. Change these to match DWQ signs if needed. */
+  --t-none:#2c7346; --t-watch:#d9a400; --t-warn:#d4731c; --t-danger:#a3372a;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0e1618; --surface:#152124; --sunken:#1b2a2e; --ink:#e2ebe9; --muted:#97abad; --line:#2a3b3f;
@@ -28,11 +30,11 @@
   --accent:#55b6c5; --accent-ink:#06252a; --accent-soft:#173439;
   --silt:#dba84f; --silt-bg:#2c2413; --good:#6dc48c; --good-bg:#14281b; --bad:#ec8a78; --bad-bg:#331b16; color-scheme:dark}
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15.5px;line-height:1.5}
 /* Side margins. Raise the middle number in clamp() for more space. */
 .wrap{max-width:1440px;margin:0 auto;padding-left:max(clamp(20px,4vw,56px),env(safe-area-inset-left,0px));padding-right:max(clamp(20px,4vw,56px),env(safe-area-inset-right,0px))}
 h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.15;text-wrap:balance;margin:0}
-h1{font-size:clamp(28px,4vw,40px)} h2{font-size:24px} h3{font-size:17px;font-weight:600}
+h1{font-size:clamp(28px,4vw,40px)} h2{font-size:26px} h3{font-size:18px;font-weight:700}
 p{margin:0} a{color:var(--accent)}
 .eyebrow{font-family:var(--f-display);font-weight:600;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
 .muted{color:var(--muted)}
@@ -44,13 +46,14 @@ button.primary{background:var(--accent);color:var(--accent-ink);border-color:var
 button.ghost{background:transparent}
 button.small,.btn.small{padding:6px 10px;font-size:13px}
 button:hover,.btn:hover{border-color:var(--accent)}
-button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 .layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:24px;align-items:start;padding-bottom:40px}
 @media (max-width:760px){.layout{grid-template-columns:minmax(0,1fr)}}
-nav.steps{position:sticky;top:12px;display:flex;flex-direction:column;gap:2px;min-width:0}
-nav.steps button{justify-content:space-between;width:100%;border:0;background:transparent;padding:9px 10px;border-radius:var(--r);font-weight:500;text-align:left;line-height:1.25;color:var(--ink)}
-nav.steps button .n{font-family:var(--f-mono);font-size:12px;color:var(--muted);min-width:22px}
+nav.steps{position:sticky;top:12px;display:flex;flex-direction:column;gap:1px;min-width:0}
+nav.steps .grp{font-family:var(--f-display);font-weight:600;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:12px 10px 4px}
+nav.steps .grp:first-child{padding-top:0}
+nav.steps button{justify-content:space-between;width:100%;border:0;background:transparent;padding:8px 10px;border-radius:var(--r);font-weight:500;text-align:left;line-height:1.25;color:var(--ink)}
 nav.steps button .t{flex:1}
 nav.steps button .c{font-family:var(--f-mono);font-size:11.5px;color:var(--muted);white-space:nowrap}
 nav.steps button.done .c{color:var(--good)}
@@ -58,73 +61,83 @@ nav.steps button[aria-current="step"]{background:var(--accent-soft);color:var(--
 nav.steps button:hover{background:var(--sunken)}
 @media (max-width:760px){
   nav.steps{position:static;flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:6px}
+  nav.steps .grp{display:none}
   nav.steps button{width:auto;flex:none;border:1px solid var(--line);background:var(--surface);gap:8px}
 }
-main.stage{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:clamp(16px,3vw,28px);display:flex;flex-direction:column;gap:22px;min-width:0}
+main.stage{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:clamp(18px,3vw,32px);display:flex;flex-direction:column;gap:22px;min-width:0}
 .stage-head{display:flex;flex-direction:column;gap:6px}
-.stage-head p{color:var(--muted);max-width:72ch}
+.stage-head p{color:var(--muted);max-width:72ch;font-size:16px}
 .block{display:flex;flex-direction:column;gap:10px;min-width:0}
-.block>h3{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px 16px}
 .field{display:flex;flex-direction:column;gap:4px;min-width:0}
 label,.lbl{font-size:13px;font-weight:600;color:var(--muted)}
-input[type=text],input[type=date],input[type=datetime-local],select,textarea{font:400 15px/1.35 var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:8px 10px;width:100%;min-width:0}
+input[type=text],select,textarea{font:400 15px/1.35 var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:8px 10px;width:100%;min-width:0}
 textarea{min-height:64px;resize:vertical}
-.checks{display:flex;flex-direction:column;gap:2px;margin:0;padding:0;list-style:none}
-.ck{display:flex;gap:10px;align-items:flex-start;padding:7px 8px;border-radius:var(--r);cursor:pointer;font-size:15px;font-weight:400;color:var(--ink)}
-.ck:hover{background:var(--sunken)}
-.ck input{accent-color:var(--accent);margin-top:3px;width:17px;height:17px;flex:none}
-.ck .txt{flex:1;min-width:0}
-.ck .when{font-family:var(--f-mono);font-size:12px;color:var(--good);white-space:nowrap;margin-left:auto;padding-left:8px}
-.ck:has(input:checked) .txt{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line)}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
-.card{border:1px solid var(--line);border-radius:var(--r);padding:14px;background:var(--bg);display:flex;flex-direction:column;gap:6px}
-.card h4{margin:0;font-family:var(--f-display);font-size:19px;font-weight:700}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:1000px){.three{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){.two,.three{grid-template-columns:1fr}}
+
+/* Action rows: checkbox, bold action, one short line, optional jump button */
+.acts{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.act{display:grid;grid-template-columns:auto 1fr auto;gap:2px 12px;align-items:start;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r);background:var(--bg)}
+.act:has(input:checked){background:var(--good-bg);border-color:transparent}
+.act input{accent-color:var(--accent);width:19px;height:19px;margin-top:2px;grid-row:span 2;cursor:pointer}
+.act b{font-size:16px;font-weight:600;cursor:pointer}
+.act .d{grid-column:2;color:var(--muted);font-size:14.5px}
+.act .side{grid-column:3;grid-row:1 / span 2;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.act .when{font-family:var(--f-mono);font-size:12px;color:var(--good);white-space:nowrap}
+
+.card{border:1px solid var(--line);border-radius:var(--r);padding:16px;background:var(--bg);display:flex;flex-direction:column;gap:8px}
+.card h3{font-size:19px}
+.card ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:14.5px}
 .card p{font-size:14.5px;color:var(--muted)}
+.card .lbl{text-transform:uppercase;letter-spacing:.06em;font-size:11.5px}
 .chip{font-size:12.5px;font-weight:600;padding:4px 9px;border-radius:999px;background:var(--sunken);color:var(--muted);border:1px solid var(--line);white-space:nowrap}
 .chip.ok{background:var(--good-bg);color:var(--good);border-color:transparent}
-.chip.bad{background:var(--bad-bg);color:var(--bad);border-color:transparent}
 .chip.warn{background:var(--silt-bg);color:var(--silt);border-color:transparent}
-.chip.info{background:var(--accent-soft);color:var(--accent);border-color:transparent}
 .scroll{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r)}
-table{border-collapse:collapse;width:100%;font-size:14px}
-th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
 th{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);background:var(--sunken);font-weight:600}
 tr:last-child td{border-bottom:0}
-.tip{background:var(--silt-bg);border-left:4px solid var(--silt);padding:10px 14px;border-radius:var(--r);font-size:14.5px}
-.rec{background:var(--accent-soft);border-left:4px solid var(--accent);padding:12px 16px;border-radius:var(--r)}
+.key{background:var(--accent-soft);border-left:4px solid var(--accent);padding:12px 16px;border-radius:var(--r);font-size:16px}
+.key b{color:var(--accent)}
+details.why{border:1px solid var(--line);border-radius:var(--r);background:var(--bg)}
+details.why summary{cursor:pointer;padding:10px 14px;font-weight:600;font-size:14.5px;color:var(--accent);list-style:none;display:flex;align-items:center;gap:8px}
+details.why summary::-webkit-details-marker{display:none}
+details.why summary::before{content:"+";font-family:var(--f-mono);font-weight:500;width:14px}
+details.why[open] summary::before{content:"\2013"}
+details.why .in{padding:0 16px 14px;display:flex;flex-direction:column;gap:10px;font-size:14.5px}
+details.why ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px}
 .foot{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;border-top:1px solid var(--line);padding-top:16px}
 .status{font-size:13px;color:var(--good);min-height:1.2em}
 .inline{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .note{font-size:13px;color:var(--muted)}
+.pick,.sits{display:flex;flex-wrap:wrap;gap:6px}
+.pick button[aria-pressed="true"],.sits button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 
-/* Agency picker */
-.pick{display:flex;flex-wrap:wrap;gap:6px}
-.pick button{font-weight:500}
-.pick button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-.lane{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media (max-width:600px){.lane{grid-template-columns:1fr}}
-.lane .card b{font-family:var(--f-display);font-size:15px;letter-spacing:.06em;text-transform:uppercase}
-
-/* Message output */
-.msg{border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+/* Message boxes */
+.msg{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--surface)}
 .msg-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--sunken)}
 .msg-head h4{margin:0;font-size:15px;font-weight:600;font-family:var(--f-body)}
 .msg-body{padding:12px 14px;font-size:15px;line-height:1.55;white-space:pre-wrap}
 mark.blank{background:var(--silt-bg);color:var(--silt);border-radius:3px;padding:0 3px;font-weight:600}
-.sits{display:flex;flex-wrap:wrap;gap:6px}
-.sits button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-.kmd{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-@media (max-width:700px){.kmd{grid-template-columns:1fr}}
+.strip{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;background:var(--sunken);border:1px solid var(--line);border-radius:var(--r);padding:10px 14px;font-size:14px}
+.strip b{font-weight:600}
+.evgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px 18px}
+.fillmeter{font-family:var(--f-mono);font-size:13px;color:var(--muted)}
 
-/* Color index */
-.idx{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-@media (max-width:640px){.idx{grid-template-columns:1fr}}
-.idx button{flex-direction:column;align-items:flex-start;gap:6px;padding:14px;text-align:left;line-height:1.4;font-weight:400;border-width:2px;border-top-width:8px}
-.idx button b{font-family:var(--f-display);font-size:20px}
-.idx .g{border-top-color:#2c7346}.idx .y{border-top-color:#d4731c}.idx .r{border-top-color:#a3372a}
-.idx button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
-.idx .g[aria-pressed="true"]{border-top-color:#2c7346}.idx .y[aria-pressed="true"]{border-top-color:#d4731c}.idx .r[aria-pressed="true"]{border-top-color:#a3372a}
+/* Advisory levels */
+.tiers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:1100px){.tiers{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.tiers{grid-template-columns:1fr}}
+.tiers button{flex-direction:column;align-items:flex-start;gap:6px;padding:14px;text-align:left;line-height:1.35;font-weight:400;border-width:2px;border-top:10px solid var(--tc);min-height:110px}
+.tiers button b{font-family:var(--f-display);font-size:21px}
+.tiers button span{font-size:14px;color:var(--muted)}
+.tiers button[aria-pressed="true"]{border-color:var(--tc);background:var(--accent-soft)}
+.t-none{--tc:var(--t-none)}.t-watch{--tc:var(--t-watch)}.t-warn{--tc:var(--t-warn)}.t-danger{--tc:var(--t-danger)}
+.tier-detail{border-left:8px solid var(--tc);background:var(--bg);border-radius:var(--r);padding:16px 18px}
 
 /* Message map */
 .mm{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
@@ -135,17 +148,8 @@ mark.blank{background:var(--silt-bg);color:var(--silt);border-radius:3px;padding
 .bar{flex:1;min-width:160px;height:10px;border-radius:999px;background:var(--sunken);overflow:hidden;border:1px solid var(--line)}
 .bar i{display:block;height:100%;background:var(--good);width:0}
 .bar.over i{background:var(--bad)}
-
-/* Right column */
-.evgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px 18px}
-.strip{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;background:var(--sunken);border:1px solid var(--line);border-radius:var(--r);padding:10px 14px;font-size:14px}
-.strip b{font-weight:600}
-.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-@media (max-width:900px){.two{grid-template-columns:1fr}}
-.fillmeter{font-family:var(--f-mono);font-size:13px;color:var(--muted)}
-ol.plain{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:5px}
 @media (prefers-reduced-motion:no-preference){button,.btn{transition:border-color .15s,background-color .15s}}
-@media print{nav.steps,.strip,.toolbar,.foot,button{display:none!important}.layout{display:block}main.stage{border:0;padding:0}}
+@media print{nav.steps,.strip,.toolbar,.foot,button{display:none!important}.layout{display:block}main.stage{border:0;padding:0}details.why{display:none}}
 [hidden]{display:none!important}body{margin:0}img{max-width:100%}
 .site-nav{background:var(--surface);border-bottom:1px solid var(--line);font-family:var(--f-body)}
 .site-nav .in{max-width:1440px;margin:0 auto;padding:10px max(clamp(20px,4vw,56px),env(safe-area-inset-right,0px)) 10px max(clamp(20px,4vw,56px),env(safe-area-inset-left,0px));display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}
@@ -162,11 +166,12 @@ ol.plain{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:5px}
 <header class="top">
   <span class="eyebrow">Utah DWQ and partners · Flood and post-fire response</span>
   <h1>Risk Communication Plan</h1>
-  <p class="lede">How partner agencies warn and inform the public about water quality risks after floods and post-fire runoff, so people get one consistent message they can act on. Fill in the event details once, and every message template fills in for you.</p>
+  <p class="lede">One clear, consistent message the public can act on. Enter the event details once and every message fills in.</p>
   <div class="toolbar">
     <a class="btn small" href="response-guide.html">Response Guide</a>
     <a class="btn small" href="who-samples-what.html">Who Samples What</a>
     <a class="btn small" href="data-hub.html">Shared Data Hub</a>
+    <a class="btn small" href="https://deq.utah.gov/dwq/recreational-water-quality" target="_blank" rel="noopener">DWQ advisories ↗</a>
     <button type="button" class="small ghost" id="printBtn">Print this section</button>
     <button type="button" class="small ghost" id="resetBtn">Start a new event</button>
   </div>
@@ -185,7 +190,7 @@ const KEY="dwq-riskcomm-v1";
 const $=s=>document.querySelector(s);
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
-/* ---------- event details (fill-ins) ---------- */
+/* ================= EVENT DETAILS (fill-ins) ================= */
 const EV=[
  ["agency","Issuing agency","e.g., San Juan Public Health and Utah DEQ"],
  ["health","Health department","e.g., San Juan Public Health"],
@@ -202,13 +207,12 @@ const EV=[
  ["link","Advisory web page","e.g., deq.utah.gov/..."],
  ["phone","Public phone line","e.g., 435-555-0100"]
 ];
-const DEF={ev:{kind:"flood"},checks:{},sec:"quick",sit:"before",color:"y",agency:0,map:{q:"",k:["","",""],f:[["","",""],["","",""],["","",""]]},qa:{},rumors:[]};
+const DEF={ev:{kind:"flood"},checks:{},sec:"quick",sit:"before",tier:"warn",agency:0,map:{q:"",k:["","",""],f:[["","",""],["","",""],["","",""]]},qa:{},rumors:[]};
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))||null}catch(e){S=null}
 S=Object.assign(JSON.parse(JSON.stringify(DEF)),S||{});
+if(!["none","watch","warn","danger"].includes(S.tier))S.tier="warn";
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
-
-// Fill-in helpers: H = for the screen (blanks highlighted), T = plain text for copying.
 const H=(k,l)=>S.ev[k]?esc(S.ev[k]):`<mark class="blank">[${esc(l)}]</mark>`;
 const T=(k,l)=>S.ev[k]||`[${l}]`;
 function evPhrase(f){
@@ -219,114 +223,117 @@ function evPhrase(f){
  return "flooding";
 }
 
-/* ---------- content from the plan ---------- */
+/* ================= CONTENT (edit wording here) =================
+   Action items are [action, one short line, section to jump to (optional)]. */
 const QUICK=[
- "Confirm who speaks: the local health department or tribal health agency for health advisories, DEQ Communications to coordinate water quality messaging, and the Joint Information Center if one is open.",
- "Fill in the event details (section 2) and pick the matching message (sections 7–10): the water, the reach, what to avoid, why, and the next update time.",
- "Clear it within one hour: DWQ technical reviewer, DEQ public information officer, and the health department (section 12).",
- "Release it on every channel at once, in the same words: partner websites, social media, news release or media advisory, radio, signs at access points, chapter houses and community boards.",
- "Translate it (Spanish, and Navajo or other tribal languages where those communities are affected) and send the translation the same day.",
- "Start the inquiry and rumor log, and schedule the next update, even if nothing has changed."
+ ["Confirm who speaks","Health department or tribal health agency for advisories; DEQ Communications coordinates; the JIC if one is open.","lead"],
+ ["Fill in the event details","Water, reach, dates and next update time. Every message fills in from them.","event"],
+ ["Pick the advisory level","Health Watch, Warning Advisory or Danger Advisory, with the health department.","levels"],
+ ["Send the holding statement","Clear it within one hour with the DWQ technical reviewer, DEQ PIO and health department.","holding"],
+ ["Tell affected people directly","Outfitters, chapter houses, irrigation companies and nearby residents, before or with the media.","audiences"],
+ ["Release everywhere in the same words","Websites, social media, news release, radio, signs, chapter houses and community boards.","social"],
+ ["Translate the same day","Spanish, and Navajo or other tribal languages where those communities are affected.",null],
+ ["Start the rumor log and set the next update","Schedule the next update even if nothing has changed.","rumor"]
 ];
-const CERC=[
- ["Be first","Issue a precautionary message as soon as a release or major runoff is confirmed; don't wait for lab results."],
- ["Be right","Say what is known, what isn't, and when results are expected. Correct errors openly."],
- ["Be credible","One set of facts across all agencies; numbers come from the shared data hub."],
- ["Express empathy","Acknowledge disruption to recreation, irrigation, livestock and livelihoods."],
- ["Promote action","Every message tells people what to do: avoid contact, wash hands, use another water source, report a fish kill."],
- ["Show respect","Plain language (6th–8th grade), translations, and government-to-government coordination with tribes."]
+const RULES=[
+ ["Go first","Send a precautionary message as soon as a release or major runoff is confirmed. Don't wait for lab results."],
+ ["Be right","Say what you know, what you don't, and when results are expected. Fix errors openly."],
+ ["Speak with one voice","Every agency uses the same cleared words and the same numbers from the data hub."],
+ ["Tell people what to do","Every message has an action: stay out, wash after contact, use another water source, report a fish kill."],
+ ["Keep it short","Three key messages, 27 words or fewer, at a 6th–8th grade level. Repeat them."],
+ ["Show empathy and respect","Acknowledge lost recreation, irrigation and income. Translate. Coordinate with tribes government to government."]
 ];
-const REACT=[
- ["Mental noise","Upset people take in far less information, so messages are short, few and repeated."],
- ["Negative dominance","People weigh bad news more heavily than good, so pair each negative message with what people can do and what agencies are doing, and avoid absolutes (no, never, nothing)."],
- ["Trust","When trust is low, people listen to sources they already know, so local health departments, tribal agencies and familiar local voices carry the message."]
-];
-const CONCERN=[
- ["Involuntary, controlled by others","Sewage or chemicals released by a facility; nobody chose the exposure","Say who is responsible for what, and what each agency is doing"],
- ["Human-made","Wastewater bypasses, fuel, burned homes","Be plain about the source; don't minimize it"],
- ["Affects children","Kids playing in rivers and at beaches","Give specific advice for children and pets"],
- ["Unfamiliar, hard to see","Bacteria, metals, cyanotoxins you can't see or smell","Use pictures, maps and familiar comparisons (the advisory level, last year's results)"],
- ["Unfair distribution","Downstream and tribal communities bearing the impact of upstream sources","Acknowledge it; involve those communities directly and early"],
- ["Contradictory statements","Different agencies saying different things","One cleared message, used by everyone"]
+const AVOID=[["Absolutes","no, never, nothing, “no risk”"],["Labels","“safe” or “dangerous”; say what results mean for what people want to do"],["Jargon","MPN, NTU, IR, 303(d)"],["Guessing","worst cases or dates you can't promise"],["Blame","pointing at other agencies"]];
+const LEADS=[
+ ["Health department","Speaks for every health advisory and lift. Posts signs. Tribal health agencies on tribal lands."],
+ ["DEQ Communications","Coordinates wording across agencies, handles water quality media questions, runs DEQ web and social."],
+ ["Joint Information Center","When DEM or incident command opens one, all public messaging moves there."]
 ];
 const AGENCIES=[
- ["Local health departments","River and lake contact advisories and lifts; private well guidance; illness reports","Joint releases; signs at access points"],
- ["Tribal health and environmental agencies (e.g., Navajo Nation EPA and Department of Health)","All messaging to tribal communities and on tribal lands, government to government","Joint releases; Navajo-language radio and chapter house outreach"],
- ["DEQ Office of Communications","Coordinating the joint information system; media inquiries on water quality; DEQ web and social media","JIC staffing when one opens"],
- ["DWQ (Recreational Health Coordinator, Spills Coordinator, basin coordinator, monitoring staff)","Technical content: data, maps, what results mean; advisory recommendations","Subject-matter spokesperson; fact-checking all releases"],
- ["Division of Drinking Water and water systems","Customer notices (boil water, do not use); intake status","Consistent wording on whether tap water is safe"],
- ["DEM","Joint Information Center when activated; emergency alerts","Coordinating local emergency managers"],
- ["Division of Wildlife Resources","Fish kills, fishing advisories, wildlife messaging","Anglers' channels"],
- ["Utah Department of Agriculture and Food","Irrigation and livestock guidance to producers","Producer lists, extension partners"],
- ["Land managers (USFS, BLM, NPS)","Closures and access on federal land, post-fire hazard messages with BAER teams","Trailhead and river-access signs"],
- ["Upstream states and EPA regions","Messaging for their waters and facilities","Shared timing on interstate rivers"]
+ ["Local health departments","River and lake advisories and lifts; private well guidance; illness reports","Joint releases; signs at access points"],
+ ["Tribal health and environmental agencies","All messaging to tribal communities and on tribal lands, government to government","Joint releases; Navajo-language radio; chapter houses"],
+ ["DEQ Office of Communications","Coordinating the joint information system; water quality media inquiries; DEQ web and social","JIC staffing"],
+ ["DWQ","Data, maps and what results mean; advisory recommendations (Recreational Health Coordinator, Spills Coordinator, basin coordinator, monitoring staff)","Subject-matter spokesperson; fact-checks every release"],
+ ["Drinking Water and water systems","Customer notices (boil water, do not use); intake status","Same wording on whether tap water is safe"],
+ ["DEM","Joint Information Center; emergency alerts","Local emergency managers"],
+ ["Wildlife Resources","Fish kills and fishing advisories","Anglers' channels"],
+ ["Agriculture and Food","Irrigation and livestock guidance","Producer lists; extension"],
+ ["Land managers","Closures on federal land; post-fire hazards with BAER teams","Trailhead and river-access signs"],
+ ["Upstream states and EPA","Messaging for their waters and facilities","Shared timing on interstate rivers"]
 ];
-const COLLAB=[
- ["Shared contact roster","Each agency's public information officer and backup, kept with the response roster."],
- ["Message clearance group","One technical reviewer, one PIO, one health department contact, with a one-hour turnaround."],
- ["Shared message file","Where the current approved message, Q&A and translations live, so every partner posts the same words."],
- ["Coordination call","At the same time as the interagency response call (first by 24 hours, then daily or weekly), with communications as a standing agenda item."]
-];
+const STANDING=[["Contact roster","PIO and backup for every agency."],["Clearance group","Technical reviewer, PIO and health contact; one-hour turnaround."],["Shared message file","Current message, Q&A and translations in one place."],["Coordination call","Communications is a standing item on the response call."]];
+
+/* DWQ advisory levels (deq.utah.gov/dwq/recreational-water-quality).
+   Algal toxin thresholds: DEQ recreational health advisory guidance for HABs. */
+const TIERS={
+ none:{name:"No advisory",short:"Recent results meet recreation criteria.",
+  when:["Recent samples meet Utah recreation criteria","No bloom or release reported"],
+  tell:"Enjoy the water. As always, avoid swimming during and right after heavy rain, and don't swallow the water.",
+  who:"DWQ posts conditions."},
+ watch:{name:"Health Watch",short:"A problem may be developing.",
+  when:["Signs that pathogens may be present, such as a sewage release or flood runoff upstream with results pending","A harmful algal bloom is developing"],
+  tell:"Avoid swimming and water skiing. Don't drink the water or get it in your mouth. Avoid algae scums when boating, keep pets and livestock away, and clean fish well and throw away the guts.",
+  who:"Local health department, with DWQ."},
+ warn:{name:"Warning Advisory",short:"A health threshold has been exceeded.",
+  when:["A Utah Department of Health and Human Services threshold is exceeded","Algal toxins: microcystins over 8 µg/L, cylindrospermopsin or anatoxin-a over 15 µg/L, or toxigenic cyanobacteria over 100,000 cells/mL","Bacteria: E. coli above Utah's advisory level"],
+  tell:"Avoid swimming, water skiing and wading. Don't drink the water or get it in your mouth. Keep pets and livestock away. Clean fish well and throw away the guts.",
+  who:"Local health department issues and posts it."},
+ danger:{name:"Danger Advisory",short:"Algal blooms only. Toxins are very high.",
+  when:["Very high toxins: microcystins over 2,000 µg/L, anatoxin-a over 90 µg/L, or saxitoxin over 75 µg/L","A very large bloom","A human or animal illness or death linked to the bloom"],
+  tell:"Stay away from the water. Don't swim, water ski, boat or drink the water. Keep pets and livestock away. Use caution if fishing; clean fish well and throw away the guts. The water body may be closed.",
+  who:"Local health department; the water body is often closed."}
+};
+const TIER_ORDER=["none","watch","warn","danger"];
+
 const AUD=[
- ["River and lake users","Swimmers, boaters, anglers, outfitters","Where not to go, for how long, why","Signs at boat ramps and access points; outfitter and permit-office emails; social media; local TV and radio"],
- ["Residents along the reach","","Contact risk, kids and pets, cleanup safety","Local radio and newspapers; county and city social media; door hangers or community boards where needed"],
- ["Tribal communities","","The same, in Navajo or the community's language, with tribal agency endorsement","Tribal health and EPA channels; chapter houses; Navajo-language radio such as KNDN 960 AM and KTNN; Navajo Times"],
- ["Private well owners","","Whether to test, how to disinfect, where to get kits","Health department; county extension; well-owner mailing lists"],
- ["Irrigators and livestock owners","","Whether to divert, alternate stock water","UDAF producer lists; irrigation companies and canal operators; conservation districts; ag radio"],
- ["Drinking water customers","","Whether tap water is safe","Water system notices with DDW; repeat in partner posts so people are not confused"],
- ["Spanish-speaking residents","","All of the above in Spanish","Spanish-language radio and social media; community organizations"],
- ["Media","","Facts, data, a spokesperson, the next update time","Media advisory and news release; briefings; a single media contact line"],
- ["Elected officials and local emergency managers","","Status before the public hears it","Short briefing email 30 minutes before release"]
+ ["River and lake users","Where not to go, for how long, why","Signs at ramps and access points; outfitter and permit-office emails; social; local TV and radio"],
+ ["Residents along the reach","Contact risk, kids and pets, cleanup safety","Local radio and papers; county and city social; community boards"],
+ ["Tribal communities","Same message in Navajo or the community's language, endorsed by the tribe","Tribal health and EPA; chapter houses; KNDN 960 AM, KTNN; Navajo Times"],
+ ["Private well owners","Whether to test and disinfect; where to get kits","Health department; county extension; well-owner lists"],
+ ["Irrigators and livestock owners","Whether to divert; other stock water","UDAF producer lists; canal companies; conservation districts; ag radio"],
+ ["Drinking water customers","Whether tap water is safe","Water system notices with DDW; repeat in partner posts"],
+ ["Spanish-speaking residents","All of the above in Spanish","Spanish-language radio and social; community groups"],
+ ["Media","Facts, data, a spokesperson, next update time","News release; briefings; one media contact line"],
+ ["Elected officials and emergency managers","Status before the public hears it","Briefing email 30 minutes before release"]
+];
+const CHANNELS=[
+ ["News outlets",["Send the release and call the main outlets","Hold a joint briefing for major events; post the recording","Keep a media list by basin, including Spanish and Navajo stations"]],
+ ["Social media",["Post on all partner accounts at the same time, same words and graphic","Share partners' posts instead of writing new ones","Pin the advisory; check comments twice a day"]],
+ ["Web and signs",["One advisory page per event; every post links to it","Signs match the web wording, with the date and a phone number","Take signs down when the advisory lifts"]]
 ];
 const TIMELINE=[
- ["Before an event","Each spring, before monsoon","DEQ Communications with health departments","Internal",["Update media and PIO lists","Pre-approve templates and translations","Print blank signs","Test the advisory web page"]],
- ["Forecast","Flood Watch, or Flash Flood Watch over a burn","NWS with land managers; partners share","Social media, radio",["Share the seasonal reminder: stay out of rivers during and after storms; burn scars can flash flood"]],
- ["0–1 hour","After a confirmed release, fish kill or major runoff","Health department (advisory); DEQ (facts)","Web, social media, call main outlets",["Issue the holding statement or precautionary no-contact message","Brief officials (30 minutes before release when possible)","Tell directly affected people (outfitters, tribal chapters, irrigation companies, nearby residents) before or with the media","Call the main news outlets"]],
- ["By 24 hours","","Health department and DEQ jointly; tribal agencies for tribal lands","All channels",["Joint news release","Q&A posted","Signs up at access points","Translations out","Tribal channels reached"]],
- ["24–72 hours","","DEQ with UDAF and health departments","Web, social media, producer lists",["First data update: preliminary results and what they mean","Producer guidance (irrigation, stock water)","Well-owner guidance"]],
- ["Weekly","While advisories stand","DEQ coordinates; partners share","Web, social media, briefing if needed",["Status update, even if nothing changed","Correct rumors"]],
- ["Advisory lifted","","Health department","All channels used for the advisory",["“Advisory lifted” release","Remove signs","Thank partners"]],
- ["Within 90 days","","DEQ Communications with all partners","Internal",["After-action review of communications","Update templates and lists"]]
+ ["Before an event","Each spring, before monsoon",["Update media and PIO lists","Pre-approve templates and translations","Print blank signs","Test the advisory web page"]],
+ ["Forecast","Flood Watch, or Flash Flood Watch over a burn",["Share the reminder: stay out of rivers during and after storms; burn scars can flash flood"]],
+ ["0–1 hour","Confirmed release, fish kill or major runoff",["Send the holding statement","Brief officials","Tell directly affected people","Call the main news outlets"]],
+ ["By 24 hours","",["Send the joint news release","Post the Q&A","Put up signs at access points","Send translations","Reach tribal channels"]],
+ ["24–72 hours","",["Share first results and what they mean","Send producer guidance","Send well-owner guidance"]],
+ ["Weekly","While an advisory stands",["Post a status update, even if nothing changed","Correct rumors"]],
+ ["Advisory lifted","",["Send the “advisory lifted” release","Remove signs","Thank partners"]],
+ ["Within 90 days","",["Review communications with partners","Update templates and lists"]]
 ];
 const SITS=[
- ["before","Release or major runoff, before results",f=>`Floodwater in ${f("water","river")} from ${f("from","place")} to ${f("to","place")} may carry sewage, bacteria and chemicals.`,f=>"Avoid swimming, wading and boating; keep children and pets out; wash hands after contact.",f=>`${f("facility","Facility")} reported a release on ${f("date","date")}; samples are being analyzed.`],
- ["ecoli","E. coli at or above 235 MPN/100 mL",f=>`Bacteria levels in ${f("water","river/reach")} are high enough to make people sick.`,f=>"Don't swim or put your head under water; wash with clean water after contact.",f=>`Results from ${f("date","date")} at ${f("site","site")} were above Utah's advisory level.`],
- ["hab","Harmful algal bloom",f=>`A toxic algal bloom has been found at ${f("water","lake")}.`,f=>"Avoid contact with scums and green water; keep pets and livestock away; clean fish well.",f=>`Samples confirmed ${f("toxin","toxin")} on ${f("date","date")}.`],
- ["fire","Post-fire runoff and ash",f=>`Rain on the ${f("fire","fire")} burn scar is washing ash, sediment and debris into ${f("water","stream")}.`,f=>"Stay out of channels during and after storms; flash floods can arrive with no rain where you are.",f=>`NWS warnings and stream readings on ${f("date","date")}.`],
- ["ag","Irrigation and stock water",f=>`Water at the ${f("water","diversion")} diversion may carry bacteria, ash or metals.`,f=>"Hold off irrigating crops eaten raw; use another stock water source until levels drop.",f=>`Results at ${f("site","site")} on ${f("date","date")}.`],
- ["wells","Private wells in flooded areas",f=>"Floodwater can get into private wells.",f=>`Don't drink well water until it's disinfected and tested; contact ${f("health","health department")} for kits.`,f=>`Wells near ${f("from","area")} were under water on ${f("date","date")}.`],
- ["lifted","Advisory lifted",f=>`${f("water","River/lake")} has met recreation guidelines for two weeks.`,f=>"Normal use can resume; as always, avoid water after heavy rain.",f=>`Results from ${f("date","dates")} were below advisory levels.`]
+ ["before","Release or runoff, no results yet",f=>`Floodwater in ${f("water","river")} from ${f("from","place")} to ${f("to","place")} may carry sewage, bacteria and chemicals.`,f=>"Avoid swimming, wading and boating. Keep children and pets out. Wash hands after contact.",f=>`${f("facility","Facility")} reported a release on ${f("date","date")}. Samples are being analyzed.`],
+ ["ecoli","High E. coli",f=>`Bacteria levels in ${f("water","river/reach")} are high enough to make people sick.`,f=>"Don't swim or put your head under water. Wash with clean water after contact.",f=>`Results from ${f("date","date")} at ${f("site","site")} were above Utah's advisory level.`],
+ ["hab","Harmful algal bloom",f=>`A toxic algal bloom has been found at ${f("water","lake")}.`,f=>"Avoid scums and green water. Keep pets and livestock away. Clean fish well.",f=>`Samples confirmed ${f("toxin","toxin")} on ${f("date","date")}.`],
+ ["fire","Post-fire runoff",f=>`Rain on the ${f("fire","fire")} burn scar is washing ash, sediment and debris into ${f("water","stream")}.`,f=>"Stay out of channels during and after storms. Flash floods can arrive with no rain where you are.",f=>`NWS warnings and stream readings on ${f("date","date")}.`],
+ ["ag","Irrigation and stock water",f=>`Water at the ${f("water","diversion")} diversion may carry bacteria, ash or metals.`,f=>"Hold off irrigating crops eaten raw. Use another stock water source until levels drop.",f=>`Results at ${f("site","site")} on ${f("date","date")}.`],
+ ["wells","Flooded private wells",f=>"Floodwater can get into private wells.",f=>`Don't drink well water until it's disinfected and tested. Contact ${f("health","health department")} for kits.`,f=>`Wells near ${f("from","area")} were under water on ${f("date","date")}.`],
+ ["lifted","Advisory lifted",f=>`${f("water","River/lake")} has met recreation guidelines.`,f=>"Normal use can resume. As always, avoid the water after heavy rain.",f=>`Results from ${f("date","dates")} were below advisory levels.`]
 ];
 const QA=["Is my tap water safe?","Can I eat fish from the river?","Can I water my garden?","Is it safe for my animals?","How long will this last?","Where can I see the data?"];
-const DOS=[
- ["Tell the truth; say what you know and don't know","Speculate about worst cases or guess"],
- ["Define technical terms; use visuals and examples","Use jargon or acronyms (MPN, NTU, IR)"],
- ["Use “we” and take your share of responsibility","Shift blame to other agencies"],
- ["Promise only what you can deliver, with dates","Offer guarantees or “no risk”"],
- ["Refute an allegation without repeating it","Repeat negative words or charges"],
- ["Answer the concern behind a yes/no question","Feel forced into a misleading yes or no"],
- ["Keep answers under 2 minutes and briefings under 15–20","Get into long technical debates"],
- ["Assume everything is on the record","Make “off the record” remarks"]
-];
-const CLEAR=["DWQ technical reviewer: facts and data","DEQ public information officer: wording and channels","Lead health department or tribal agency: health guidance","Translations started"];
-const EVAL=["Time from confirmed risk to first message","Whether partners used the same wording","Whether affected people heard directly before the media","Media pickup and social reach","Questions that went unanswered","Whether tribal and Spanish-speaking audiences were reached","Any illness reports","Templates and contact lists updated from what you found"];
-const CYCLE=["Identify the issue and likely concerns","Set goals and measurable (SMART) objectives","Identify affected communities and barriers (remote areas, no internet, language)","Assess audiences: local media, trusted messengers, past experience with agencies","Draft and test message maps","Choose communication and engagement methods","Assign tasks, spokespeople and timelines","Evaluate, debrief and follow up with the community"];
-const OPEN=["Confirm DEQ Communications as coordinator and local health departments as lead voice for advisories","Name PIOs and backups for each agency and add them to the response roster","Agree where the shared message file and event advisory page live","Arrange translation support (Spanish, Navajo, others) before monsoon season"];
-const INDEX={
- g:["Green","Recent results meet recreation criteria","Normal use; avoid water during and after heavy rain."],
- y:["Orange","Elevated results being confirmed, or a release upstream with results pending","Avoid swallowing water; keep children and pets out; wash after contact."],
- r:["Red","Health advisory in place","Avoid contact until the advisory lifts."]
-};
+const CLEAR=[["DWQ technical reviewer","Facts and data"],["DEQ public information officer","Wording and channels"],["Health department or tribal agency","Health guidance. Must reply for new advisories and lifts."],["Translations started","Spanish and tribal languages"]];
+const DOS=[["Say what you know and don't know","Speculate or guess"],["Explain terms; use maps and pictures","Use jargon or acronyms"],["Say “we”; own your part","Blame other agencies"],["Promise only what you can deliver, with dates","Promise “no risk”"],["Correct a claim without repeating it","Repeat negative words"],["Answer the worry behind a yes/no question","Get pushed into a misleading yes or no"],["Keep answers under 2 minutes","Debate technical details"],["Assume you're on the record","Go “off the record”"]];
+const EVAL=[["Time to first message","From confirmed risk to first public message"],["Same wording","Did every partner use the cleared words?"],["Affected people first","Did they hear before the media?"],["Reach","Media pickup and social reach"],["Unanswered questions","What did people ask that we couldn't answer?"],["Tribal and Spanish audiences","Were they reached, in their language?"],["Illness reports","Any reported illnesses?"],["Update templates and lists","Fix what didn't work"]];
+const CYCLE=[["Name the issue and concerns",""],["Set measurable objectives","e.g., first message within 1 hour"],["Find affected communities and barriers","Remote areas, no internet, language"],["Know your audiences","Local media, trusted messengers, past experience"],["Draft and test message maps",""],["Choose methods",""],["Assign tasks, spokespeople and timelines",""],["Evaluate and follow up with the community",""]];
+const OPEN=[["Confirm who leads","DEQ Communications coordinates; health departments speak for advisories"],["Name PIOs and backups","Add them to the response roster"],["Pick a home for the shared message file and advisory page",""],["Line up translators","Spanish and Navajo, before monsoon season"]];
 
-/* ---------- checklists ---------- */
+/* ================= HELPERS ================= */
 function stamp(){const d=new Date();return d.toLocaleDateString(undefined,{month:"short",day:"numeric"})+" "+d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})}
-function checklist(prefix,items){
- return `<ul class="checks">${items.map((t,i)=>{const k=prefix+":"+i,v=S.checks[k];
-  return `<li><label class="ck"><input type="checkbox" data-ck="${k}"${v?" checked":""}><span class="txt">${esc(t)}</span><span class="when">${v?esc(v):""}</span></label></li>`}).join("")}</ul>`;
+function acts(prefix,items){
+ return `<ul class="acts">${items.map((it,i)=>{const k=prefix+":"+i,v=S.checks[k],id="ck_"+prefix+"_"+i;
+  return `<li class="act"><input type="checkbox" id="${id}" data-ck="${k}"${v?" checked":""}><label for="${id}"><b>${esc(it[0])}</b></label>${it[1]?`<span class="d">${esc(it[1])}</span>`:""}<span class="side"><span class="when">${v?esc(v):""}</span>${it[2]?`<button type="button" class="small" data-sec="${it[2]}">Open →</button>`:""}</span></li>`}).join("")}</ul>`;
 }
 function countFor(prefix,n){let c=0;for(let i=0;i<n;i++)if(S.checks[prefix+":"+i])c++;return c}
-
-/* ---------- copy ---------- */
 async function copyText(txt,btn){
  let ok=false;
  try{await navigator.clipboard.writeText(txt);ok=true}catch(e){
@@ -339,15 +346,15 @@ function msgBox(id,title,htmlBody,textBody,extra){
  return `<div class="msg"><div class="msg-head"><h4>${esc(title)}</h4><span class="inline">${extra||""}<button type="button" class="small" data-copy="${id}">Copy</button></span></div><div class="msg-body">${htmlBody}</div></div>`;
 }
 const words=s=>(String(s).trim().match(/\S+/g)||[]).length;
-
-/* ---------- sections ---------- */
+const why=(title,html)=>`<details class="why"><summary>${esc(title)}</summary><div class="in">${html}</div></details>`;
 function msgs(){
   const s=SITS.find(x=>x[0]===S.sit)||SITS[0];
   const ph=evPhrase(H),pt=evPhrase(T);
+  const tr=TIERS[S.tier==="none"?"warn":S.tier];
   const hold=f=>`${f("agency","Agency")} is aware of ${f===H?ph:pt} affecting ${f("water","river")} near ${f("from","place")}. Until test results are in, people should avoid contact with the water from ${f("from","place")} to ${f("to","place")}. Samples are being collected and the next update will be at ${f("next","time, date")}. More: ${f("link","web link")} or ${f("phone","phone")}.`;
   const posts=[
    ["Precautionary",f=>`Avoid contact with the ${f("water","river")} from ${f("from","A")} to ${f("to","B")} after ${f===H?ph:pt}. Keep kids and pets out. Testing is under way; next update ${f("next","date")}. ${f("link","link")}`],
-   ["Advisory",f=>`Health advisory: high bacteria levels in the ${f("water","river")} at ${f("site","place")}. Don't swim or wade. Wash with clean water after contact. Details: ${f("link","link")}`],
+   ["Advisory ("+tr.name+")",f=>`${tr.name} for the ${f("water","river")} at ${f("site","place")}. ${tr.tell.split(". ").slice(0,2).join(". ").replace(/\.?$/,".")} Details: ${f("link","link")}`],
    ["Post-fire storm",f=>`Storms are forecast over the ${f("fire","fire")} burn scar. Flash floods and debris can come fast, even if it isn't raining where you are. Stay out of channels. ${f("link","link")}`],
    ["Lifted",f=>`The advisory for the ${f("water","river")} has been lifted. Recent tests meet recreation guidelines. Thank you for your patience. ${f("link","link")}`]
   ];
@@ -359,146 +366,140 @@ LEAD: ${f("health","Health department")} and the Utah Department of Environmenta
 
 "[Quote from DEQ on sampling and what results show so far.]"
 
-WHAT'S NEXT: Crews are sampling the river and results go to the health department the same day. The next update will be ${f("next","time, date")}.
+WHAT'S NEXT: Crews are sampling and results go to the health department the same day. The next update will be ${f("next","time, date")}.
 
 MORE INFORMATION: ${f("link","web link")} · ${f("phone","phone")}
 CONTACTS: [health department media contact] · [DEQ media contact]
 Translations attached: [Spanish] [Navajo]`;
-  const kmH=[s[2](H),s[3](H),s[4](H)],kmT=[s[2](T),s[3](T),s[4](T)];
-  return {hold,posts,nr,kmH,kmT};
+  return {hold,posts,nr,kmH:[s[2](H),s[3](H),s[4](H)],kmT:[s[2](T),s[3](T),s[4](T)]};
 }
+function fillText(){const n=EV.filter(e=>!e[3]&&S.ev[e[0]]).length,t=EV.filter(e=>!e[3]).length;return n+" of "+t+" details filled in"}
 function strip(){
-  const v=S.ev,n=EV.filter(e=>!e[3]&&v[e[0]]).length,t=EV.filter(e=>!e[3]).length;
-  const where=v.water?esc(v.water)+(v.from||v.to?" · "+esc(v.from||"?")+" to "+esc(v.to||"?"):""):"No water body yet";
-  return `<div class="strip"><span><b>Filling in from:</b> ${where}</span><span class="note">${n} of ${t} details filled in</span><button type="button" class="small" data-sec="event">Edit event details</button></div>`;
+  const v=S.ev;const where=v.water?esc(v.water)+(v.from||v.to?" · "+esc(v.from||"?")+" to "+esc(v.to||"?"):""):"No water body yet";
+  return `<div class="strip"><span><b>Filling in from:</b> ${where}</span><span class="note">${fillText()}</span><button type="button" class="small" data-sec="event">Edit event details</button></div>`;
 }
 function evFields(){
  return EV.map(([k,l,ph,opts])=>opts
   ?`<div class="field"><label for="ev_${k}">${esc(l)}</label><select id="ev_${k}" data-ev="${k}">${opts.map(o=>`<option value="${o[0]}"${S.ev[k]===o[0]?" selected":""}>${esc(o[1])}</option>`).join("")}</select></div>`
   :`<div class="field"><label for="ev_${k}">${esc(l)}</label><input type="text" id="ev_${k}" data-ev="${k}" value="${esc(S.ev[k]||"")}" placeholder="${esc(ph)}"></div>`).join("");
 }
-function fillText(){const n=EV.filter(e=>!e[3]&&S.ev[e[0]]).length,t=EV.filter(e=>!e[3]).length;return n+" of "+t+" details filled in"}
+function head(t,p){return `<div class="stage-head"><h2>${esc(t)}</h2>${p?`<p>${esc(p)}</p>`:""}</div>`}
+const ul=a=>`<ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px">${a.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`;
+
+/* ================= SECTIONS ================= */
 const SECTIONS=[
- {id:"quick",t:"Quick start: first hour",count:()=>[countFor("quick",QUICK.length),QUICK.length],render(){
-  return head("Quick start: the first hour","Get one accurate, plain-language message out within an hour of a confirmed risk, from one coordinated source, and say when the next update will come.")+
-  `<div class="block"><h3>First-hour checklist</h3>${checklist("quick",QUICK)}</div>
-   <div class="tip">Tick items as you go; each gets a time stamp for the after-action review. Fill in <b>Event details</b> (section 2) so the message templates are ready to copy.</div>`}},
+ {g:"Start here",id:"quick",t:"First hour",count:()=>[countFor("quick",QUICK.length),QUICK.length],render(){
+  return head("First hour","Goal: one accurate, plain-language message out within an hour, from one source, with the time of the next update.")+acts("quick",QUICK)}},
  {id:"event",t:"Event details",count:()=>[EV.filter(e=>!e[3]&&S.ev[e[0]]).length,EV.filter(e=>!e[3]).length],render(){
-  return head("Event details","Fill these in once. Every message template (sections 7 to 10) fills in from them, and anything left blank is highlighted in the messages. Saved in this browser only.")+
+  return head("Event details","Fill these in once. Every message fills in from them; blanks are highlighted.")+
   `<div class="evgrid">${evFields()}</div><div class="inline"><span class="fillmeter" id="fillMeter">${fillText()}</span><button type="button" class="small ghost" id="evClear">Clear details</button></div>`}},
- {id:"principles",t:"Principles",render(){
-  return head("Purpose, scope and principles","This plan pairs with the Response Guide, the Who Samples What decision tree and the Shared Sampling Data Hub, which decide when sampling and advisories happen and hold the shared results.")+
-  `<div class="block"><h3>What it covers</h3><p>River and lake contact (swimming, boating, fishing), harmful algal blooms, irrigation and stock water, private wells, ash and debris in streams, fish kills, and the data partners share. Drinking water customer notices (boil orders, do-not-use) stay with water systems and the Division of Drinking Water under their own public notification rules; this plan only lines up the timing and wording.</p></div>
-   <div class="block"><h3>CDC crisis and emergency risk communication (CERC) principles</h3><div class="cards">${CERC.map(c=>`<div class="card"><h4>${esc(c[0])}</h4><p>${esc(c[1])}</p></div>`).join("")}</div></div>
-   <div class="block"><h3>Why people react the way they do</h3><div class="cards">${REACT.map(c=>`<div class="card"><h4>${esc(c[0])}</h4><p>${esc(c[1])}</p></div>`).join("")}</div></div>
-   <div class="block"><h3>Features that raise concern, whatever the measured risk</h3><div class="scroll"><table><thead><tr><th>Feature</th><th>How it shows up here</th><th>What helps</th></tr></thead><tbody>${CONCERN.map(r=>`<tr><td><b>${esc(r[0])}</b></td><td>${esc(r[1])}</td><td>${esc(r[2])}</td></tr>`).join("")}</tbody></table></div></div>`}},
- {id:"lead",t:"Who leads",render(){
+ {id:"levels",t:"Advisory levels",render(){
+  const t=TIERS[S.tier];
+  return head("Advisory levels","Pick the level to get the public guidance. The local health department decides and posts advisories; DWQ recommends and supplies the data.")+
+  `<div class="tiers" role="group" aria-label="Advisory level">${TIER_ORDER.map(k=>`<button type="button" class="t-${k}" data-tier="${k}" aria-pressed="${S.tier===k}"><b>${esc(TIERS[k].name)}</b><span>${esc(TIERS[k].short)}</span></button>`).join("")}</div>
+   <div class="tier-detail t-${S.tier}"><div class="two"><div class="block"><h3>When</h3>${ul(t.when)}<p class="note"><b>Who:</b> ${esc(t.who)}</p></div>
+   <div class="block"><h3>Tell the public</h3>${msgBox("tier",t.name,`<b>${esc(t.name)}</b> for ${H("water","water")}: ${esc(t.tell)}`,`${t.name} for ${T("water","water")}: ${t.tell}`)}</div></div></div>
+   <div class="key"><b>Lifting an advisory:</b> two samples in a row, at least a week apart, below the health thresholds. The local health department lifts it.</div>
+   <p class="note">Source: <a href="https://deq.utah.gov/dwq/recreational-water-quality" target="_blank" rel="noopener">DWQ recreational water quality</a> and DEQ's recreational health advisory guidance for harmful algal blooms.</p>`}},
+ {g:"Plan",id:"rules",t:"Messaging rules",render(){
+  return head("Messaging rules","Six rules for every message.")+
+  `<div class="three">${RULES.map((r,i)=>`<div class="card"><span class="lbl">Rule ${i+1}</span><h3>${esc(r[0])}</h3><p>${esc(r[1])}</p></div>`).join("")}</div>
+   <div class="block"><h3>Avoid</h3><div class="scroll"><table><tbody>${AVOID.map(a=>`<tr><td style="width:160px"><b>${esc(a[0])}</b></td><td>${esc(a[1])}</td></tr>`).join("")}</tbody></table></div></div>
+   ${why("Why people react the way they do",`<ul><li><b>Upset people take in less.</b> Keep messages short, few and repeated.</li><li><b>Bad news weighs more.</b> Pair each negative with what people can do and what agencies are doing.</li><li><b>Trust follows familiar voices.</b> Let local health departments, tribal agencies and known local people carry the message.</li><li><b>Some risks feel worse:</b> ones nobody chose, human-made, affecting children, invisible (bacteria, metals, toxins), falling on downstream or tribal communities, or where agencies contradict each other. Name the source, give advice for kids and pets, use maps and comparisons, and involve affected communities early.</li></ul><p class="note">Based on CDC CERC principles, Covello (2006), EPA (2007) and ITRC (2020).</p>`)}`}},
+ {id:"lead",t:"Who speaks",render(){
   const a=AGENCIES[S.agency]||AGENCIES[0];
-  return head("Who leads and how agencies collaborate","Pick an agency to see its lane.")+
-  `<div class="rec"><b>Recommendation (for partner discussion):</b> DEQ's Office of Communications coordinates water quality risk communication as a joint information system, and local health departments (tribal health agencies on tribal lands) are the lead voice for any health advisory. When DEM activates the State Emergency Operations Center or an incident command opens a Joint Information Center, all public messaging moves into that JIC, and DEQ and health department PIOs staff it.</div>
-   <p class="muted">Why this split: in Utah, local health departments decide on and post recreational advisories, with DWQ recommending them and supplying the data, so health messages need their name on them. DEQ holds the water quality data and technical experts, and one agency has to keep partners' wording consistent between events.</p>
-   <div class="block"><h3>Agency lanes</h3><div class="pick" role="group" aria-label="Agency">${AGENCIES.map((g,i)=>`<button type="button" class="small" data-agency="${i}" aria-pressed="${i===S.agency}">${esc(g[0].replace(/ \(.*\)$/,""))}</button>`).join("")}</div>
-   <div class="lane"><div class="card"><b>${esc(a[0])} leads</b><p>${esc(a[1])}</p></div><div class="card"><b>Supports</b><p>${esc(a[2])}</p></div></div></div>
-   <div class="block"><h3>Four standing pieces</h3><div class="cards">${COLLAB.map(c=>`<div class="card"><h4>${esc(c[0])}</h4><p>${esc(c[1])}</p></div>`).join("")}</div></div>`}},
- {id:"audiences",t:"Audiences and channels",count:()=>[countFor("aud",AUD.length),AUD.length],render(){
-  const ix=INDEX[S.color]||INDEX.y;
-  return head("Audiences and channels","Reach each audience where it already gets news; rural and tribal communities often rely on radio, chapter houses and word of mouth more than social media. Tick each audience as it's reached.")+
-  `<div class="tip"><b>Tell affected people first.</b> People want to hear about a hazard in their community directly from the agencies, not from the news. Call or message outfitters, chapter houses, irrigation companies and nearby residents before or at the same moment as the media release.</div>
-   <div class="scroll"><table><thead><tr><th>Reached</th><th>Audience</th><th>What they need</th><th>Best channels</th></tr></thead><tbody>${AUD.map((r,i)=>{const k="aud:"+i,v=S.checks[k];return `<tr><td><label class="ck" style="padding:0"><input type="checkbox" data-ck="${k}"${v?" checked":""} aria-label="${esc(r[0])} reached"><span class="when">${v?esc(v):""}</span></label></td><td><b>${esc(r[0])}</b>${r[1]?`<br><span class="note">${esc(r[1])}</span>`:""}</td><td>${esc(r[2])}</td><td>${esc(r[3])}</td></tr>`}).join("")}</tbody></table></div>
-   <div class="cards">
-    <div class="card"><h4>News outlets</h4><p>Keep a media list by basin (TV, radio including Spanish and Navajo language stations, papers such as the San Juan Record and Navajo Times). For a new advisory, send a release and call the main outlets. For a major event, hold a joint briefing and post the recording.</p></div>
-    <div class="card"><h4>Social media</h4><p>Post on health department, DEQ and partner accounts at the same time, with the same graphic and wording; share each other's posts. Pin the current advisory. Check comments twice a day and answer with the approved Q&amp;A.</p></div>
-    <div class="card"><h4>Web and signs</h4><p>One advisory page per event is the source every post links to. Signs match the web wording, carry the date and a phone number, and come down when the advisory lifts.</p></div>
-   </div>
-   <div class="block"><h3>Presenting data: color index</h3><p class="muted">Compare results with something people can judge them against: the Utah criterion or advisory level, the same site before the event, and the same site over time. Avoid labeling results “safe” or “dangerous”; say what they mean for what people want to do. Pick a color to get the public guidance.</p>
-   <div class="idx" role="group" aria-label="Color index">${Object.entries(INDEX).map(([k,v])=>`<button type="button" class="${k}" data-color="${k}" aria-pressed="${S.color===k}"><b>${v[0]}</b><span>${esc(v[1])}</span></button>`).join("")}</div>
-   ${msgBox("color",ix[0]+" guidance for the advisory page",`<b>${esc(ix[0])}:</b> ${esc(ix[1])}.\nPublic guidance for ${H("water","water")}: ${esc(ix[2])}`,`${ix[0]}: ${ix[1]}.\nPublic guidance for ${T("water","water")}: ${ix[2]}`)}
-   <p class="note">The health department decides on advisories, so Red follows its decision; DWQ sets Green and Orange from the data with the health department's agreement.</p></div>`}},
- {id:"timeline",t:"Timeline",count:()=>{let c=0,n=0;TIMELINE.forEach((p,i)=>{n+=p[4].length;c+=countFor("tl"+i,p[4].length)});return[c,n]},render(){
-  return head("Implementation timeline","The messaging clock runs alongside the response clocks in the Response Guide: a holding message within an hour, a joint release within 24 hours, then scheduled updates until the advisory lifts.")+
-  `<div class="two">`+TIMELINE.map((p,i)=>{const c=countFor("tl"+i,p[4].length);return `<div class="msg"><div class="msg-head"><h4>${esc(p[0])}${p[1]?` <span class="note">· ${esc(p[1])}</span>`:""}</h4><span class="chip ${c===p[4].length?"ok":""}">${c} of ${p[4].length}</span></div><div style="padding:8px 8px 10px"><p class="note" style="padding:0 8px 6px"><b>Lead:</b> ${esc(p[2])} · <b>Channels:</b> ${esc(p[3])}</p>${checklist("tl"+i,p[4])}</div></div>`}).join("")+`</div>`}},
- {id:"messages",t:"Core messages",render(){
+  return head("Who speaks","Recommended split, for partner agreement.")+
+  `<div class="three">${LEADS.map(l=>`<div class="card"><h3>${esc(l[0])}</h3><p>${esc(l[1])}</p></div>`).join("")}</div>
+   <div class="block"><h3>Find an agency's lane</h3><div class="pick" role="group" aria-label="Agency">${AGENCIES.map((g,i)=>`<button type="button" class="small" data-agency="${i}" aria-pressed="${i===S.agency}">${esc(g[0])}</button>`).join("")}</div>
+   <div class="two"><div class="card"><span class="lbl">Leads</span><p style="color:var(--ink);font-size:15.5px">${esc(a[1])}</p></div><div class="card"><span class="lbl">Supports</span><p style="color:var(--ink);font-size:15.5px">${esc(a[2])}</p></div></div></div>
+   <div class="block"><h3>Keep in place between events</h3><div class="grid">${STANDING.map(c=>`<div class="card"><h3 style="font-size:17px">${esc(c[0])}</h3><p>${esc(c[1])}</p></div>`).join("")}</div></div>
+   ${why("Why this split",`<p>Local health departments decide on and post recreational advisories, so health messages need their name. DEQ holds the data and the technical experts, and one agency has to keep wording consistent between events. A JIC takes over in a declared emergency because every agency's messages then compete for the same audience.</p>`)}`}},
+ {id:"audiences",t:"Reach people",count:()=>[countFor("aud",AUD.length),AUD.length],render(){
+  return head("Reach people","Tell affected people directly, before or with the media. Tick each audience as you reach it.")+
+  acts("aud",AUD.map(r=>[r[0],r[1]+" · "+r[2]]))+
+  `<div class="three">${CHANNELS.map(c=>`<div class="card"><h3>${esc(c[0])}</h3><ul>${c[1].map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`).join("")}</div>
+   ${why("Presenting data",`<ul><li>Compare results with something people can judge: the Utah criterion or advisory level, the same site before the event, the same site over time.</li><li>Use the advisory level names, not “safe” or “dangerous.”</li><li>Share preliminary data when people are at risk, say what you don't know yet, and explain how sampling works while results are pending.</li></ul>`)}`}},
+ {id:"timeline",t:"Timeline",count:()=>{let c=0,n=0;TIMELINE.forEach((p,i)=>{n+=p[2].length;c+=countFor("tl"+i,p[2].length)});return[c,n]},render(){
+  return head("Timeline","Holding message within an hour, joint release within 24 hours, then scheduled updates until the advisory lifts.")+
+  `<div class="two">${TIMELINE.map((p,i)=>{const c=countFor("tl"+i,p[2].length);return `<div class="msg"><div class="msg-head"><h4>${esc(p[0])}${p[1]?` <span class="note">· ${esc(p[1])}</span>`:""}</h4><span class="chip ${c===p[2].length?"ok":""}">${c} of ${p[2].length}</span></div><div style="padding:10px">${acts("tl"+i,p[2].map(x=>[x]))}</div></div>`}).join("")}</div>`}},
+ {g:"Messages",id:"messages",t:"Core messages",render(){
   const M=msgs();
-  return head("Core messages by situation","Each message answers the same four questions in this order: what happened, what to do, why, and when the next update comes. Pick the situation.")+strip()+
+  return head("Core messages","Pick the situation. Each gives the key message, what to do, and the proof.")+strip()+
   `<div class="sits" role="group" aria-label="Situation">${SITS.map(x=>`<button type="button" class="small" data-sit="${x[0]}" aria-pressed="${x[0]===S.sit}">${esc(x[1])}</button>`).join("")}</div>
-   <div class="kmd">${[["Key message",0],["What people should do",1],["Proof point",2]].map(([l,i])=>`<div class="card"><span class="lbl">${l}</span><p style="color:var(--ink);font-size:16px">${M.kmH[i]}</p></div>`).join("")}</div>
-   <div class="inline"><button type="button" class="small" data-copy="core">Copy core message</button><span class="note">Key message: ${words(M.kmT[0])} words.</span></div>
+   <div class="three">${[["Key message",0],["What to do",1],["Proof point",2]].map(([l,i])=>`<div class="card"><span class="lbl">${l}</span><p style="color:var(--ink);font-size:16.5px">${M.kmH[i]}</p></div>`).join("")}</div>
+   <div class="inline"><button type="button" class="small primary" data-copy="core">Copy core message</button><span class="note">Key message: ${words(M.kmT[0])} words.</span></div>
    ${(COPY.core=M.kmT.join(" "),"")}`}},
- {id:"holding",t:"Holding statement and news release",render(){
+ {id:"holding",t:"Holding statement and release",render(){
   const M=msgs();
-  return head("Holding statement and news release","The holding statement goes out within the first hour; the joint news release within 24 hours.")+strip()+
-  `<div class="two"><div class="block"><h3>Holding statement (first hour)</h3>${msgBox("hold","Holding statement",M.hold(H),M.hold(T),`<span class="chip">${words(M.hold(T))} words</span>`)}</div>
-   <div class="block"><h3>News release draft (by 24 hours)</h3>${msgBox("nr","News release",M.nr(H),M.nr(T))}</div></div>`}},
- {id:"social",t:"Social media posts",render(){
+  return head("Holding statement and news release","Holding statement within the first hour; joint news release within 24 hours.")+strip()+
+  `<div class="two"><div class="block"><h3>Holding statement</h3>${msgBox("hold","First hour",M.hold(H),M.hold(T),`<span class="chip">${words(M.hold(T))} words</span>`)}</div>
+   <div class="block"><h3>News release draft</h3>${msgBox("nr","By 24 hours",M.nr(H),M.nr(T))}</div></div>`}},
+ {id:"social",t:"Social posts",render(){
   const M=msgs();
-  return head("Social media posts","Post on health department, DEQ and partner accounts at the same time, with the same wording. Share partners' posts rather than writing new ones.")+strip()+
-  `<div class="two">${M.posts.map((p,i)=>{const t=p[1](T);return msgBox("post"+i,p[0],p[1](H),t,`<span class="chip ${t.length>280?"warn":""}">${t.length} characters</span>`)}).join("")}</div>
-   <p class="note">Post with a map or photo, alt text, a link to the advisory page and the time of the next update. Pin the current advisory, and check comments twice a day.</p>`}},
+  return head("Social posts","Post on every partner account at once, with a map or photo, alt text and the advisory link. The advisory post uses the level picked under Advisory levels.")+strip()+
+  `<div class="two">${M.posts.map((p,i)=>{const t=p[1](T);return msgBox("post"+i,p[0],p[1](H),t,`<span class="chip ${t.length>280?"warn":""}">${t.length} characters</span>`)}).join("")}</div>`}},
  {id:"qa",t:"Q&A",count:()=>[QA.filter((q,i)=>(S.qa[i]||"").trim()).length,QA.length],render(){
-  return head("Q&A","Write the approved answer for each question as the event unfolds, then copy the set for the shared message file. Add recurring questions from the rumor log.")+
+  return head("Q&A","Write the approved answers, then copy them to the shared message file.")+
   `<div class="two">${QA.map((q,i)=>`<div class="field"><label for="qa${i}">${esc(q)}</label><textarea id="qa${i}" data-qa="${i}" rows="3">${esc(S.qa[i]||"")}</textarea></div>`).join("")}</div>
-   <div class="inline"><button type="button" class="small" id="qaCopy">Copy Q&amp;A</button></div>`}},
- {id:"map",t:"Message map builder",render(){
+   <div class="inline"><button type="button" class="small primary" id="qaCopy">Copy Q&amp;A</button></div>`}},
+ {id:"map",t:"Message map",render(){
   const m=S.map,tot=m.k.reduce((a,k)=>a+words(k),0);
-  return head("Message map builder","A message map answers one stakeholder question with three key messages, each backed by three supporting facts. Build maps before an event and adapt them on the day.")+
-  `<div class="block"><h3>How to build one</h3><ol class="plain">
-    <li>List the stakeholders (the audiences in section 5).</li><li>List their likely questions: is it safe to swim, fish, irrigate, drink?</li><li>Group the questions into common concerns; start with the ones most audiences share.</li><li>Write three key messages per question: together no more than 27 words, about 9 seconds spoken, at a 6th–8th grade level.</li><li>Add three supporting facts under each key message (results, dates, what agencies are doing).</li><li>Test the map with a subject-matter expert who didn't write it, and with partner agencies.</li><li>Plan delivery: who says it, on which channels, and when.</li></ol></div>
-   <div class="block"><div class="field"><label for="mq">Stakeholder question</label><input type="text" id="mq" data-map="q" value="${esc(m.q)}" placeholder="e.g., Is it safe to be in the river after the flood?"></div>
-   <div class="meter"><span class="lbl">Key messages together: <span id="mmTot">${tot}</span> of 27 words</span><span class="bar ${tot>27?"over":""}" id="mmBar"><i style="width:${Math.min(100,tot/27*100)}%"></i></span></div>
-   <div class="mm">${[0,1,2].map(i=>`<div class="col"><div class="field"><label for="mk${i}">Key message ${i+1}</label><textarea id="mk${i}" data-map="k${i}" rows="2">${esc(m.k[i])}</textarea><span class="wc" id="wc${i}">${words(m.k[i])} words</span></div>${[0,1,2].map(j=>`<div class="field"><label for="mf${i}${j}">Supporting fact ${j+1}</label><input type="text" id="mf${i}${j}" data-map="f${i}${j}" value="${esc(m.f[i][j])}"></div>`).join("")}</div>`).join("")}</div>
-   <div class="inline"><button type="button" class="small" id="mmExample">Load the flood example</button><button type="button" class="small" id="mmCopy">Copy map</button><button type="button" class="small ghost" id="mmClear">Clear map</button></div></div>
-   <div class="tip">Deliver it as “tell me, tell me more, tell me again”: state the three key messages, give the supporting facts, then repeat the key messages. Pair each negative message with about three positive or action-oriented ones, and when questions wander, bridge back: “What's most important for people to know is …”</div>`}},
- {id:"clear",t:"Clearance and spokespeople",count:()=>[countFor("clr",CLEAR.length),CLEAR.length],render(){
-  return head("Clearance and spokespeople","")+
-  `<div class="block"><h3>Clearance in one hour</h3><p class="muted">Send each message to three reviewers at once. Silence after one hour counts as approval for holding statements and routine updates; new advisories and lifts need a reply from the health department.</p>${checklist("clr",CLEAR)}</div>
-   <div class="block"><h3>Spokespeople</h3><p>Name a primary and backup for each lead agency at the first interagency call: the health officer or designee for health advisories, a DWQ scientist for what the data show, and a JIC spokesperson when one is open. Spokespeople stay within their agency's lane and refer other questions to the right partner.</p>
-   <div class="scroll"><table><thead><tr><th>Do</th><th>Don't</th></tr></thead><tbody>${DOS.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td></tr>`).join("")}</tbody></table></div><p class="note">Condensed from EPA's Risk Communication Workbook (2007), Table 4-1.</p></div>
-   <div class="block"><h3>Accessibility</h3><p>Plain language at a 6th–8th grade level, alt text on images, captions on video, and translations into Spanish and the languages of affected tribal communities, reviewed by native speakers. Signs use pictures as well as words.</p></div>`}},
- {id:"rumor",t:"Rumor and inquiry log",render(){
-  return head("Rumor and inquiry log","")+`<p class="muted">Log questions and rumors from calls, social media and the field, with the approved answer. Recurring questions go into the Q&amp;A and the next update. Saved in this browser; copy or download it for the shared message file.</p>
-   <div class="grid"><div class="field"><label for="rlSrc">Source</label><select id="rlSrc"><option>Phone</option><option>Social media</option><option>Field</option><option>Media</option><option>Email</option><option>Other</option></select></div><div class="field"><label for="rlBy">Answered by</label><input type="text" id="rlBy"></div></div>
-   <div class="field"><label for="rlQ">Question or rumor</label><textarea id="rlQ" rows="2"></textarea></div>
-   <div class="field"><label for="rlA">Approved answer</label><textarea id="rlA" rows="2"></textarea></div>
+  return head("Message map","One question, three key messages (27 words or fewer together), three facts under each.")+
+  `<div class="field"><label for="mq">Question people are asking</label><input type="text" id="mq" data-map="q" value="${esc(m.q)}" placeholder="e.g., Is it safe to be in the river after the flood?"></div>
+   <div class="meter"><span class="lbl">Key messages: <span id="mmTot">${tot}</span> of 27 words</span><span class="bar ${tot>27?"over":""}" id="mmBar"><i style="width:${Math.min(100,tot/27*100)}%"></i></span></div>
+   <div class="mm">${[0,1,2].map(i=>`<div class="col"><div class="field"><label for="mk${i}">Key message ${i+1}</label><textarea id="mk${i}" data-map="k${i}" rows="2">${esc(m.k[i])}</textarea><span class="wc" id="wc${i}">${words(m.k[i])} words</span></div>${[0,1,2].map(j=>`<div class="field"><label for="mf${i}${j}">Fact ${j+1}</label><input type="text" id="mf${i}${j}" data-map="f${i}${j}" value="${esc(m.f[i][j])}"></div>`).join("")}</div>`).join("")}</div>
+   <div class="inline"><button type="button" class="small" id="mmExample">Load flood example</button><button type="button" class="small primary" id="mmCopy">Copy map</button><button type="button" class="small ghost" id="mmClear">Clear</button></div>
+   ${why("How to build and deliver a map",`<ul><li>List audiences and their questions (swim? fish? irrigate? drink?). Start with the questions most audiences share.</li><li>Facts: results, dates, what agencies are doing.</li><li>Test it with an expert who didn't write it, and with partners.</li><li>Deliver as “tell me, tell me more, tell me again”: key messages, facts, key messages.</li><li>Pair each negative with about three positive or action messages. Bridge back when questions wander: “What's most important to know is …”</li></ul>`)}`}},
+ {g:"Manage",id:"clear",t:"Clearance and spokespeople",count:()=>[countFor("clr",CLEAR.length),CLEAR.length],render(){
+  return head("Clearance and spokespeople","Send each message to all reviewers at once. One-hour turnaround.")+
+  `<div class="two"><div class="block"><h3>Clear the message</h3>${acts("clr",CLEAR)}<p class="note">No reply in an hour counts as approval, for holding statements and routine updates only.</p></div>
+   <div class="block"><h3>Name spokespeople at the first call</h3>${acts("spk",[["Health officer or designee","Health advisories"],["DWQ scientist","What the data show"],["JIC spokesperson","When a JIC is open"]])}<p class="note">Stay in your lane; refer other questions to the right partner.</p></div></div>
+   <div class="block"><h3>On camera</h3><div class="scroll"><table><thead><tr><th>Do</th><th>Don't</th></tr></thead><tbody>${DOS.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td></tr>`).join("")}</tbody></table></div></div>`}},
+ {id:"rumor",t:"Rumor log",render(){
+  return head("Rumor and inquiry log","Log it, answer it with the approved wording, and add repeat questions to the Q&A.")+
+  `<div class="grid"><div class="field"><label for="rlSrc">Source</label><select id="rlSrc"><option>Phone</option><option>Social media</option><option>Field</option><option>Media</option><option>Email</option><option>Other</option></select></div><div class="field"><label for="rlBy">Answered by</label><input type="text" id="rlBy"></div></div>
+   <div class="two"><div class="field"><label for="rlQ">Question or rumor</label><textarea id="rlQ" rows="2"></textarea></div><div class="field"><label for="rlA">Approved answer</label><textarea id="rlA" rows="2"></textarea></div></div>
    <div class="inline"><button type="button" class="primary small" id="rlAdd">Add to log</button><button type="button" class="small" id="rlCopy">Copy log</button><button type="button" class="small" id="rlCsv">Download CSV</button><span class="status" id="rlStatus" role="status"></span></div>
-   ${S.rumors.length?`<div class="scroll"><table><thead><tr><th>When</th><th>Source</th><th>Question or rumor</th><th>Approved answer</th><th>By</th><th></th></tr></thead><tbody>${S.rumors.map((r,i)=>`<tr><td style="white-space:nowrap">${esc(r.when)}</td><td>${esc(r.src)}</td><td>${esc(r.q)}</td><td>${esc(r.a)}</td><td>${esc(r.by)}</td><td><button type="button" class="small ghost" data-rdel="${i}" aria-label="Delete entry">Delete</button></td></tr>`).join("")}</tbody></table></div>`:`<p class="note">No entries yet.</p>`}`}},
- {id:"eval",t:"Evaluation and planning",count:()=>[countFor("ev",EVAL.length)+countFor("cy",CYCLE.length)+countFor("op",OPEN.length),EVAL.length+CYCLE.length+OPEN.length],render(){
-  return head("Evaluation and planning","Review communications after each event and plan between events.")+
-  `<div class="block"><h3>After-action review</h3>${checklist("ev",EVAL)}</div>
-   <div class="block"><h3>Planning cycle between events</h3><p class="muted">Before each monsoon and runoff season, run the eight-step planning cycle (ITRC 2020) for each basin, with measurable objectives such as “first message within 1 hour of a confirmed release” or “advisory signs at every public access point within 24 hours.”</p>${checklist("cy",CYCLE)}</div>
-   <div class="block"><h3>Open questions for partners</h3>${checklist("op",OPEN)}</div>`}},
+   ${S.rumors.length?`<div class="scroll"><table><thead><tr><th>When</th><th>Source</th><th>Question or rumor</th><th>Approved answer</th><th>By</th><th></th></tr></thead><tbody>${S.rumors.map((r,i)=>`<tr><td style="white-space:nowrap">${esc(r.when)}</td><td>${esc(r.src)}</td><td>${esc(r.q)}</td><td>${esc(r.a)}</td><td>${esc(r.by)}</td><td><button type="button" class="small ghost" data-rdel="${i}">Delete</button></td></tr>`).join("")}</tbody></table></div>`:`<p class="note">No entries yet. Saved in this browser.</p>`}`}},
+ {id:"eval",t:"After the event",count:()=>[countFor("ev",EVAL.length),EVAL.length],render(){
+  return head("After the event","Review within 90 days with all partners.")+acts("ev",EVAL)}},
+ {id:"prep",t:"Between events",count:()=>[countFor("cy",CYCLE.length)+countFor("op",OPEN.length),CYCLE.length+OPEN.length],render(){
+  return head("Between events","Before each monsoon and runoff season, for each basin.")+
+  `<div class="two"><div class="block"><h3>Settle with partners</h3>${acts("op",OPEN)}</div><div class="block"><h3>Planning cycle</h3>${acts("cy",CYCLE)}</div></div>`}},
  {id:"sources",t:"Sources",render(){
   return head("Sources","")+
-  `<ul class="plain" style="padding-left:20px;display:flex;flex-direction:column;gap:10px">
-   <li>Covello, V.T. (2006). Risk communication and message mapping: a new tool for communicating effectively in public health emergencies and disasters. <i>Journal of Emergency Management</i> 4(3).</li>
-   <li>Interstate Technology and Regulatory Council (2020). <a href="https://rct-1.itrcweb.org" target="_blank" rel="noopener">Risk Communication Toolkit for Environmental Issues and Concerns</a>.</li>
-   <li>Reckelhoff-Dangel, C., and D. Petersen (2007). <i>Risk Communication in Action: The Risk Communication Workbook.</i> EPA/625/R-05/003.</li>
+  `<ul style="padding-left:20px;display:flex;flex-direction:column;gap:10px;margin:0">
+   <li>Utah DWQ. <a href="https://deq.utah.gov/dwq/recreational-water-quality" target="_blank" rel="noopener">Recreational water quality</a> (advisory levels and public guidance).</li>
+   <li>Utah DEQ. <a href="https://deq.utah.gov/health-advisory-panel/harmful-algal-blooms-habs/recreational-health-advisory-guidance-for-harmful-algal-blooms" target="_blank" rel="noopener">Recreational health advisory guidance for harmful algal blooms</a> (toxin thresholds, lifting advisories).</li>
+   <li>Covello, V.T. (2006). Risk communication and message mapping. <i>Journal of Emergency Management</i> 4(3).</li>
+   <li>Interstate Technology and Regulatory Council (2020). <a href="https://rct-1.itrcweb.org" target="_blank" rel="noopener">Risk Communication Toolkit</a>.</li>
+   <li>EPA (2007). <i>Risk Communication in Action: The Risk Communication Workbook.</i> EPA/625/R-05/003.</li>
    <li>CDC. <a href="https://blogs.cdc.gov/publichealthmatters/2015/06/cdcs-cerc-program-principles-to-communicate-by-in-an-emergency-response-and-everyday-life" target="_blank" rel="noopener">Crisis and Emergency Risk Communication (CERC) principles</a>.</li></ul>`}}
 ];
-function head(t,p){return `<div class="stage-head"><span class="eyebrow">${esc(SECTIONS.findIndex(s=>s.id===S.sec)+1)} of ${SECTIONS.length}</span><h2>${esc(t)}</h2>${p?`<p>${esc(p)}</p>`:""}</div>`}
 
-/* ---------- render ---------- */
+/* ================= RENDER ================= */
 function renderNav(){
- $("#steps").innerHTML=SECTIONS.map((s,i)=>{const c=s.count?s.count():null;
-  return `<button type="button" data-sec="${s.id}" class="${c&&c[0]===c[1]?"done":""}"${s.id===S.sec?' aria-current="step"':""}><span class="n">${i+1}</span><span class="t">${esc(s.t)}</span>${c?`<span class="c">${c[0]}/${c[1]}</span>`:""}</button>`}).join("");
+ $("#steps").innerHTML=SECTIONS.map(s=>{const c=s.count?s.count():null;
+  return (s.g?`<div class="grp">${esc(s.g)}</div>`:"")+`<button type="button" data-sec="${s.id}" class="${c&&c[1]&&c[0]===c[1]?"done":""}"${s.id===S.sec?' aria-current="step"':""}><span class="t">${esc(s.t)}</span>${c?`<span class="c">${c[0]}/${c[1]}</span>`:""}</button>`}).join("");
 }
 function renderStage(focus){
  COPY={};
- const i=SECTIONS.findIndex(s=>s.id===S.sec),s=SECTIONS[i]||SECTIONS[0];
- const prev=SECTIONS[i-1],next=SECTIONS[i+1];
+ let i=SECTIONS.findIndex(s=>s.id===S.sec);if(i<0){i=0;S.sec=SECTIONS[0].id}
+ const s=SECTIONS[i],prev=SECTIONS[i-1],next=SECTIONS[i+1];
  $("#stage").innerHTML=s.render()+`<div class="foot"><span>${prev?`<button type="button" data-sec="${prev.id}">← ${esc(prev.t)}</button>`:""}</span><span>${next?`<button type="button" class="primary" data-sec="${next.id}">${esc(next.t)} →</button>`:""}</span></div>`;
  if(focus){$("#stage").focus({preventScroll:true});const r=$("#stage").getBoundingClientRect();if(r.top<0)window.scrollTo({top:window.scrollY+r.top-12})}
 }
 function fillMeter(){const el=$("#fillMeter");if(el)el.textContent=fillText()}
 function all(){renderNav();renderStage()}
 
-/* ---------- events ---------- */
+/* ================= EVENTS ================= */
 document.addEventListener("click",e=>{
  const b=e.target.closest("button");if(!b)return;
  if(b.dataset.sec){S.sec=b.dataset.sec;save();renderNav();renderStage(true);return}
  if(b.dataset.copy){copyText(COPY[b.dataset.copy]||"",b);return}
  if(b.dataset.agency){S.agency=+b.dataset.agency;save();renderStage();return}
  if(b.dataset.sit){S.sit=b.dataset.sit;save();renderStage();return}
- if(b.dataset.color){S.color=b.dataset.color;save();renderStage();return}
+ if(b.dataset.tier){S.tier=b.dataset.tier;save();renderStage();return}
  if(b.dataset.rdel){S.rumors.splice(+b.dataset.rdel,1);save();renderStage();return}
  switch(b.id){
   case "printBtn":window.print();break;
@@ -507,9 +508,9 @@ document.addEventListener("click",e=>{
   case "qaCopy":copyText(QA.map((q,i)=>"Q: "+q+"\nA: "+(S.qa[i]||"[approved answer]")).join("\n\n"),b);break;
   case "mmExample":S.map={q:"Is it safe to be in the river after the flood?",
     k:[`Stay out of the river below ${T("from","place")} for now.`,"Crews test the water every few days.","Normal use resumes once tests pass."],
-    f:[[`Floodwater carried sewage from ${T("facility","facility")} on ${T("date","date")}.`,"Bacteria can make people sick through cuts or swallowed water.",`The health department issued a precautionary advisory on ${T("date","date")}.`],
+    f:[[`Floodwater carried sewage from ${T("facility","facility")} on ${T("date","date")}.`,"Bacteria can make people sick through cuts or swallowed water.",`The health department issued an advisory on ${T("date","date")}.`],
        ["DWQ sampled [n] sites on [dates].","Results go to the health department the same day.","The advisory page shows each new result."],
-       ["Utah's advisory level is 235 E. coli per 100 mL.","Two weeks of passing results are needed to lift it.",`The next update is ${T("next","date")}.`]]};save();renderStage();break;
+       ["Two samples in a row, a week apart, must pass.","The health department lifts the advisory.",`The next update is ${T("next","date")}.`]]};save();renderStage();break;
   case "mmClear":S.map=JSON.parse(JSON.stringify(DEF.map));save();renderStage();break;
   case "mmCopy":{const m=S.map;copyText("QUESTION: "+(m.q||"[question]")+"\n\n"+m.k.map((k,i)=>"KEY MESSAGE "+(i+1)+": "+(k||"[ ]")+"\n"+m.f[i].map(f=>"  - "+(f||"[ ]")).join("\n")).join("\n\n"),b);break}
   case "rlAdd":{const q=$("#rlQ").value.trim();if(!q){$("#rlStatus").textContent="Enter the question or rumor.";return}
@@ -524,7 +525,7 @@ function confirmReset(){const b=$("#resetBtn");if(Date.now()-resetArmed<4000){b.
 document.addEventListener("change",e=>{
  const t=e.target;
  if(t.dataset.ck){if(t.checked)S.checks[t.dataset.ck]=stamp();else delete S.checks[t.dataset.ck];save();
-  const w=t.closest("label").querySelector(".when");if(w)w.textContent=S.checks[t.dataset.ck]||"";renderNav();
+  const row=t.closest(".act"),w=row&&row.querySelector(".when");if(w)w.textContent=S.checks[t.dataset.ck]||"";renderNav();
   if(S.sec==="timeline")renderStage();return}
  if(t.dataset.ev&&t.tagName==="SELECT"){S.ev[t.dataset.ev]=t.value;save()}
 });
@@ -538,7 +539,6 @@ document.addEventListener("input",e=>{
   else S.map.f[+k[1]][+k[2]]=t.value;
   save();const tot=S.map.k.reduce((a,x)=>a+words(x),0);const tt=$("#mmTot"),bar=$("#mmBar");if(tt){tt.textContent=tot;bar.classList.toggle("over",tot>27);bar.firstElementChild.style.width=Math.min(100,tot/27*100)+"%"}}
 });
-
 all();
 })();
 </script>
