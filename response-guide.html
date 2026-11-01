@@ -1,0 +1,728 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Flood and Post-Fire Response Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: step list on the left, one step at a time in the middle, the event clock and what is due next on the right. Same tokens as the SAP Builder. */
+:root{
+  --bg:#f3f6f5; --surface:#ffffff; --sunken:#eaf0ef; --ink:#16252a; --muted:#56696e; --line:#d3dddc;
+  --accent:#0b6a78; --accent-ink:#ffffff; --accent-soft:#dcedef;
+  --silt:#8a5d14; --silt-bg:#f6ecd8; --good:#2c7346; --good-bg:#e1f0e5; --bad:#a3372a; --bad-bg:#f8e4df;
+  --f-display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1618; --surface:#152124; --sunken:#1b2a2e; --ink:#e2ebe9; --muted:#97abad; --line:#2a3b3f;
+  --accent:#55b6c5; --accent-ink:#06252a; --accent-soft:#173439;
+  --silt:#dba84f; --silt-bg:#2c2413; --good:#6dc48c; --good-bg:#14281b; --bad:#ec8a78; --bad-bg:#331b16; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1618; --surface:#152124; --sunken:#1b2a2e; --ink:#e2ebe9; --muted:#97abad; --line:#2a3b3f;
+  --accent:#55b6c5; --accent-ink:#06252a; --accent-soft:#173439;
+  --silt:#dba84f; --silt-bg:#2c2413; --good:#6dc48c; --good-bg:#14281b; --bad:#ec8a78; --bad-bg:#331b16; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1280px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.15;text-wrap:balance;margin:0}
+h1{font-size:clamp(28px,4vw,40px)}
+h2{font-size:24px}
+h3{font-size:17px;font-weight:600}
+p{margin:0}
+a{color:var(--accent)}
+.eyebrow{font-family:var(--f-display);font-weight:600;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.muted{color:var(--muted)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+header.top{padding-block:28px 18px;display:flex;flex-direction:column;gap:10px}
+.lede{max-width:70ch;color:var(--muted)}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button,.btn{font:600 14px/1 var(--f-body);border-radius:var(--r);padding:10px 14px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+button.primary,.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.ghost{background:transparent}
+button.small,.btn.small{padding:6px 10px;font-size:13px}
+button:hover,.btn:hover{border-color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--surface);width:fit-content;max-width:100%}
+.seg label{cursor:pointer;display:flex}
+.seg input{position:absolute;opacity:0;width:1px;height:1px}
+.seg span{font:600 14px/1 var(--f-body);padding:9px 16px;border-radius:999px;color:var(--muted)}
+.seg input:checked+span{background:var(--accent);color:var(--accent-ink)}
+.seg input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+
+.layout{display:grid;grid-template-columns:220px minmax(0,1fr) 300px;gap:20px;align-items:start;padding-bottom:40px}
+@media (max-width:1100px){.layout{grid-template-columns:200px minmax(0,1fr)}.clockcol{grid-column:1/-1}}
+@media (max-width:760px){.layout{grid-template-columns:minmax(0,1fr)}}
+nav.steps{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);display:flex;flex-direction:column;gap:2px;min-width:0}
+nav.steps button{justify-content:space-between;width:100%;border:0;background:transparent;padding:9px 10px;border-radius:var(--r);font-weight:500;text-align:left;line-height:1.25;color:var(--ink)}
+nav.steps button .n{font-family:var(--f-mono);font-size:12px;color:var(--muted);min-width:22px}
+nav.steps button .t{flex:1}
+nav.steps button .c{font-family:var(--f-mono);font-size:11.5px;color:var(--muted);white-space:nowrap}
+nav.steps button.done .c{color:var(--good)}
+nav.steps button[aria-current="step"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+nav.steps button:hover{background:var(--sunken)}
+@media (max-width:760px){
+  nav.steps{position:static;flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:6px;scrollbar-width:thin}
+  nav.steps button{width:auto;flex:none;border:1px solid var(--line);background:var(--surface);gap:8px}
+}
+main.stage{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:clamp(16px,3vw,28px);display:flex;flex-direction:column;gap:20px;min-width:0}
+.stage-head{display:flex;flex-direction:column;gap:6px}
+.stage-head p{color:var(--muted);max-width:70ch}
+.block{display:flex;flex-direction:column;gap:10px;min-width:0}
+.block>h3{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px 16px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field.wide{grid-column:1/-1}
+label,.lbl{font-size:13px;font-weight:600;color:var(--muted)}
+input[type=text],input[type=date],input[type=datetime-local],input[type=number],select,textarea{font:400 15px/1.35 var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:8px 10px;width:100%;min-width:0}
+textarea{min-height:80px;resize:vertical}
+.checks{display:flex;flex-direction:column;gap:2px;margin:0;padding:0;list-style:none}
+.ck,.lvl{font-size:15px;font-weight:400;color:var(--ink)}
+.ck{display:flex;gap:10px;align-items:flex-start;padding:7px 8px;border-radius:var(--r);cursor:pointer}
+.ck:hover{background:var(--sunken)}
+.ck input{accent-color:var(--accent);margin-top:3px;width:17px;height:17px;flex:none}
+.ck .txt{flex:1;min-width:0}
+.ck .when{font-family:var(--f-mono);font-size:12px;color:var(--good);white-space:nowrap;margin-left:auto;padding-left:8px}
+.ck:has(input:checked) .txt{color:var(--muted)}
+.win{border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.win-head{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--sunken)}
+.win-head h3{font-size:16px}
+.win-body{padding:6px 6px 10px;display:flex;flex-direction:column;gap:6px}
+.win-meta{display:flex;flex-direction:column;gap:3px;padding:0 8px;font-size:13.5px;color:var(--muted)}
+.win-meta b{color:var(--ink);font-weight:600}
+.chip{font-size:12.5px;font-weight:600;padding:4px 9px;border-radius:999px;background:var(--sunken);color:var(--muted);border:1px solid var(--line);white-space:nowrap}
+.chip.ok{background:var(--good-bg);color:var(--good);border-color:transparent}
+.chip.bad{background:var(--bad-bg);color:var(--bad);border-color:transparent}
+.chip.warn{background:var(--silt-bg);color:var(--silt);border-color:transparent}
+.chip.info{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+.verdict{border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:4px;border-left:4px solid var(--line);background:var(--sunken)}
+.verdict.ok{border-color:var(--good);background:var(--good-bg)}
+.verdict.warn{border-color:var(--silt);background:var(--silt-bg)}
+.verdict.bad{border-color:var(--bad);background:var(--bad-bg)}
+.verdict strong{font-family:var(--f-display);font-size:18px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.lvl{border:1px solid var(--line);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:6px;cursor:pointer;background:var(--bg)}
+.lvl:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.lvl input{accent-color:var(--accent)}
+.lvl .lt{display:flex;gap:8px;align-items:center;font-family:var(--f-display);font-weight:700;font-size:18px}
+.lvl ul{margin:0;padding-left:18px;font-size:14px}
+.lvl .when2{font-size:13.5px;color:var(--muted)}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);background:var(--sunken);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.nowrap{white-space:nowrap}
+.contacts td{padding:6px}
+.contacts td:first-child{min-width:190px}
+.contacts input{padding:6px 8px;font-size:14px;min-width:150px}
+.stop{background:var(--bad-bg);border-left:4px solid var(--bad);padding:10px 14px;border-radius:var(--r)}
+.stop b{color:var(--bad)}
+.tip{background:var(--silt-bg);border-left:4px solid var(--silt);padding:10px 14px;border-radius:var(--r);font-size:14px}
+.foot{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;border-top:1px solid var(--line);padding-top:16px}
+aside.clockcol{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);display:flex;flex-direction:column;gap:14px;min-width:0}
+@media (max-width:1100px){aside.clockcol{position:static}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:10px}
+.tclock{font-family:var(--f-mono);font-size:30px;font-weight:500;line-height:1;font-variant-numeric:tabular-nums}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px}
+.kv dt{color:var(--muted)}.kv dd{margin:0;text-align:right;min-width:0;overflow-wrap:anywhere}
+.due{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none;font-size:13.5px}
+.due li{display:flex;flex-direction:column;gap:2px;padding:7px 10px;border-radius:var(--r);background:var(--sunken);border-left:3px solid var(--line)}
+.due li.over{border-color:var(--bad);background:var(--bad-bg)}
+.due li.soon{border-color:var(--silt);background:var(--silt-bg)}
+.due .dt{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.note{font-size:13px;color:var(--muted)}
+.status{font-size:13px;color:var(--good);min-height:1.2em}
+.inline{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.storm{border:1px solid var(--line);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:12px}
+.storm-head{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center}
+pre.log{white-space:pre-wrap;font-family:var(--f-mono);font-size:12.5px;background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:14px;max-height:520px;overflow:auto;margin:0}
+.app[data-mode="flood"] .only-fire,.app[data-mode="fire"] .only-flood{display:none!important}
+@media (prefers-reduced-motion:no-preference){button,.btn{transition:border-color .15s,background-color .15s}}
+[hidden]{display:none!important}body{margin:0}img{max-width:100%}
+.site-nav{background:var(--surface);border-bottom:1px solid var(--line);font-family:var(--f-body)}
+.site-nav .in{max-width:1280px;margin:0 auto;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}
+.site-nav .brand{font-family:var(--f-display);font-weight:700;font-size:16px;color:var(--ink);text-decoration:none;margin-right:8px}
+.site-nav a.nl{font-size:14px;font-weight:500;color:var(--muted);text-decoration:none;padding:4px 2px;border-bottom:2px solid transparent}
+.site-nav a.nl:hover{color:var(--accent)}
+.site-nav a.nl[aria-current="page"]{color:var(--accent);border-bottom-color:var(--accent)}
+</style>
+<script src="config.js"></script>
+</head>
+<body>
+<script src="nav.js" data-root="" data-current="guide"></script>
+<div class="wrap app" id="app" data-mode="flood">
+<header class="top">
+  <span class="eyebrow">Utah DWQ · Emergency water quality response</span>
+  <h1>Flood and Post-Fire Response Guide</h1>
+  <p class="lede">Work through a response one step at a time. Check items off as you go: each gets a time stamp, deadlines count from when DWQ learned of the event, and the response log builds itself.</p>
+  <div class="seg" role="radiogroup" aria-label="Event type">
+    <label for="mode_flood"><input type="radio" name="mode" id="mode_flood" value="flood"><span>Flood or release</span></label>
+    <label for="mode_fire"><input type="radio" name="mode" id="mode_fire" value="fire"><span>Post-fire runoff</span></label>
+  </div>
+  <div class="toolbar">
+    <a class="btn small" id="sapLink" href="sap-builder.html">Open the SAP Builder</a>
+    <a class="btn small" href="who-samples-what.html">Who Samples What</a>
+    <a class="btn small" href="data-hub.html">Shared Data Hub</a>
+    <a class="btn small" href="https://claude.ai/artifact/R9ffZtuJcCvn8dTeCDFcUq" target="_blank" rel="noopener">Risk Communication Plan</a>
+    <a class="btn small only-fire" href="https://christinemosborne.github.io/Post-fire-Best-Management-Practice-BMP-Tool-v2/" target="_blank" rel="noopener">Open the Post-Fire BMP Tool</a>
+    <a class="btn small" id="docLink" target="_blank" rel="noopener">Read the full protocol</a>
+    <button class="small ghost" id="reset" type="button">Start a new event</button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="steps" id="steps" aria-label="Response steps"></nav>
+  <main class="stage" id="stage" aria-live="polite"></main>
+  <aside class="clockcol" id="clock"></aside>
+</div>
+</div>
+
+<script>
+"use strict";
+const SAP_URL="sap-builder.html";
+const BMP_URL="https://christinemosborne.github.io/Post-fire-Best-Management-Practice-BMP-Tool-v2/";
+/* Protocol links are set in config.js (protocolLinks). */
+const DOC_URL=(window.TOOLKIT_CONFIG&&window.TOOLKIT_CONFIG.protocolLinks)||{flood:"",fire:""};
+const MIN=60e3,H=60*MIN,D=24*H;
+
+/* ---------- content: flood ---------- */
+const FLOOD={
+ triggers:[
+  "A wastewater facility, in Utah or upstream, reports a bypass, overflow or sewage release reaching surface water during high flow",
+  "NWS Flood Warning for the reach, a USGS gage above flood stage, or a large storm or snowmelt runoff event (sample even with no known release)",
+  "A spill, tank failure or hazardous material release into floodwaters",
+  "A dam, levee or canal failure, or an emergency reservoir release",
+  "A request from DEM, a health department, a tribe or an upstream state"],
+ levels:[
+  {n:1,name:"Runoff event",when:"Flood stage or a large storm or snowmelt runoff, with no known release",act:["Sample core sites on the rising limb if safe and on the falling limb: runoff carries sediment, nutrients, bacteria and urban and agricultural pollutants, and high flows entrain or mobilize metals from channel and floodplain deposits","Include total and dissolved metals, TSS and E. coli","Track gages; download existing sondes","Heads-up to health departments and water users"]},
+  {n:2,name:"Response",when:"Flood plus a confirmed wastewater release, chemical release or other pollutant load reaching any surface water",act:["Event sampling at core sites within 24–48 h","Partner calls and data sharing","Repeat sampling until recovery"]},
+  {n:3,name:"Major",when:"Several facilities overwhelmed, a chemical or fuel release, a fish kill, an interstate or tribal-water impact, or a DEM emergency declaration",act:["Full network at all core site types","Add-on screens where sources and a lab are lined up","Daily partner calls and DEM coordination","Request EPA support","If an incident command forms for a fuel or chemical release, DWQ’s Spills Coordinator serves as liaison to its Environmental Unit so ambient sites are coordinated with response sampling"]}],
+ contacts:["DWQ Spills Coordinator / C&E Section","DWQ permitting staff","Division of Drinking Water","Local health department","Tribal environmental and health agencies","Upstream state water quality agency","Division of Emergency Management","Utah Department of Agriculture and Food","Division of Wildlife Resources","DEQ Environmental Response and Remediation","EPA region (8 Utah, 6 New Mexico, 9 Navajo Nation)","USGS","National Weather Service","Bureau of Reclamation","NRCS or conservation district","UPHL sample receiving"],
+ clock:[
+  {id:"pre",label:"Before the peak",sub:"Flood Watch or forecast",due:null,tasks:["Check sondes and gear","Put a crew on standby","Alert UPHL to possible rush samples","Send a heads-up email to partners"],partners:"NWS forecasts; wastewater operators prepare; DEM monitors"},
+  {id:"h2",label:"0–2 hours",due:2*H,tasks:["Open the event log","Map pollutant sources and downstream waters by designated use: fisheries and aquatic habitat, recreation sites, diversions and stock water intakes","Get the list of facilities that bypassed or overflowed (location, start and end, volume) from the permitting authority","Confirm DDW has alerted water systems and that health departments and tribes are notified"],partners:"Permitting authority shares known bypasses"},
+  {id:"h12",label:"By 12 hours",due:12*H,tasks:["Write this round’s SAP in the SAP Builder","Pull USGS gage data for peak and recession timing","Check existing networks (DWQ ambient, USGS, partners) for sondes and event samples","Ask upstream states and tribes what they are sampling","Collect first samples on the rising limb or at peak, only if safe, from bridges or banks"],partners:"Facilities report releases; upstream states share plans"},
+  {id:"h24",label:"By 24 hours",due:24*H,tasks:["Hold the first interagency call: health departments, tribes, upstream states, DDW, UDAF, DWR, DEM, EPA","Agree on shared sites and a shared data folder","Send the contact roster and joint site plan"]},
+  {id:"h72",label:"24–72 hours",due:72*H,tasks:["Falling-limb sampling at all core sites","Post preliminary field data to partners","Support the health agencies’ river-contact notice","Notify UDAF and irrigation companies about irrigation and stock water","Alert DWQ’s HAB program if a downstream reservoir or swimming area could bloom"],partners:"Health agencies decide on notices; UDAF notifies producers"},
+  {id:"d7",label:"Days 3–7",due:7*D,tasks:["Repeat E. coli, ammonia and nutrient sampling (days 3–5 and day 7)","Notify DWR about fish kills and downstream reservoirs","Send status memo #1"],partners:"Facilities restore treatment; DWR checks fisheries"},
+  {id:"d14",label:"Days 8–14",due:14*D,tasks:["Second repeat round (day 14)","Screen lab results against criteria","Send status memo #2 with advisory recommendations"],partners:"Health agencies review notices"},
+  {id:"d30",label:"30 days",due:30*D,tasks:["Recovery sampling (day 30)","Add-on follow-up only where screening found detections","Send the 30-day summary"]},
+  {id:"d90",label:"90 days",due:90*D,tasks:["Event report: timeline, releases, results against criteria, notices issued and lifted, missed windows","Load data to AWQMS and WQX with the event identifier","After-action review with partners","Revise the protocol"]}],
+ finds:[
+  {id:"sew",find:"Confirmed sewage release reaching a river",who:"DWQ Spills Coordinator and C&E Section, health departments, tribes, DDW, UDAF, downstream states",within:2*H,wl:"2 hours"},
+  {id:"ec",find:"E. coli at or above 235 MPN/100 mL",who:"Health agencies, who decide on notices. Resample within 24 hours.",within:"eod",wl:"Same day"},
+  {id:"imm",find:"Fish kill, fuel sheen or chemical odor in any water",who:"DWQ Spills Coordinator, DWR, DERR, DEM; DDW and the water system if an intake is downstream; EPA if oil or hazardous material",within:0,wl:"Immediately, by phone"},
+  {id:"aq",find:"Results that exceed aquatic life criteria (DO sag, ammonia or metals) below a release",who:"DWR regional aquatics staff and the Spills Coordinator; include in the next status memo",within:24*H,wl:"24 hours"}],
+ rounds:[["pk","Peak or rising limb (only if safe)",0,0],["fl","Falling limb",1,3],["d35","Days 3–5",3,5],["d7","Day 7",7,7],["d14","Day 14",14,14],["d30","Day 30",30,30]],
+ sites:["Potentially impacted surface waters downstream of the flood or release","Upstream boundary, where the river enters Utah or the affected reach","Above and below each overflowing plant or major source","Mouths of tributaries draining farmland, towns or mining areas","Use points: fisheries, spawning reaches and wetlands; boat ramps and swimming areas; diversions and stock water; drinking water intakes","Downstream end, above the next reservoir or state line","Reference: an unaffected tributary or an upstream site with long-term data"],
+ qa:["One equipment blank per 10 samples, and at least one each field day","One field replicate per 10 samples, 5–10 minutes after the original","Below sewage releases, a second E. coli bottle run at 1:10 dilution, plus a dilution blank","E. coli in the incubator within 8 hours","Legal chain of custody","Sites near overflowing facilities coordinated with the Spills Coordinator and C&E"],
+ safety:["Two-person crew","Check-in and check-out contact set","Satellite device where there is no cell service","High-visibility PFD and throw bag on site; on bridges, work the upstream side, watch for drift and plan for traffic","Sample from bridges or stable banks only; no wading until flows are near normal","Route checked: no water over the road, no downed lines, no bridge damage","Nitrile gloves under work gloves, boots or waders, eye protection","Cuts covered; disinfectant for gear and boots after each site","Tetanus vaccination current","Everyone knows any crew member can stop work"],
+ stop:"Fuel odor, sheen, drums or tanks: back away and report to DERR and the National Response Center. Don’t sample up close.",
+ advise:[
+  {id:"a1",sit:"Known sewage release reaching the river, before results",rec:"Precautionary no-contact notice for the reach downstream until results are in"},
+  {id:"a2",sit:"E. coli at or above 235 MPN/100 mL",rec:"Advisory for that reach; resample within 24 hours"},
+  {id:"a3",sit:"Advisory in place",rec:"Keep it until releases have stopped and at least two weeks of results show the hazard has passed. Log the start and lift dates: the IR counts two or more advisories in a season, or one lasting two weeks or more, as not supporting recreation."},
+  {id:"a4",sit:"Algal bloom suspected in a downstream lake or reservoir",rec:"DWQ’s HAB program samples; the local health department acts on DHHS thresholds"},
+  {id:"a5",sit:"E. coli or nitrate elevated at an irrigation diversion",rec:"Avoid irrigating crops eaten raw until levels drop; UDAF notifies producers"},
+  {id:"a6",sit:"Sheen, fuel odor or high metals at stock watering points",rec:"Use alternate stock water; UDAF notifies producers"},
+  {id:"a7",sit:"Flooded private wells",rec:"Health department advises disinfection and testing before drinking"}],
+ narrative:[
+  {id:"n1",t:"Fuel sheen or fuel odor",to:"Immediately: Spills Coordinator, DERR, DWR, DEM; DDW if an intake is downstream; EPA if oil"},
+  {id:"n2",t:"Fish kill",to:"Immediately: DWR, DDW, Spills Coordinator, DERR, DEM"},
+  {id:"n3",t:"Chemical odor, drums or tanks",to:"Immediately: DERR and the National Response Center; back away"},
+  {id:"n4",t:"Deposits, floating solids or discoloration smothering habitat",to:"Photograph; Spills Coordinator and DWR; include in the status memo"},
+  {id:"n7",t:"Contamination at a drinking water intake",to:"Immediately: the water system and DDW"},
+  {id:"n5",t:"Sewage solids, toilet paper or sewage odor",to:"Within 2 hours: Spills Coordinator and C&E, health departments, tribes, DDW"},
+  {id:"n6",t:"Algal bloom in a downstream lake or reservoir",to:"DWQ Recreational Health Coordinator; local health department"}],
+ follow:[
+  {h:"Reservoirs and biology",items:["Reservoir profiles (DO, temperature) at the inflow and main pool, with chlorophyll-a and HAB checks, through the next warm season","Macroinvertebrates at wadeable core sites in the next growing season (May–October)","Ask DWR whether fish population checks or tissue sampling are needed"]},
+  {h:"Using the results",items:["Share facility results with permitting staff and the upstream permitting authority","Feed fertilizer, pesticide and manure findings into watershed plans and 319 project selection"]},
+  {h:"Trend sites (Level 2–3 events)",items:["Upstream boundary","Below the largest release or source","The most important use point","Downstream end, above the next reservoir","Reference site"],note:"Carry 4–6 event sites forward with the same IDs, methods and lab. Prefer sites with pre-flood data and a nearby USGS gage."},
+  {h:"Every trend visit",items:["Tier A parameters (field, E. coli, general chemistry, nutrients, dissolved metals)","Field pH and temperature with every ammonia sample","Dissolved calcium and magnesium with every dissolved metals sample (hardness)","Total metals at least quarterly","Flow recorded with every sample","Data tagged with the event identifier and a period code"]}],
+ recovery:["E. coli: the summer series’ 30-day geometric mean and the season geometric mean meet the criterion, and no more than 10% of the season’s samples (no more than one if fewer than 10) exceed the maximum","DO, pH, temperature and TDS: 10% or fewer of the year’s samples miss the criterion","Metals and ammonia: no more than one exceedance, from at least 4 samples","Nutrients and specific conductance: medians within the pre-flood or reference range","Macroinvertebrate O/E of 0.76 or higher","No new exceedances linked to flood deposits or damaged infrastructure"],
+ recoveryNote:"Where a water was already listed as impaired before the flood, the test for that parameter is a return to the pre-flood range."
+};
+
+/* ---------- content: fire ---------- */
+const FIRE={
+ values:[["aq","A stream, lake or reservoir with aquatic life uses (fishery, Class 3)"],["rec","Recreation waters: swimming, boating, fishing areas (Class 2)"],["ag","Irrigation diversions or stock water (Class 4)"],["intake","A drinking water intake or the reservoir supplying one (Class 1C)"],["hab","Habitat for listed or sensitive aquatic species"],["imp","A water already listed as impaired or covered by a TMDL"]],
+ levels:[
+  {n:0,name:"Watch",trig:["Activation criteria met, and either no results yet or results that meet criteria"],act:["Collect pre-storm baseline grabs at all tiers","Deploy sondes; share data; track storms"],lead:"DWQ"},
+  {n:1,name:"Advisory",trig:["Turbidity more than 10 NTU over background","pH outside 6.5–9.0 by less than 0.5 unit","DO below the 30-day criterion","Total phosphorus, nitrate or BOD above pollution-indicator values","E. coli above the geometric mean criterion"],act:["Weekly sensor service","Confirmation grabs","Informational notices"],lead:"DWQ",notify:{who:"DWR, health department, UDAF; DDW and water systems if an intake is downstream",how:"Email",within:24*H,wl:"24 hours"}},
+  {n:2,name:"Warning",trig:["DO 2–5 mg/L","Turbidity above 1,000 FNU (adjust per site with the water system)","Dissolved metals above chronic criteria","E. coli at or above 235 MPN/100 mL","pH outside range by 0.5 unit or more"],act:["DWR checks fisheries below the burn","Health department considers a recreation advisory","DDW advises water systems on treatment or backup supply where intakes are downstream","Storm composites at all Tier 1–2 sites"],lead:"DWQ with DWR, the health department and DDW",notify:{who:"DWR, health department; DDW and water systems if an intake is downstream",how:"Phone, then email",within:H,wl:"1 hour"}},
+  {n:3,name:"Severe",trig:["DO below 2 mg/L, or a fish kill","Turbidity off-scale (above 4,000 FNU), or a debris flow reaching a stream or lake","Metals above acute aquatic life criteria, or above Class 1C criteria near an intake","Benzene or other VOCs detected near an intake (add-on screen)"],act:["DWR on fish kills, fish salvage and listed species","Share results right away with DDW and the water system where an intake is downstream; they decide on intake operation","Health department on recreation closures","DEM activation if supply or public safety is threatened","Tag data with the event ID for Integrated Report review (storm and event samples may be set aside as not representative)","FEMA and NRCS EWP requests as needed"],lead:"DWQ with DWR; water system and DDW where an intake is affected; DEM",notify:{who:"DWR and the DWQ Spills Coordinator; water system operator and DDW on-call if an intake is downstream; DEM duty officer; health department",how:"Phone immediately, then email",within:15*MIN,wl:"15 minutes"}}],
+ contacts:["DWQ Post-Wildfire Program Manager","Program Manager backup","DWQ GIS lead","DDW emergency / on-call line","DEM duty officer","FFSL area fire management officer","Incident resource advisor","BAER team lead","Local health department, environmental health","Tribal environmental program","Water system operators below the burn","UPHL emergency sample receiving","NWS forecast office","USGS","UDAF","DWR regional aquatics","NRCS or conservation district"],
+ clock:[
+  {id:"h2",label:"0–2 hours",due:2*H,tasks:["Open the incident log","Pull pre-selected sites and the downstream waters and their designated uses from GIS","Alert DWQ leadership and the public information officer","Alert DWR about fisheries and sensitive species below the burn; confirm DDW has alerted any downstream water systems","Notify affected tribes and local health departments (DWQ or DDW)"],partners:"DEM or FFSL notifies DWQ"},
+  {id:"h12",label:"By 12 hours",due:12*H,tasks:["Ask incident command for the resource advisor and BAER ordering status","Get the safety briefing and access limits","Check gear: sondes, autosamplers, bottles","Collect baseline grabs below the fire, outside the perimeter"]},
+  {id:"h24",label:"By 24 hours",due:24*H,tasks:["Convene or join the first interagency call (DEM or the Utah Post-Wildfire Team)","Share the contact roster, site list and data-sharing plan","Alert UPHL to expected sample volume","Ask the NWS forecast office covering the burn for its flash-flood rainfall threshold for this burn scar"],partners:"DDW, water systems, FFSL, land manager, health department, UDAF, DWR, tribes, NWS, USGS"},
+  {id:"h48",label:"By 48 hours",due:48*H,tasks:["Overlay soil burn severity and any USGS debris-flow assessment on the sites","Make the activation decision (step 1)","Send a written activation notice to partners","Submit access requests to incident command, land managers and landowners","Scout Tier 1 sites"],partners:"BAER or FFSL supplies burn data"},
+  {id:"h72",label:"By 72 hours",due:72*H,tasks:["Install sondes and autosamplers at Tier 1 sites, outside active perimeters","Agree alert thresholds with DWR for fisheries and with each water system and DDW for intakes","Through DDW, ask water systems below the burn to share raw-water turbidity and TOC in the shared data folder","Confirm public messaging roles with the health department and DEM"]},
+  {id:"d7",label:"Days 4–7",due:7*D,tasks:["Install Tier 2 and Tier 3 sites","Continue baseline grabs","Update the site list from the BAER report"],partners:"BAER timing depends on the land manager: Forest Service about 7 days after containment; BLM and other Interior agencies up to 21 days; state and private land may have no BAER report. Use burn severity maps and the USGS debris-flow assessment meanwhile."},
+  {id:"d14",label:"Days 8–14",due:14*D,tasks:["Send status memo #1","Confirm the multi-year site plan and budget","File funding requests","Hand off to recovery leads (land manager, FFSL, NRCS for EWP) and give water quality data and site priorities to the local EWP sponsor","Share likely treatments from the Post-Fire BMP Tool with recovery leads"],partners:"EWP requests come from a local sponsor (county, city, district or tribe) within 60 days of the event or of safe access"}],
+ tiers:[["Tier 1 · below the burn","On each major stream draining the burn, above the first downstream use: fishery or sensitive-species reach, recreation area, diversion or intake. At least one per affected stream, plus one above each intake at risk."],["Tier 2 · baseline","Existing USGS gage, DWQ ambient site or permit point draining part of the burn, ideally with 3+ years of pre-fire data. At least one per major drainage."],["Tier 3 · unburned reference","Similar nearby catchment with under 5% burned and no fire in 5 years. At least one per region or fire complex."]],
+ siteCheck:["Legal, safe access in storm conditions, with a backup route","Stable cross-section for a stage–discharge rating","Bedrock or large boulders to anchor sondes and samplers","Prior fires, mining or disturbance noted (Tier 2 and 3)"],
+ sensors:["Sondes housed in perforated pipe, anchored, 12–25 cm above the bed","Continuous turbidity (and fDOM above intakes) from a USGS or water-system partner sonde where available (add-on)","Calibrated before deployment per the sonde SOP (conductivity first, pH 7 and 10 verified at 9, DO by water-saturated air); checked against a freshly calibrated sonde at each service visit","Service every two weeks, weekly at Level 1 or above, and after every major storm","Readings recorded before and after cleaning","Spare sonde ready for fast swaps","Files saved to the Monitors folder on DWQ’s shared drive"],
+ qa:["One equipment blank and one field replicate (composite split) per 10 samples","E. coli and orthophosphate collected as grabs at service visits","Legal chain of custody","UPHL rush turnaround agreed for metals and E. coli"],
+ safety:["Two-person crew","Weather briefing done; tracking NWS flash flood products and radar","Check-in contact set; satellite device where there is no cell service","Crew has DWQ swiftwater safety and hazard training, and a burned-area hazard briefing","At least one crew member has current CPR and first aid","PFD, throw bag, satellite messenger or radio","Respirator (N95 or better), nitrile gloves under work gloves and eye protection for ash work","Hard hats in burned timber; parking and work areas clear of snags; leave snag areas when wind picks up (about 10 mph); watch for ash pits and stump holes","No channel entry during or right after a storm; no wading above the knee","Everyone knows any crew member can stop work"],
+ stop:"No work inside an active incident perimeter. That needs incident clearance and Red-carded crews or a qualified escort (an add-on).",
+ mobilize:["NWS Flash Flood Watch or Warning for the burn scar","Forecast or observed 15-minute rainfall at the USGS debris-flow threshold for this fire","No USGS or NWS threshold for this burn: forecast or radar rainfall of 10 mm/hr (0.4 in/hr) or more over 60 minutes, a short burst of about 0.25 in (6 mm) in 15 minutes, or monsoon storms tracking over the burn"],
+ storm:[
+  {id:"pre",label:"24–72 hours before",sub:"Outlook or Flash Flood Watch",due:-24*H,tasks:["Check sonde batteries (and telemetry where installed)","Arm autosamplers","Put a two-person crew on standby","Email DWR, the health department, UDAF, and DDW and water systems where intakes are downstream, that a storm is expected"]},
+  {id:"near",label:"0–6 hours before",sub:"Flash Flood Warning or radar",due:0,tasks:["Check routes and anchoring sites for slope failure or debris; if unsafe, use the backup downstream station","Stage the crew at a safe point outside the channel"],partners:"DWR and land managers alerted; water systems prepare to change treatment or close intakes"},
+  {id:"during",label:"During the storm",due:null,tasks:["Watch USGS gages and weather","Screen readings and call partners if a response level is reached","Keep samplers armed until flow is within 20% of pre-storm baseflow or below 25% of peak"],partners:"No in-channel work. Water systems act on their own alert thresholds."},
+  {id:"a24",label:"6–24 hours after",due:24*H,tasks:["Retrieve autosampler bottles within 8 hours of the sampler triggering, where safe","Ice and ship to meet the shortest holds (E. coli 8 h; ortho-P, BOD, lab turbidity 48 h)","Send post-storm note"],partners:"UPHL receives and logs samples"},
+  {id:"a72",label:"24–72 hours after",due:72*H,tasks:["Service and clean sondes; check for burial or damage","Re-survey cross-sections if the rating shifted","Post a preliminary sensor summary"],partners:"DDW and water systems decide on reopening; health department reviews advisories"},
+  {id:"w3",label:"1–3 weeks after",due:21*D,tasks:["Review lab results","Confirm or revise the response level","Load data to AWQMS"]}],
+ stormRecord:"Record with each storm sample: storm date and duration, rainfall, discharge, flow over the prior three days, air temperature, days since containment.",
+ cadence:[
+  {h:"Each year, by about May 1",items:["Working group meeting","Update the contact roster, site list and gear","Confirm the UPHL emergency agreement","Refresh swiftwater and burned-area safety training","Run a tabletop exercise"]},
+  {h:"During active monitoring (about July–October)",items:["Weekly 30-minute partner call or emailed status","Sonde service every two weeks, weekly at Level 1 or above"]},
+  {h:"Outside storm season",items:["Monthly data summary to partners","Site maintenance"]},
+  {h:"End of monsoon (October–November)",items:["Season report","Remove or winterize sondes","Plan for spring snowmelt"]},
+  {h:"Spring snowmelt (about April–June)",items:["Redeploy sondes before melt","Run the storm steps for large melt pulses"]},
+  {h:"Within 30 days of the first storm season",items:["After-action review with all partners"]}],
+ follow:[
+  {h:"Each visit and storm",items:["Field pH and temperature with every ammonia sample","Dissolved calcium and magnesium with every dissolved metals sample (hardness)","Headwater streams: at least 4 June–September samples for TN and TP","Storm and baseflow results kept separate in summaries","Storm details recorded (rainfall, discharge, days since containment)"]},
+  {h:"Biology and reservoirs",items:["Macroinvertebrates once a year, May–October, at least four weeks after the last scouring flow","Physical habitat with each macroinvertebrate sample (UCASE manual)","Delta DO, temperature and specific conductance profiles at supply reservoirs below major burns","HAB checks at reservoirs, June–September"]},
+  {h:"Restoration",link:[BMP_URL,"Open the Post-Fire BMP Tool"],note:"Use the monitoring results to point treatments at the places sending sediment, ash and nutrients to the water.",items:["Share the sub-catchments with the most exceedances and highest storm peaks with FFSL, USFS, BLM, NRCS and WRI","Hillslope treatments (mulch, seeding, wattles, contour felling) where storm peaks show ash and sediment from burned slopes","Surface drainage treatments (check dams, culvert changes, sediment basins) where gullies, road ditches or culverts deliver sediment","Stream channel treatments (bank protection, floodplain reconnection, beaver dam analogs) where banks or the channel are unstable","Use each practice’s monitoring guidance in the tool, and keep a DWQ site below treated areas to show the water quality response","Flag projects for 319 funding where a nine-element plan covers the burn"]}],
+ recovery:["Storm peaks for turbidity and TSS similar to the Tier 3 reference, and no storm samples above metals criteria","Baseflow: 10% or fewer exceedances for DO, pH, temperature and TDS; no more than one for metals or ammonia","Headwater streams: June–September TN and TP back in the pre-fire enrichment tier","E. coli meets the recreation criteria for the site’s class","Sonde DO (daily minimum, 7- and 30-day averages) and pH meet criteria outside storms","No ash deposits, sheen, fish kills or blooms observed","Macroinvertebrate O/E of 0.76 or higher, or back to the pre-fire score"],
+ recoveryNote:"Vegetation recovery from BAER teams or land managers helps explain results but doesn’t decide recovery."
+};
+
+/* ---------- state ---------- */
+const KEY="dwq-response-guide-v1";
+const blank=()=>({ev:{},checks:{},level:"",levels:[],results:[],contacts:{},finds:{},adv:{},narr:{},storms:[],weekly:[],notes:""});
+let S;
+try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){S=null}
+if(!S||!S.flood||!S.fire)S={mode:"flood",cur:{flood:"start",fire:"start"},flood:blank(),fire:blank()};
+for(const m of ["flood","fire"]){S[m]={...blank(),...S[m]}}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const E=()=>S[S.mode];
+const now=()=>Date.now();
+const pd=v=>{if(!v)return null;const d=new Date(v.length===10?v+"T00:00":v);return isNaN(d)?null:d};
+const fmt=t=>new Date(t).toLocaleString("en-US",{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
+const fmtD=t=>new Date(t).toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",year:"numeric"});
+const fmtS=t=>new Date(t).toLocaleString("en-US",{month:"numeric",day:"numeric",hour:"numeric",minute:"2-digit"});
+const dur=ms=>{const a=Math.abs(ms),d=Math.floor(a/D),h=Math.floor(a%D/H),m=Math.floor(a%H/MIN);return d?`${d} d ${h} h`:h?`${h} h ${m} min`:`${m} min`};
+const slug=s=>s.toLowerCase().replace(/[^a-z0-9]+/g,"").slice(0,24);
+
+/* ---------- check helper (collects ids and labels for progress and the log) ---------- */
+let COL=null;const LABEL={};
+function ck(id,label,extra=""){
+ LABEL[id]=label;if(COL)COL.push(id);
+ const t=E().checks[id];
+ return `<label class="ck" for="c_${id}"><input type="checkbox" id="c_${id}" data-check="${id}"${t?" checked":""}><span class="txt">${esc(label)}${extra}</span>${t?`<span class="when">${fmtS(t)}</span>`:""}</label>`;
+}
+const list=(prefix,items)=>`<div class="checks">${items.map((t,i)=>ck(`${prefix}.${i}`,t)).join("")}</div>`;
+
+/* ---------- time windows ---------- */
+function t0(){return pd(E().ev.t0)}
+function winStatus(ids,due,base){
+ const done=ids.every(id=>E().checks[id]);
+ if(done)return["ok","Done"];
+ if(due==null||!base)return["","—"];
+ const at=base.getTime()+due,left=at-now();
+ if(left<0)return["bad",`Overdue · was due ${fmt(at)}`];
+ if(left<6*H)return["warn",`Due in ${dur(left)} · ${fmt(at)}`];
+ return["info",`Due ${fmt(at)}`];
+}
+function windowBlock(prefix,w,base){
+ const ids=w.tasks.map((_,i)=>`${prefix}.${w.id}.${i}`);
+ const [cls,txt]=winStatus(ids,w.due,base);
+ return `<section class="win"><div class="win-head"><h3>${esc(w.label)}${w.sub?` <span class="muted" style="font-weight:500;font-size:14px">· ${esc(w.sub)}</span>`:""}</h3>${txt==="—"?"":`<span class="chip ${cls}">${esc(txt)}</span>`}</div>
+ <div class="win-body"><div class="checks">${w.tasks.map((t,i)=>ck(ids[i],t)).join("")}</div>${w.partners?`<div class="win-meta"><span><b>Partners:</b> ${esc(w.partners)}</span></div>`:""}</div></section>`;
+}
+
+/* ---------- steps ---------- */
+const STEPS={
+ flood:[
+  {id:"start",t:"Event and activation"},{id:"level",t:"Response level"},{id:"contacts",t:"Contacts"},{id:"clock",t:"Flood clock"},
+  {id:"notify",t:"Notifications"},{id:"sample",t:"Sampling plan"},{id:"safety",t:"Field safety"},{id:"screen",t:"Screen results"},
+  {id:"advise",t:"Advisories"},{id:"follow",t:"Follow-up and trends"},{id:"log",t:"Response log"}],
+ fire:[
+  {id:"start",t:"Fire and activation"},{id:"contacts",t:"Contacts"},{id:"clock",t:"Fire clock"},{id:"sites",t:"Network and sensors"},
+  {id:"safety",t:"Field safety"},{id:"storm",t:"Storm response"},{id:"screen",t:"Screen and set level"},{id:"cadence",t:"Seasonal tasks"},
+  {id:"follow",t:"Recovery and trends"},{id:"log",t:"Response log"}]
+};
+const head=(title,lede)=>`<div class="stage-head"><span class="eyebrow">${S.mode==="flood"?"Flood or release":"Post-fire runoff"}</span><h2>${esc(title)}</h2>${lede?`<p>${lede}</p>`:""}</div>`;
+const fld=(id,label,type="text",ph="",wide=false,extra="")=>`<div class="field${wide?" wide":""}"><label for="f_${id}">${label}</label><input type="${type}" id="f_${id}" data-ev="${id}" value="${esc(E().ev[id]??"")}" placeholder="${esc(ph)}"${extra}></div>`;
+
+const R={};
+/* flood: start */
+R["flood.start"]=()=>{
+ const e=E().ev,trig=FLOOD.triggers.map((_,i)=>`ft.${i}`),on=trig.some(id=>E().checks[id]);
+ return head("Event and activation","Fill in the basics, then check any trigger that applies. One trigger activates the protocol. A large runoff event is sampled whether or not a release is known.")+
+ `<div class="block"><div class="grid">
+  ${fld("name","Event name","text","e.g., October 2026 San Juan River flood")}
+  ${fld("water","River or reach","text","e.g., San Juan River, Four Corners to Clay Hills")}
+  ${fld("t0","When DWQ learned of it (starts the flood clock)","datetime-local")}
+  ${fld("peak","Peak (date and time)","datetime-local")}
+  ${fld("gage","USGS gage","text","Station number and name")}
+  ${fld("lead","DWQ event lead","text","Name, phone")}
+ </div></div>
+ <div class="block"><h3>Triggers <span class="chip ${on?"bad":""}">${on?"Activated":"Not activated"}</span></h3>${list("ft",FLOOD.triggers)}
+ ${on?"":`<p class="note">No trigger yet: keep watching gages and NWS products.</p>`}</div>
+ <div class="block"><label class="ck" for="f_late"><input type="checkbox" id="f_late" data-evc="late"${e.late?" checked":""}><span class="txt">Response started after the peak</span></label>
+ ${e.late?`<div class="field"><label for="f_missed">Windows missed (goes in the event report)</label><textarea id="f_missed" data-ev="missed" placeholder="e.g., no rising-limb or peak samples; ask partners for any peak data">${esc(e.missed||"")}</textarea></div>`:""}</div>`;
+};
+/* flood: level */
+R["flood.level"]=()=>head("Response level","Pick the level that matches what you know now. Change it as the picture changes; each change is logged.")+
+ `<div class="cards" role="radiogroup" aria-label="Response level">${FLOOD.levels.map(l=>`<label class="lvl" for="lv_${l.n}"><span class="lt"><input type="radio" name="lvl" id="lv_${l.n}" data-level="${l.n}"${String(E().level)===String(l.n)?" checked":""}>${l.n} · ${l.name}</span><span class="when2">${esc(l.when)}</span><ul>${l.act.map(a=>`<li>${esc(a)}</li>`).join("")}</ul></label>`).join("")}</div>
+ ${levelHistory()}`;
+/* contacts */
+const contactsStep=()=>{
+ const roles=(S.mode==="flood"?FLOOD:FIRE).contacts;
+ return head("Contacts","Fill in names and numbers once; they carry into the response log.")+
+ `<div class="scroll"><table class="contacts"><thead><tr><th>Role</th><th>Name</th><th>Phone or email</th></tr></thead><tbody>${roles.map(r=>{const k=slug(r),c=E().contacts[k]||{};return `<tr><td>${esc(r)}</td><td><input type="text" id="cn_${k}" data-contact="${k}" data-f="n" value="${esc(c.n||"")}" aria-label="${esc(r)} name"></td><td><input type="text" id="cp_${k}" data-contact="${k}" data-f="p" value="${esc(c.p||"")}" aria-label="${esc(r)} phone or email"></td></tr>`}).join("")}</tbody></table></div>`;
+};
+R["flood.contacts"]=contactsStep;R["fire.contacts"]=contactsStep;
+/* flood: clock */
+R["flood.clock"]=()=>{const b=t0();return head("Flood clock",b?`Deadlines count from ${fmt(b)}.`:"Enter when DWQ learned of the event (step 1) to see deadlines.")+
+ `<div class="block">${FLOOD.clock.map(w=>windowBlock("fc",w,b)).join("")}</div>`};
+/* flood: notify */
+R["flood.notify"]=()=>head("Notifications","When you find one of these, check “Found.” The deadline starts then. Check “Notified” when the calls are made.")+
+ `<div class="block">${FLOOD.finds.map(f=>{
+  const st=E().finds[f.id]||{},found=st.found,dueAt=found?(f.within==="eod"?new Date(new Date(found).setHours(23,59,0,0)).getTime():found+f.within):null;
+  const left=dueAt?dueAt-now():null,cls=st.done?"ok":found?(left<0?"bad":"warn"):"";
+  const chip=st.done?`Notified ${fmtS(st.done)}`:found?(left<0?`Overdue · due ${fmt(dueAt)}`:`Due ${f.within===0?"now":fmt(dueAt)}`):f.wl;
+  return `<section class="win"><div class="win-head"><h3>${esc(f.find)}</h3><span class="chip ${cls}">${esc(chip)}</span></div><div class="win-body"><div class="win-meta"><span><b>Notify:</b> ${esc(f.who)}</span><span><b>Within:</b> ${esc(f.wl)}</span></div>
+  <div class="checks"><label class="ck" for="fd_${f.id}"><input type="checkbox" id="fd_${f.id}" data-find="${f.id}" data-k="found"${found?" checked":""}><span class="txt">Found</span>${found?`<span class="when">${fmtS(found)}</span>`:""}</label>
+  <label class="ck" for="fn_${f.id}"><input type="checkbox" id="fn_${f.id}" data-find="${f.id}" data-k="done"${st.done?" checked":""}${found?"":" disabled"}><span class="txt">Notified</span>${st.done?`<span class="when">${fmtS(st.done)}</span>`:""}</label></div></div></section>`}).join("")}
+ <section class="win"><div class="win-head"><h3>Routine results</h3><span class="chip info">Weekly status note</span></div><div class="win-body"><div class="win-meta"><span><b>Notify:</b> all partners, with results and any advisory changes.</span></div>
+ <div class="inline" style="padding:0 8px"><button class="small" type="button" id="addWeekly">Log a status note sent now</button>${E().weekly.length?`<span class="note">Sent: ${E().weekly.map(fmtS).join(" · ")}</span>`:""}</div></div></section>
+ <p class="note">Recreation season (May–October): E. coli and HAB results go to health departments by email and the shared spreadsheets; the recreational water quality website is updated within a few hours of any advisory change.</p></div>`;
+/* flood: sample */
+R["flood.sample"]=()=>{const p=pd(E().ev.peak);
+ return head("Sampling plan","Write each round’s SAP in the SAP Builder before the crew leaves. Check rounds off as they are collected.")+
+ `<div class="inline"><a class="btn primary" href="${SAP_URL}" target="_blank" rel="noopener">Open the SAP Builder (flood mode)</a></div>
+ <div class="block"><h3>Rounds${p?"":` <span class="note">Enter the peak in step 1 for dates</span>`}</h3><div class="checks">${FLOOD.rounds.map(([id,t,a,b])=>ck(`rd.${id}`,t,p?` <span class="muted mono" style="font-size:13px">· ${a===b?fmtD(p.getTime()+a*D):`${fmtD(p.getTime()+a*D)} – ${fmtD(p.getTime()+b*D)}`}</span>`:"")).join("")}</div>
+ <p class="note">Falling limb (24–72 hours after the peak) is the minimum for every event.</p></div>
+ <div class="block"><h3>Site types covered</h3>${list("st",FLOOD.sites)}<p class="note">Use existing DWQ ambient, USGS and partner sites where possible so baseline data exist.</p></div>
+ <div class="block"><h3>Every site, every round (Tier A)</h3><p>Field temperature, pH, DO and specific conductance; E. coli; general chemistry with lab turbidity; nutrients; dissolved metals. Add total metals, Mn and U for mining sources, and BOD and TOC below sewage releases.</p>
+ ${list("lk",["Downstream reservoir: profiles and chlorophyll-a; HAB samples only if a bloom is seen through the DWQ Recreational Health Coordinator","Add-on screens (pesticides, PPCPs, petroleum, PFAS) only where a source is known and a lab is lined up"])}</div>
+ <div class="block"><h3>QA and handling</h3>${list("qa",FLOOD.qa)}</div>`};
+/* safety (both) */
+const safetyStep=()=>{const C=S.mode==="flood"?FLOOD:FIRE,ids=C.safety.map((_,i)=>`sf.${i}`),go=ids.every(id=>E().checks[id]);
+ return head("Field safety","Run this before each field day. Every box checked means go.")+
+ `<div class="verdict ${go?"ok":"warn"}"><strong>${go?"Go":"Not ready"}</strong><span>${go?"All checks done for this crew.":`${ids.filter(id=>!E().checks[id]).length} checks left.`}</span></div>
+ ${list("sf",C.safety)}<div class="stop"><b>Stop:</b> ${esc(C.stop)}</div>
+ <div class="inline"><button type="button" class="small ghost" id="resetSafety">Clear checks for the next field day</button></div>`};
+R["flood.safety"]=safetyStep;R["fire.safety"]=safetyStep;
+
+/* ---------- screening ---------- */
+const PARAMS=[
+ ["ecoli","E. coli","MPN/100 mL"],["do","Dissolved oxygen","mg/L"],["ph","pH","units"],["turb","Turbidity","NTU or FNU"],
+ ["no3","Nitrate (as N)","mg/L"],["tp","Total phosphorus","mg/L"],["bod","BOD","mg/L"],["tds","TDS","mg/L"],
+ ["temp","Water temperature","°C"],["metal","Dissolved metal (Class 1C or Class 4)","mg/L"],["galpha","Gross alpha","pCi/L"],["cyano","Cyanotoxin (bloom sample)","µg/L"],
+ ["aq","Dissolved metal or ammonia vs. aquatic life criteria",""]];
+const C4={As:.1,B:.75,Cd:.01,Cr:.1,Cu:.2,Pb:.1,Se:.05},C1={As:.01,Ba:1,Cd:.01,Cr:.05,Pb:.015,Hg:.002,Se:.05,Ag:.05};
+const MN={As:"arsenic",B:"boron",Ba:"barium",Cd:"cadmium",Cr:"chromium",Cu:"copper",Pb:"lead",Hg:"mercury",Se:"selenium",Ag:"silver"};
+function screen(q0){
+ const q={...{cls:{ecoli:"2A",do:"3A",turb:"3A",tp:"stream",temp:"3A",cyano:"mc"}[q0.p],els:"0",unit:"NTU",metal:"As",intake:"0"},...Object.fromEntries(Object.entries(q0).filter(([,v])=>v!==undefined&&v!==""&&v!==null)),v:q0.v};
+ const v=parseFloat(q.v),L=[],fire=S.mode==="fire";let lv=null;const up=n=>{lv=Math.max(lv??0,n)};
+ if(q.p!=="aq"&&isNaN(v))return null;
+ switch(q.p){
+  case "ecoli":{const c=q.cls==="2A"?[126,409]:[206,668];
+   if(v>=2419.6)L.push(["warn","At the top of the Quanti-Tray scale. Use the 1:10 dilution result."]);
+   if(v>=235){L.push(["bad","At or above the recreation advisory value (235)."]);L.push(["bad",fire?"Notify per Level 2.":"Notify health agencies today; resample within 24 hours (Notifications step)."]);up(2)}
+   if(v>c[1])L.push(["bad",`Above the Class ${q.cls} maximum criterion (${c[1]}).`]);
+   else if(v>c[0]){L.push(["warn",`Above the Class ${q.cls} geometric mean criterion (${c[0]}) as a single sample.`]);up(1)}
+   if(!L.length)L.push(["ok",`Below the Class ${q.cls} criteria (${c[0]} / ${c[1]}).`]);break}
+  case "do":{const ELS=q.els==="1",min={"3A":ELS?8:4,"3B":ELS?5:3,"3C":3,"3D":3}[q.cls],d30={"3A":6.5,"3B":5.5,"3C":5,"3D":5}[q.cls];
+   if(v<min)L.push(["bad",`Below the Class ${q.cls} minimum (${min} mg/L).`]);
+   else if(v<d30)L.push(["warn",`Below the Class ${q.cls} 30-day average criterion (${d30} mg/L). One reading; compare daily minimums from sondes.`]);
+   else L.push(["ok",`Meets the Class ${q.cls} minimum (${min}) and is above the 30-day value (${d30}).`]);
+   if(v<2)up(3);else if(v<=5)up(2);else if(v<d30)up(1);break}
+  case "ph":{const dev=v<6.5?6.5-v:v>9?v-9:0;
+   if(dev>0){L.push(["bad",`Outside the 6.5–9.0 criterion by ${dev.toFixed(2)} unit.`]);up(dev>=.5?2:1)}else L.push(["ok","Within 6.5–9.0."]);break}
+  case "turb":{if(q.unit==="FNU"){L.push(["warn","Sonde turbidity is in FNU, which doesn’t compare directly with the NTU criterion. Confirm with lab turbidity and TSS."]);
+     if(v>=4000){L.push(["bad","Off-scale. Report as >4,000 FNU and rely on lab TSS."]);up(3)}else if(v>1000){L.push(["bad","Above 1,000 FNU."]);up(2)}}
+   else{const bg=parseFloat(q.bg),lim=(q.cls==="3C"||q.cls==="3D")?15:10;
+     if(isNaN(bg))L.push(["warn","Enter background (upstream or pre-event) turbidity to compare with the increase criterion."]);
+     else{const inc=v-bg;if(inc>lim){L.push(["bad",`Increase of ${inc.toFixed(1)} NTU over background exceeds the ${lim} NTU criterion (Class ${q.cls}).`]);up(1)}else L.push(["ok",`Increase of ${inc.toFixed(1)} NTU is within the ${lim} NTU criterion.`])}}break}
+  case "no3":if(v>10)L.push(["bad","Above the Class 1C criterion (10 mg/L). Tell DDW if an intake is downstream."]);if(v>4){L.push(["warn","Above the pollution indicator (4 mg/L): follow up."]);up(1)}if(!L.length)L.push(["ok","Below the indicator (4) and the 1C criterion (10)."]);break;
+  case "tp":{const lim=q.cls==="lake"?.025:.05;if(v>lim){L.push(["warn",`Above the pollution indicator for ${q.cls==="lake"?"lakes":"streams"} (${lim} mg/L): follow up.`]);up(1)}else L.push(["ok",`Below the indicator (${lim} mg/L).`]);L.push(["","In headwater streams with antidegradation Category 1–2 protection, the headwater nutrient criteria (June–September average of at least 4 TN and TP samples) apply instead of the indicator."]);break}
+  case "bod":if(v>5){L.push(["warn","Above the pollution indicator (5 mg/L): follow up."]);up(1)}else L.push(["ok","Below the indicator (5 mg/L)."]);break;
+  case "tds":if(v>1200)L.push(["bad","Above the Class 4 criterion (1,200 mg/L). Share with UDAF. Check for a site-specific value."]);else L.push(["ok","Below the Class 4 criterion (1,200 mg/L)."]);break;
+  case "temp":{const lim={"3A":20,"3B":27,"3C":27}[q.cls];if(lim==null){L.push(["","No maximum temperature criterion for this class."]);break}
+   if(v>lim)L.push(["bad",`Above the Class ${q.cls} maximum (${lim} °C). Loss of shade after a fire can raise temperature for years.`]);else L.push(["ok",`Below the Class ${q.cls} maximum (${lim} °C).`]);break}
+  case "galpha":if(v>15)L.push(["bad","Above the gross alpha criterion (15 pCi/L, Classes 1C and 4). Tell DDW if an intake is downstream and UDAF for stock water."]);else L.push(["ok","Below the gross alpha criterion (15 pCi/L)."]);break;
+  case "cyano":{const lim=q.cls==="cyl"?15:8,nm=q.cls==="cyl"?"cylindrospermopsin":"microcystins";
+   if(v>lim){L.push(["bad",`Above the recreational threshold for ${nm} (${lim} µg/L) used in the Integrated Report.`]);L.push(["bad","The local health department decides on advisories; DWQ’s HAB program follows up."])}else L.push(["ok",`Below the recreational threshold for ${nm} (${lim} µg/L).`]);break}
+  case "metal":{const m=MN[q.metal],c4=C4[q.metal],c1=C1[q.metal];
+   if(c1!=null&&v>c1){L.push(["bad",`Above the Class 1C criterion for ${m} (${c1} mg/L). Tell DDW and the water system.`]);if(fire&&q.intake==="1")up(3)}
+   if(c4!=null&&v>c4)L.push(["bad",`Above the Class 4 criterion for ${m} (${c4} mg/L). Share with UDAF for irrigation and stock water.`]);
+   if(!L.length)L.push(["ok",`Below ${[c1!=null?`Class 1C (${c1})`:"",c4!=null?`Class 4 (${c4})`:""].filter(Boolean).join(" and ")} criteria for ${m}.`]);
+   L.push(["","These criteria apply to dissolved (field-filtered) metals. Total metals results aren’t compared with them."]);break}
+  case "aq":{if(q.aq==="acute"){L.push(["bad","Above the acute criterion."]);up(3)}else if(q.aq==="chronic"){L.push(["bad","Above the chronic criterion."]);up(2)}else if(q.aq==="below")L.push(["ok","Below acute and chronic criteria."]);else return null;
+   L.push(["","Criteria come from R317-2-14: metals use hardness from the same sample, ammonia uses field pH and temperature."]);break}
+ }
+ return{lines:L,level:fire?lv:null};
+}
+function screenForm(){
+ const q=E().q||(E().q={p:"ecoli",cls:"2A"}),p=q.p;
+ const sel=(id,label,opts,val)=>`<div class="field"><label for="q_${id}">${label}</label><select id="q_${id}" data-q="${id}">${opts.map(([v,t])=>`<option value="${v}"${String(val)===v?" selected":""}>${esc(t)}</option>`).join("")}</select></div>`;
+ const pu=PARAMS.find(x=>x[0]===p);
+ let f=`<div class="grid">
+  <div class="field"><label for="q_site">Site</label><input type="text" id="q_site" data-q="site" value="${esc(q.site||"")}" placeholder="Site ID or name"></div>
+  <div class="field"><label for="q_at">Sampled</label><input type="datetime-local" id="q_at" data-q="at" value="${esc(q.at||"")}"></div>
+  ${sel("p","Parameter",PARAMS.map(x=>[x[0],x[1]]),p)}`;
+ if(p!=="aq")f+=`<div class="field"><label for="q_v">Result${pu[2]&&p!=="turb"?` (${pu[2]})`:""}</label><input type="number" step="any" id="q_v" data-q="v" value="${esc(q.v??"")}" inputmode="decimal"></div>`;
+ if(p==="ecoli")f+=sel("cls","Use class",[["2A","2A (126 / 409)"],["2B","2B (206 / 668)"],["1C","1C (206 / 668)"]],q.cls||"2A");
+ if(p==="do"){f+=sel("cls","Aquatic life class",[["3A","3A"],["3B","3B"],["3C","3C"],["3D","3D"]],q.cls||"3A");if(["3A","3B"].includes(q.cls||"3A"))f+=sel("els","Early life stages present",[["0","Not determined"],["1","Yes, presence determined"]],q.els??"0")}
+ if(p==="turb"){f+=sel("unit","Measured as",[["NTU","Lab turbidity (NTU)"],["FNU","Sonde (FNU)"]],q.unit||"NTU");if((q.unit||"NTU")==="NTU"){f+=`<div class="field"><label for="q_bg">Background (NTU)</label><input type="number" step="any" id="q_bg" data-q="bg" value="${esc(q.bg??"")}"></div>`+sel("cls","Aquatic life class",[["3A","3A"],["3B","3B"],["3C","3C"],["3D","3D"]],q.cls||"3A")}}
+ if(p==="temp")f+=sel("cls","Aquatic life class",[["3A","3A (20 °C)"],["3B","3B (27 °C)"],["3C","3C (27 °C)"],["3D","3D"]],q.cls||"3A");
+ if(p==="cyano")f+=sel("cls","Toxin",[["mc","Microcystins (8 µg/L)"],["cyl","Cylindrospermopsin (15 µg/L)"]],q.cls||"mc");
+ if(p==="tp")f+=sel("cls","Waterbody",[["stream","Stream"],["lake","Lake or reservoir"]],q.cls||"stream");
+ if(p==="metal"){f+=sel("metal","Dissolved metal",Object.keys(MN).map(k=>[k,MN[k][0].toUpperCase()+MN[k].slice(1)]),q.metal||"As");if(S.mode==="fire")f+=sel("intake","At a drinking water intake",[["0","No"],["1","Yes"]],q.intake||"0")}
+ if(p==="aq"){f+=`<div class="field"><label for="q_what">Analyte</label><input type="text" id="q_what" data-q="what" value="${esc(q.what||"")}" placeholder="e.g., dissolved copper, ammonia"></div>`+sel("aq","Compared with R317-2-14",[["","Choose…"],["below","Below acute and chronic"],["chronic","Above chronic"],["acute","Above acute"]],q.aq||"")}
+ return f+"</div>";
+}
+function verdictHTML(r){
+ if(!r)return `<div class="verdict"><strong>Enter a result</strong><span>The check runs as you type.</span></div>`;
+ const worst=r.lines.some(l=>l[0]==="bad")?"bad":r.lines.some(l=>l[0]==="warn")?"warn":"ok";
+ const title=worst==="bad"?"Doesn’t meet criteria":worst==="warn"?"Follow up":r.lines.some(l=>l[0]==="ok")?"Meets criteria":"No numeric criterion";
+ const lvl=r.level!=null?FIRE.levels[r.level]:null;
+ return `<div class="verdict ${worst}"><strong>${title}${lvl?` · suggests Level ${lvl.n} ${lvl.name}`:""}</strong>${r.lines.map(l=>`<span>${esc(l[1])}</span>`).join("")}</div>`;
+}
+function resultsTable(){const rs=E().results;if(!rs.length)return `<p class="note">No results logged yet.</p>`;
+ return `<div class="scroll"><table><thead><tr><th>Sampled</th><th>Site</th><th>Result</th><th>Check</th>${S.mode==="fire"?"<th>Level</th>":""}<th></th></tr></thead><tbody>${rs.map((r,i)=>`<tr><td class="nowrap">${r.at?fmtS(pd(r.at)):"—"}</td><td>${esc(r.site||"—")}</td><td>${esc(r.label)}</td><td>${esc(r.summary)}</td>${S.mode==="fire"?`<td>${r.level!=null?r.level:"—"}</td>`:""}<td><button type="button" class="small ghost" data-rmres="${i}" aria-label="Remove result">Remove</button></td></tr>`).join("")}</tbody></table></div>`}
+function narrBlock(){const N=S.mode==="flood"?FLOOD.narrative:[
+  {id:"n1",t:"Fish kill",to:"Level 3: DWR and the Spills Coordinator, then DEM and the health department; DDW if an intake is downstream",lv:3},
+  {id:"n2",t:"Debris flow reaching a stream or lake",to:"Level 3: DWR; DDW and the water system if an intake is downstream",lv:3},
+  {id:"n3",t:"Ash deposits, sheen or odor",to:"Record with photos (narrative standard); include in the post-storm note"},
+  {id:"n4",t:"Algal bloom at a reservoir",to:"DWQ Recreational Health Coordinator; local health department"}];
+ return `<div class="block"><h3>Narrative observations</h3><p class="note">Utah’s narrative standards: no sheen, floating solids, odor, deposits or conditions that harm uses. Photograph what you see.</p><div class="checks">${N.map(n=>{const t=E().narr[n.id];return `<label class="ck" for="nr_${n.id}"><input type="checkbox" id="nr_${n.id}" data-narr="${n.id}"${t?" checked":""}><span class="txt">${esc(n.t)}${t?`<br><span class="note" style="color:var(--bad)">Notify: ${esc(n.to)}</span>`:""}</span>${t?`<span class="when">${fmtS(t)}</span>`:""}</label>`}).join("")}</div></div>`}
+R["flood.screen"]=()=>{const r=screen(E().q||{p:"ecoli",cls:"2A"});
+ return head("Screen results","Compare a result with Utah’s numeric criteria. Add it to the log to keep a record. Formal assessment follows the Integrated Report methods.")+
+ `<div class="block">${screenForm()}<div id="verdict">${verdictHTML(r)}</div><div class="inline"><button type="button" class="primary small" id="addRes">Add to results log</button><span class="status" id="resStatus"></span></div></div>
+ ${narrBlock()}<div class="block"><h3>Results log</h3>${resultsTable()}</div>`};
+/* flood: advise */
+R["flood.advise"]=()=>head("Advisories","DWQ recommends advisories in consultation with local health departments and tribal health agencies, who will post any advisories. Check each situation that applies, then log when the recommendation goes out. Tell directly affected people (outfitters, tribal chapters, irrigation companies, nearby residents) at the same time as or before the media, and use the message maps in the Risk Communication Plan.")+
+ `<div class="block">${FLOOD.advise.map(a=>{const st=E().adv[a.id]||{};return `<section class="win"><div class="win-head"><h3>${esc(a.sit)}</h3>${st.sent?`<span class="chip ok">Sent ${fmtS(st.sent)}</span>`:st.on?`<span class="chip warn">Applies</span>`:""}</div><div class="win-body">
+  <div class="checks"><label class="ck" for="av_${a.id}"><input type="checkbox" id="av_${a.id}" data-adv="${a.id}" data-k="on"${st.on?" checked":""}><span class="txt">Applies</span>${st.on?`<span class="when">${fmtS(st.on)}</span>`:""}</label></div>
+  ${st.on?`<div class="win-meta"><span><b>Recommend:</b> ${esc(a.rec)}</span></div><div class="checks"><label class="ck" for="as_${a.id}"><input type="checkbox" id="as_${a.id}" data-adv="${a.id}" data-k="sent"${st.sent?" checked":""}><span class="txt">Recommendation sent</span>${st.sent?`<span class="when">${fmtS(st.sent)}</span>`:""}</label></div>`:""}</div></section>`}).join("")}</div>`;
+/* flood: follow */
+R["flood.follow"]=()=>{const p=pd(E().ev.peak),y=p?p.getTime():null,Y=365*D;
+ const rows=[["Event to 90 days","Event rounds (steps 4 and 6)","Event report",0,90*D],
+  ["Months 3–12","Monthly at trend sites, the next 2–3 high-flow events, and one summer E. coli series (5 samples at least 48 hours apart within 30 days, May 1–October 31)","Reservoir profiles and HAB checks",90*D,Y],
+  ["Years 2–3","Monthly April–October, every other month November–March, one high-flow event and the summer E. coli series each year","Macroinvertebrates each year, May–October",Y,3*Y],
+  ["End of year 3","Recovery decision (below)","Three-year report",3*Y,3*Y],
+  ["Years 4–5, if not recovered","Quarterly, or fold into DWQ’s rotating basin or trend network","Macroinvertebrates until recovered",3*Y,5*Y]];
+ return head("Follow-up and trends","After a Level 2 or 3 flood, trend sites run for at least three years. Results are judged against Utah’s numeric and narrative criteria using the Integrated Report rules.")+
+ FLOOD.follow.map((g,i)=>`<div class="block"><h3>${esc(g.h)}</h3>${g.note?`<p class="note">${esc(g.note)}</p>`:""}${list(`fo${i}`,g.items)}</div>`).join("")+
+ `<div class="block"><h3>Schedule${p?"":` <span class="note">Enter the peak in step 1 for dates</span>`}</h3><div class="scroll"><table><thead><tr><th>Period</th>${p?"<th>Dates</th>":""}<th>Water sampling</th><th>Other work</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r[0])}</td>${p?`<td class="nowrap">${r[3]===r[4]?fmtD(y+r[3]):`${fmtD(y+r[3])} –<br>${fmtD(y+r[4])}`}</td>`:""}<td>${esc(r[1])}</td><td>${esc(r[2])}</td></tr>`).join("")}</tbody></table></div></div>
+ <div class="block"><h3>Recovery tests (met two years in a row)</h3>${list("rc",FLOOD.recovery)}<p class="note">${esc(FLOOD.recoveryNote)} Sites that don’t pass continue annually.</p></div>
+ <div class="tip">IR minimums: 10 samples for DO, pH, temperature and TDS (more than 10% exceeding fails); 4 for metals and ammonia (two exceedances fail); 5 E. coli samples at least 48 hours apart in the recreation season. Summaries use water years (October 1–September 30).</div>`};
+
+/* fire: start */
+R["fire.start"]=()=>{const e=E().ev,vars=FIRE.values.filter(([k])=>e["v_"+k]);
+ const acres=parseFloat(e.acres),sbs=parseFloat(e.sbs),thr=parseFloat(e.thr);
+ const size=(acres>=500&&vars.length>0)||(!!e.baer&&vars.length>0),runSbs=!isNaN(sbs)&&!isNaN(thr)&&sbs>=thr,run=runSbs||e.dfa==="high"||!!e.baer;
+ let v;
+ if(size&&run)v=["bad","Activate","Both tests met. Send the written activation notice (fire clock, 48 hours)."];
+ else if(vars.length&&!isNaN(acres)&&!size)v=["warn","Below the size threshold","The Program Manager may still activate for a smaller fire near sensitive waters: a fishery, listed species, a recreation area or an intake."];
+ else if(size&&!run)v=["warn","Runoff risk not shown yet","Recheck when burn severity, the USGS debris-flow assessment or the BAER report arrives."];
+ else v=["","Not enough information","Enter acres, values at risk and runoff risk below."];
+ return head("Fire and activation","Activate when the fire burned at least 500 acres (the Forest Service BAER threshold) draining to surface water with designated uses, and at least one runoff-risk test is met. A BAER listing of water as a value at risk activates at any size. Every perennial stream, lake and reservoir has designated uses; check the ones below the burn so the right partners are called.")+
+ `<div class="block"><div class="grid">
+  ${fld("name","Fire name","text","e.g., Dollar Ridge Fire")}
+  ${fld("water","Receiving waters","text","e.g., Strawberry River, Starvation Reservoir")}
+  ${fld("t0","When DWQ was notified (starts the fire clock)","datetime-local")}
+  ${fld("contain","Containment date","date")}
+  ${fld("lead","DWQ Program Manager","text","Name, phone")}
+ </div></div>
+ <div class="verdict ${v[0]}"><strong>${v[1]}</strong><span>${v[2]}</span></div>
+ <div class="block"><h3>1 · Size and location</h3><div class="grid">${fld("acres","Acres burned","number","500 or more")}</div>
+ <p class="lbl">Downstream waters and uses (check all that apply)</p><div class="checks">${FIRE.values.map(([k,t])=>`<label class="ck" for="fv_${k}"><input type="checkbox" id="fv_${k}" data-evc="v_${k}"${e["v_"+k]?" checked":""}><span class="txt">${esc(t)}</span></label>`).join("")}</div></div>
+ <div class="block"><h3>2 · Runoff risk (any one)</h3><div class="grid">
+  ${fld("sbs","Moderate + high soil burn severity (% of catchment)","number","From the BAER or BARC map")}
+  ${fld("thr","Activation threshold (%)","number","DWQ to set; 20% suggested (20–30% supported)")}
+  <div class="field"><label for="f_dfa">USGS debris-flow assessment</label><select id="f_dfa" data-ev="dfa">${[["","Not available yet"],["high","High likelihood in a basin draining to the value at risk"],["mod","Moderate"],["low","Low"]].map(([k,t])=>`<option value="${k}"${(e.dfa||"")===k?" selected":""}>${t}</option>`).join("")}</select></div>
+ </div><label class="ck" for="f_baer"><input type="checkbox" id="f_baer" data-evc="baer"${e.baer?" checked":""}><span class="txt">The BAER team lists water quality, aquatic habitat or a water supply as a value at risk</span></label>
+ ${isNaN(thr)?`<p class="note">The burn-severity threshold is a DWQ decision; until it’s set, the debris-flow and BAER tests still apply.</p>`:""}</div>`};
+/* fire: clock */
+R["fire.clock"]=()=>{const b=t0();return head("Fire clock",(b?`Deadlines count from ${fmt(b)}. `:"Enter when DWQ was notified (step 1) to see deadlines. ")+"Goal: baseline samples before the first storm and sensors at Tier 1 sites by 72 hours. In monsoon season, compress the 72-hour work into 24.")+
+ `<div class="block">${FIRE.clock.map(w=>windowBlock("xc",w,b)).join("")}</div>`};
+/* fire: sites */
+R["fire.sites"]=()=>head("Network and sensors","Pair sites below the burn with baseline sites and an unburned reference, so fire effects can be told apart from a wet or dry year.")+
+ `<div class="inline"><a class="btn primary" href="${SAP_URL}" target="_blank" rel="noopener">Open the SAP Builder (post-fire mode)</a></div>
+ <div class="block"><h3>Tiers in place</h3><div class="checks">${FIRE.tiers.map(([t,d],i)=>ck(`tr.${i}`,t,`<br><span class="note">${esc(d)}</span>`)).join("")}</div></div>
+ <div class="block"><h3>Site checks</h3>${list("sc",FIRE.siteCheck)}</div>
+ <div class="block"><h3>Sondes</h3><p class="note">DWQ’s standard sondes log temperature, pH, DO and specific conductance every 15 minutes. Continuous turbidity needs a turbidity-equipped sonde or a partner.</p>${list("sn",FIRE.sensors)}</div>
+ <div class="block"><h3>Samples and QA</h3>${list("fq",FIRE.qa)}</div>`;
+/* fire: storm */
+R["fire.storm"]=()=>{const st=E().storms;
+ return head("Storm response","Add a storm when one is forecast over the burn. Its deadlines count from the expected arrival time.")+
+ `<div class="inline"><button type="button" class="primary small" id="addStorm">Add a storm</button></div>
+ ${st.length?"":`<p class="note">No storms yet.</p>`}
+ ${st.slice().reverse().map(s=>{const base=pd(s.at),pre=`sm.${s.id}`,trig=FIRE.mobilize.map((_,i)=>`${pre}.m.${i}`),mob=trig.some(id=>E().checks[id]);
+  return `<section class="storm"><div class="storm-head"><h3>${esc(s.name||"Storm")}</h3><button type="button" class="small ghost" data-rmstorm="${s.id}">Remove storm</button></div>
+  <div class="grid"><div class="field"><label for="sn_${s.id}">Name</label><input type="text" id="sn_${s.id}" data-storm="${s.id}" data-k="name" value="${esc(s.name||"")}"></div>
+  <div class="field"><label for="sa_${s.id}">Expected arrival</label><input type="datetime-local" id="sa_${s.id}" data-storm="${s.id}" data-k="at" value="${esc(s.at||"")}"></div>
+  <div class="field"><label for="sg_${s.id}">Go / no-go</label><select id="sg_${s.id}" data-storm="${s.id}" data-k="go">${[["","Not decided"],["go","Go"],["backup","Go, backup downstream station"],["nogo","No-go: unsafe"]].map(([k,t])=>`<option value="${k}"${(s.go||"")===k?" selected":""}>${t}</option>`).join("")}</select></div></div>
+  <div class="block"><h3>Mobilize if any <span class="chip ${mob?"bad":""}">${mob?"Mobilize":"Not triggered"}</span></h3><div class="checks">${FIRE.mobilize.map((t,i)=>ck(trig[i],t)).join("")}</div></div>
+  ${mob?FIRE.storm.map(w=>windowBlock(pre,w,base)).join(""):""}
+  </section>`}).join("")}
+ <p class="note">${esc(FIRE.stormRecord)}</p>`};
+/* fire: screen */
+R["fire.screen"]=()=>{const r=screen(E().q||{p:"ecoli",cls:"2A"}),hi=E().results.reduce((m,x)=>x.level!=null?Math.max(m,x.level):m,-1);
+ return head("Screen and set level","Screen a result against criteria, then set the response level. A level needs two consecutive sonde readings or a confirming grab sample.")+
+ (E().results.length?"":`<div class="tip"><b>No results logged yet.</b> Until samples are in, you can’t tell whether waters meet criteria, so the level stays at 0 (Watch), set from activation and the storm forecast. Collect pre-storm baseline grabs at every tier and start the sonde records now; the first results then show whether a higher level applies, and give a pre-storm comparison for later samples.</div>`)+
+ `<div class="block">${screenForm()}<div id="verdict">${verdictHTML(r)}</div><div class="inline"><button type="button" class="primary small" id="addRes">Add to results log</button><span class="status" id="resStatus"></span></div></div>
+ ${narrBlock()}
+ <div class="block"><h3>Response level${hi>=0?` <span class="chip warn">Logged results suggest Level ${hi}</span>`:""}</h3>
+ <div class="cards" role="radiogroup" aria-label="Response level">${FIRE.levels.map(l=>`<label class="lvl" for="lv_${l.n}"><span class="lt"><input type="radio" name="lvl" id="lv_${l.n}" data-level="${l.n}"${String(E().level)===String(l.n)?" checked":""}>${l.n} · ${l.name}</span><ul>${l.trig.map(a=>`<li>${esc(a)}</li>`).join("")}</ul><span class="when2"><b>Do:</b> ${esc(l.act.join("; "))}</span>${l.notify?`<span class="when2"><b>Notify within ${l.notify.wl}:</b> ${esc(l.notify.who)} (${esc(l.notify.how.toLowerCase())})</span>`:""}</label>`).join("")}</div>
+ ${levelHistory()}<p class="note">Reopen intakes on the criteria each water system agreed with DDW: sonde turbidity back near pre-storm levels for a set period, plus a confirming grab.</p></div>
+ <div class="block"><h3>Results log</h3>${resultsTable()}</div>`};
+function levelHistory(){const L=E().levels;if(!L.length)return "";const fire=S.mode==="fire";
+ return `<div class="block"><h3>Level changes</h3>${L.slice().reverse().map((x,ri)=>{const i=L.length-1-ri,n=fire?FIRE.levels[x.n]?.notify:null,due=n?x.at+n.within:null,left=due?due-now():null;
+ return `<div class="win"><div class="win-head"><h3>Level ${x.n} set ${fmt(x.at)}</h3>${n?(x.notified?`<span class="chip ok">Notified ${fmtS(x.notified)}</span>`:`<span class="chip ${left<0?"bad":"warn"}">${left<0?"Overdue":"Notify by"} ${fmt(due)}</span>`):""}</div>${n?`<div class="win-body"><div class="win-meta"><span><b>Notify:</b> ${esc(n.who)} · ${esc(n.how)}</span></div><div class="checks"><label class="ck" for="ln_${i}"><input type="checkbox" id="ln_${i}" data-lvnote="${i}"${x.notified?" checked":""}><span class="txt">Notified</span>${x.notified?`<span class="when">${fmtS(x.notified)}</span>`:""}</label></div></div>`:""}</div>`}).join("")}</div>`}
+/* fire: cadence */
+R["fire.cadence"]=()=>head("Seasonal tasks","Scheduled check-ins before and between fires, so partners stay connected without new meetings each time.")+
+ FIRE.cadence.map((g,i)=>`<div class="block"><h3>${esc(g.h)}</h3>${list(`cd${i}`,g.items)}</div>`).join("");
+/* fire: follow */
+R["fire.follow"]=()=>{const c=pd(E().ev.contain),yr=c?c.getFullYear():null;
+ const rows=[["Year 0",c?`${fmtD(c)} – first freeze-up`:"Containment to first winter","Tier 1 and 2 sondes until freeze-up","Every storm that meets the trigger","Baseline grabs before the first storm, then monthly"],
+  ["Year 1",yr?String(yr+1):"First full year","Tier 1 and 2, snowmelt through monsoon","Snowmelt peak and the first 3–5 monsoon storms","Monthly baseflow; macroinvertebrates May–October; reservoir HAB checks June–September"],
+  ["Years 2–3",yr?`${yr+2}–${yr+3}`:"","Tier 1 and one Tier 2, April–October","Snowmelt peak and the first 2–3 monsoon storms","Monthly April–October, every other month November–March (10 baseflow samples a year); macroinvertebrates"],
+  ["End of year 3",yr?`Fall ${yr+3}`:"","—","—","Recovery decision and three-year report"],
+  ["Years 4–10, if not recovered",yr?`${yr+4}–${yr+10}`:"","Only where a fishery, listed species or an intake is still at risk","Snowmelt peak and 1–2 monsoon storms","Quarterly, or fold into DWQ’s rotating basin or trend network (nitrogen can stay elevated for more than a decade); judge recovery over several years pooled; macroinvertebrates"]];
+ return head("Recovery and trends","At least three years per fire, continued until results meet criteria and match the reference site. Results are judged against Utah’s numeric and narrative criteria using the Integrated Report rules.")+
+ `<div class="block"><h3>Schedule${c?"":` <span class="note">Enter the containment date in step 1 for years</span>`}</h3><div class="scroll"><table><thead><tr><th>Period</th><th>When</th><th>Sondes</th><th>Storms</th><th>Fixed sampling and other</th></tr></thead><tbody>${rows.map(r=>`<tr>${r.map((x,i)=>`<td${i<2?' class="nowrap"':""}>${esc(x)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>`+
+ FIRE.follow.map((g,i)=>`<div class="block"><h3>${esc(g.h)}</h3>${g.note?`<p class="note">${esc(g.note)}</p>`:""}${g.link?`<div class="inline"><a class="btn small primary" href="${g.link[0]}" target="_blank" rel="noopener">${esc(g.link[1])}</a></div>`:""}${list(`xf${i}`,g.items)}</div>`).join("")+
+ `<div class="block"><h3>Recovery tests (met two years in a row)</h3>${list("xr",FIRE.recovery)}<p class="note">${esc(FIRE.recoveryNote)} Sites that don’t pass continue annually.</p></div>
+ <div class="tip">IR minimums: 10 samples for DO, pH, temperature and TDS (more than 10% exceeding fails); 4 for metals and ammonia (two exceedances fail). Macroinvertebrate O/E below 0.76 from three or more samples, or two scores below 0.69, is not supporting. Summaries use water years.</div>`};
+
+/* log (both) */
+function logText(){
+ const m=S.mode,e=E().ev,C=m==="flood"?FLOOD:FIRE,o=[];
+ o.push(`${m==="flood"?"FLOOD":"POST-FIRE"} RESPONSE LOG — ${e.name||"(unnamed event)"}`);
+ o.push(`${m==="flood"?"Reach":"Receiving waters"}: ${e.water||"—"}`);
+ if(e.t0)o.push(`Clock start (T0): ${fmt(pd(e.t0))}`);
+ if(m==="flood"&&e.peak)o.push(`Peak: ${fmt(pd(e.peak))}${e.gage?` (${e.gage})`:""}`);
+ if(m==="fire"){if(e.contain)o.push(`Containment: ${fmtD(pd(e.contain))}`);if(e.acres)o.push(`Acres burned: ${e.acres}${e.sbs?`; moderate + high soil burn severity ${e.sbs}%`:""}`)}
+ if(e.lead)o.push(`DWQ lead: ${e.lead}`);
+ if(E().level!=="")o.push(`Current response level: ${E().level}`);
+ if(e.late)o.push(`Response started after the peak. Missed windows: ${e.missed||"(not recorded)"}`);
+ const ev=[];
+ for(const [id,t] of Object.entries(E().checks))if(t&&LABEL[id])ev.push([t,LABEL[id]]);
+ E().levels.forEach(x=>{ev.push([x.at,`Response level set to ${x.n}`]);if(x.notified)ev.push([x.notified,`Partners notified for level ${x.n}`])});
+ if(m==="flood"){FLOOD.finds.forEach(f=>{const s=E().finds[f.id]||{};if(s.found)ev.push([s.found,`Found: ${f.find}`]);if(s.done)ev.push([s.done,`Notified: ${f.who}`])});
+  FLOOD.advise.forEach(a=>{const s=E().adv[a.id]||{};if(s.on)ev.push([s.on,`Advisory situation: ${a.sit}`]);if(s.sent)ev.push([s.sent,`Recommendation sent: ${a.rec}`])});
+  E().weekly.forEach(t=>ev.push([t,"Weekly status note sent"]))}
+ const NR=m==="flood"?FLOOD.narrative:[{id:"n1",t:"Fish kill"},{id:"n2",t:"Debris flow reaching a stream or lake"},{id:"n3",t:"Ash deposits, sheen or odor"},{id:"n4",t:"Algal bloom at a reservoir"}];
+ NR.forEach(n=>{if(E().narr[n.id])ev.push([E().narr[n.id],`Observed: ${n.t}`])});
+ E().storms.forEach(s=>{if(s.go)ev.push([s.goAt||now(),`${s.name||"Storm"}: ${({go:"Go",backup:"Go, backup station",nogo:"No-go, unsafe"})[s.go]}`])});
+ ev.sort((a,b)=>a[0]-b[0]);
+ o.push("","TIMELINE");ev.forEach(([t,l])=>o.push(`${fmt(t)}  ${l}`));if(!ev.length)o.push("(nothing checked yet)");
+ if(E().results.length){o.push("","RESULTS SCREENED");E().results.forEach(r=>o.push(`${r.at?fmt(pd(r.at)):"—"}  ${r.site||"—"}  ${r.label}  →  ${r.summary}${r.level!=null?` (Level ${r.level})`:""}`))}
+ const cs=C.contacts.map(r=>[r,E().contacts[slug(r)]]).filter(([,c])=>c&&(c.n||c.p));
+ if(cs.length){o.push("","CONTACTS");cs.forEach(([r,c])=>o.push(`${r}: ${[c.n,c.p].filter(Boolean).join(", ")}`))}
+ if(E().notes){o.push("","NOTES",E().notes)}
+ return o.join("\n");
+}
+const logStep=()=>head("Response log","Everything checked, found, screened and decided, in time order. Copy it into the event log, a status memo or the event report.")+
+ `<div class="inline"><button type="button" class="primary" id="copyLog">Copy log</button><span class="status" id="copyStatus"></span></div>
+ <div class="field"><label for="f_notes">Notes (calls, decisions, anything not covered above)</label><textarea id="f_notes" data-notes="1" placeholder="e.g., 14:20 spoke with Jane Doe, San Juan Public Health: precautionary notice going out today">${esc(E().notes)}</textarea></div>
+ <pre class="log" id="logText">${esc(logText())}</pre>`;
+R["flood.log"]=logStep;R["fire.log"]=logStep;
+
+/* ---------- progress, nav, clock panel ---------- */
+function stepIds(id){COL=[];try{R[`${S.mode}.${id}`]()}finally{}const ids=COL;COL=null;return ids}
+function renderNav(){
+ const steps=STEPS[S.mode],cur=S.cur[S.mode];
+ $("#steps").innerHTML=steps.map((s,i)=>{const ids=stepIds(s.id),done=ids.filter(x=>E().checks[x]).length;
+  return `<button type="button" data-step="${s.id}"${s.id===cur?' aria-current="step"':""} class="${ids.length&&done===ids.length?"done":""}"><span class="n">${i+1}</span><span class="t">${esc(s.t)}</span><span class="c">${ids.length?`${done}/${ids.length}`:""}</span></button>`}).join("");
+}
+function dueItems(){
+ const out=[],b=t0(),C=S.mode==="flood"?FLOOD:FIRE,pre=S.mode==="flood"?"fc":"xc";
+ if(b)C.clock.forEach(w=>{if(w.due==null)return;w.tasks.forEach((t,i)=>{const id=`${pre}.${w.id}.${i}`;if(!E().checks[id])out.push({at:b.getTime()+w.due,t,step:"clock"})})});
+ if(S.mode==="fire")E().storms.forEach(s=>{const base=pd(s.at),pr=`sm.${s.id}`;if(!base)return;if(!FIRE.mobilize.some((_,i)=>E().checks[`${pr}.m.${i}`]))return;
+  FIRE.storm.forEach(w=>{if(w.due==null)return;w.tasks.forEach((t,i)=>{const id=`${pr}.${w.id}.${i}`;if(!E().checks[id])out.push({at:base.getTime()+w.due,t:`${s.name||"Storm"}: ${t}`,step:"storm"})})})});
+ if(S.mode==="flood")FLOOD.finds.forEach(f=>{const s=E().finds[f.id]||{};if(s.found&&!s.done)out.push({at:f.within==="eod"?new Date(new Date(s.found).setHours(23,59,0,0)).getTime():s.found+f.within,t:`Notify: ${f.find}`,step:"notify"})});
+ E().levels.forEach(x=>{const n=S.mode==="fire"?FIRE.levels[x.n]?.notify:null;if(n&&!x.notified)out.push({at:x.at+n.within,t:`Notify for Level ${x.n}`,step:"screen"})});
+ return out.sort((a,b)=>a.at-b.at);
+}
+function renderClock(){
+ const b=t0(),e=E().ev,lv=E().level,items=dueItems(),n=now();
+ const all=STEPS[S.mode].flatMap(s=>stepIds(s.id)),done=all.filter(x=>E().checks[x]).length;
+ $("#clock").innerHTML=`<div class="panel"><span class="eyebrow">${S.mode==="flood"?"Flood clock":"Fire clock"}</span>
+  <div class="tclock">${b?(n>=b?`T0 + ${dur(n-b)}`:`T0 in ${dur(b-n)}`):"Not started"}</div>
+  <dl class="kv"><dt>Event</dt><dd>${esc(e.name||"—")}</dd><dt>Level</dt><dd>${lv!==""?esc(String(lv)):"—"}</dd><dt>Checked</dt><dd class="mono">${done} of ${all.length}</dd></dl></div>
+  <div class="panel"><span class="eyebrow">Due next</span>${items.length?`<ul class="due">${items.slice(0,5).map(it=>{const left=it.at-n,c=left<0?"over":left<6*H?"soon":"";return `<li class="${c}"><span>${esc(it.t)}</span><span class="dt">${left<0?"Overdue · ":""}${fmt(it.at)}</span></li>`}).join("")}</ul>${items.length>5?`<p class="note">${items.length-5} more open with deadlines.</p>`:""}`:`<p class="note">${b?"Nothing open with a deadline.":"Enter the clock start in step 1 to see deadlines."}</p>`}</div>`;
+}
+let focusId=null;
+function render(){
+ $("#app").dataset.mode=S.mode;
+ $("#mode_"+S.mode).checked=true;
+ {const dl=$("#docLink"),u=DOC_URL[S.mode];if(u){dl.href=u;dl.removeAttribute("aria-disabled");dl.textContent="Read the full protocol";dl.style.opacity="";dl.style.cursor="";dl.title=""}else{dl.removeAttribute("href");dl.setAttribute("aria-disabled","true");dl.textContent="Read the full protocol (link coming soon)";dl.style.opacity=".6";dl.style.cursor="default";dl.title="The final protocol is being revised; the link will be added when it’s done."}}
+ const steps=STEPS[S.mode];let cur=S.cur[S.mode];if(!steps.some(s=>s.id===cur))cur=S.cur[S.mode]=steps[0].id;
+ const i=steps.findIndex(s=>s.id===cur);
+ $("#stage").innerHTML=R[`${S.mode}.${cur}`]()+`<div class="foot"><button type="button" id="prev"${i===0?" disabled":""}>Back</button>${i<steps.length-1?`<button type="button" class="primary" id="next">Next: ${esc(steps[i+1].t)}</button>`:""}</div>`;
+ renderNav();renderClock();save();
+ if(focusId){const el=document.getElementById(focusId);if(el)el.focus({preventScroll:true});focusId=null}
+}
+function go(id){S.cur[S.mode]=id;render();const st=$("#stage");if(st.scrollIntoView&&st.getBoundingClientRect().top<0)st.scrollIntoView({block:"start"});const h=$("#stage h2");if(h){h.tabIndex=-1;h.focus({preventScroll:true})}}
+
+/* ---------- events ---------- */
+document.addEventListener("click",ev=>{
+ const t=ev.target.closest("button");if(!t)return;
+ if(t.dataset.step)return go(t.dataset.step);
+ if(t.id==="next"){const s=STEPS[S.mode],i=s.findIndex(x=>x.id===S.cur[S.mode]);return go(s[i+1].id)}
+ if(t.id==="prev"){const s=STEPS[S.mode],i=s.findIndex(x=>x.id===S.cur[S.mode]);return go(s[Math.max(0,i-1)].id)}
+ if(t.id==="addWeekly"){E().weekly.push(now());focusId="addWeekly";return render()}
+ if(t.id==="resetSafety"){Object.keys(E().checks).filter(k=>k.startsWith("sf.")).forEach(k=>delete E().checks[k]);return render()}
+ if(t.id==="addRes"){const q=E().q||{},r=screen(q);if(!r){$("#resStatus").textContent="Enter a result first.";$("#resStatus").style.color="var(--bad)";return}
+  const pu=PARAMS.find(x=>x[0]===q.p);
+  const label=q.p==="aq"?`${q.what||"Aquatic life check"}`:q.p==="metal"?`${MN[q.metal||"As"]} ${q.v} mg/L`:`${pu[1]} ${q.v} ${q.p==="turb"?(q.unit||"NTU"):pu[2]}`;
+  E().results.push({at:q.at||"",site:q.site||"",label,summary:r.lines.filter(l=>l[0]).map(l=>l[1]).join(" "),level:r.level});
+  focusId="addRes";render();$("#resStatus").textContent="Added to the results log.";return}
+ if(t.dataset.rmres!=null){E().results.splice(+t.dataset.rmres,1);return render()}
+ if(t.id==="addStorm"){const id=Date.now().toString(36);E().storms.push({id,name:`Storm ${E().storms.length+1}`,at:"",go:""});focusId="sa_"+id;return render()}
+ if(t.dataset.rmstorm){const id=t.dataset.rmstorm;if(t.dataset.armed!=="1"){t.dataset.armed="1";t.textContent="Click again to remove";setTimeout(()=>{if(t.isConnected){t.dataset.armed="";t.textContent="Remove storm"}},4000);return}
+  E().storms=E().storms.filter(s=>s.id!==id);Object.keys(E().checks).filter(k=>k.startsWith(`sm.${id}.`)).forEach(k=>delete E().checks[k]);return render()}
+ if(t.id==="copyLog"){const txt=logText(),st=$("#copyStatus");const ok=()=>st.textContent="Copied.";
+  const fb=()=>{const r=document.createRange();r.selectNodeContents($("#logText"));const s=getSelection();s.removeAllRanges();s.addRange(r);st.textContent="Selected. Press Ctrl+C or ⌘C to copy."};
+  try{navigator.clipboard.writeText(txt).then(ok,fb)}catch(e){fb()}return}
+ if(t.id==="reset"){if(t.dataset.armed!=="1"){t.dataset.armed="1";t.textContent=`Click again to clear this ${S.mode==="flood"?"flood":"fire"} event`;setTimeout(()=>{t.dataset.armed="";t.textContent="Start a new event"},4000);return}
+  t.dataset.armed="";t.textContent="Start a new event";S[S.mode]=blank();S.cur[S.mode]="start";return render()}
+});
+document.addEventListener("change",ev=>{
+ const el=ev.target,d=el.dataset;
+ if(el.name==="mode"){S.mode=el.value;return render()}
+ focusId=el.id||null;
+ if(d.check){if(el.checked)E().checks[d.check]=now();else delete E().checks[d.check];return render()}
+ if(d.evc){E().ev[d.evc]=el.checked;return render()}
+ if(d.ev!=null){E().ev[d.ev]=el.value;return render()}
+ if(d.level!=null){E().level=d.level;E().levels.push({n:+d.level,at:now()});return render()}
+ if(d.lvnote!=null){const x=E().levels[+d.lvnote];x.notified=el.checked?now():null;return render()}
+ if(d.find){const s=E().finds[d.find]||(E().finds[d.find]={});s[d.k]=el.checked?now():null;if(d.k==="found"&&!el.checked)s.done=null;return render()}
+ if(d.adv){const s=E().adv[d.adv]||(E().adv[d.adv]={});s[d.k]=el.checked?now():null;if(d.k==="on"&&!el.checked)s.sent=null;return render()}
+ if(d.narr){if(el.checked)E().narr[d.narr]=now();else delete E().narr[d.narr];return render()}
+ if(d.storm){const s=E().storms.find(x=>x.id===d.storm);if(s){s[d.k]=el.value;if(d.k==="go")s.goAt=now()}return render()}
+ if(d.q){const q=E().q||(E().q={});q[d.q]=el.value;if(d.q==="p"){q.cls=undefined;q.v="";}return render()}
+ if(d.contact){save();return}
+ if(d.notes){save();const L=$("#logText");if(L)L.textContent=logText();return}
+});
+document.addEventListener("input",ev=>{
+ const el=ev.target,d=el.dataset;
+ if(d.contact){const c=E().contacts[d.contact]||(E().contacts[d.contact]={});c[d.f]=el.value;save();return}
+ if(d.notes){E().notes=el.value;save();return}
+ if(d.ev!=null&&el.type==="text"){E().ev[d.ev]=el.value;save();return}
+ if(d.storm&&d.k==="name"){const s=E().storms.find(x=>x.id===d.storm);if(s)s.name=el.value;save();return}
+ if(d.q&&(d.q==="v"||d.q==="bg"||d.q==="site"||d.q==="what")){const q=E().q||(E().q={});q[d.q]=el.value;save();const v=$("#verdict");if(v)v.innerHTML=verdictHTML(screen(q));return}
+});
+render();
+setInterval(renderClock,60e3);
+</script>
+</body>
+</html>

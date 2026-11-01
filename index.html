@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>DWQ Flood and Post-Fire Toolkit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#f3f6f5; --surface:#ffffff; --sunken:#eaf0ef; --ink:#16252a; --muted:#56696e; --line:#d3dddc;
+  --accent:#0b6a78; --accent-ink:#ffffff; --accent-soft:#dcedef;
+  --silt:#8a5d14; --silt-bg:#f6ecd8; --good:#2c7346; --good-bg:#e1f0e5; --bad:#a3372a; --bad-bg:#f8e4df;
+  --f-display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1618; --surface:#152124; --sunken:#1b2a2e; --ink:#e2ebe9; --muted:#97abad; --line:#2a3b3f;
+  --accent:#55b6c5; --accent-ink:#06252a; --accent-soft:#173439;
+  --silt:#dba84f; --silt-bg:#2c2413; --good:#6dc48c; --good-bg:#14281b; --bad:#ec8a78; --bad-bg:#331b16; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1618; --surface:#152124; --sunken:#1b2a2e; --ink:#e2ebe9; --muted:#97abad; --line:#2a3b3f;
+  --accent:#55b6c5; --accent-ink:#06252a; --accent-soft:#173439;
+  --silt:#dba84f; --silt-bg:#2c2413; --good:#6dc48c; --good-bg:#14281b; --bad:#ec8a78; --bad-bg:#331b16; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;margin:0}
+.wrap{max-width:1100px;margin:0 auto;padding:32px max(16px,env(safe-area-inset-right,0px)) 56px max(16px,env(safe-area-inset-left,0px))}
+h1,h2{font-family:var(--f-display);font-weight:700;line-height:1.15;margin:0;text-wrap:balance}
+h1{font-size:clamp(30px,4.5vw,44px)} h2{font-size:21px}
+p{margin:0}
+.eyebrow{font-family:var(--f-display);font-weight:600;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.lede{max-width:70ch;color:var(--muted);margin-top:10px}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:28px}
+a.card{display:flex;flex-direction:column;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;color:var(--ink);text-decoration:none}
+a.card:hover{border-color:var(--accent)}
+a.card .n{font-family:var(--f-mono);font-size:13px;color:var(--accent)}
+a.card p{color:var(--muted);font-size:14.5px}
+.more{margin-top:28px;display:flex;flex-wrap:wrap;gap:10px 22px;font-size:14.5px}
+.more a{color:var(--accent)}
+.note{font-size:13px;color:var(--muted);margin-top:24px;max-width:80ch}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+[hidden]{display:none!important}body{margin:0}img{max-width:100%}
+.site-nav{background:var(--surface);border-bottom:1px solid var(--line);font-family:var(--f-body)}
+.site-nav .in{max-width:1280px;margin:0 auto;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}
+.site-nav .brand{font-family:var(--f-display);font-weight:700;font-size:16px;color:var(--ink);text-decoration:none;margin-right:8px}
+.site-nav a.nl{font-size:14px;font-weight:500;color:var(--muted);text-decoration:none;padding:4px 2px;border-bottom:2px solid transparent}
+.site-nav a.nl:hover{color:var(--accent)}
+.site-nav a.nl[aria-current="page"]{color:var(--accent);border-bottom-color:var(--accent)}
+</style>
+<script src="config.js"></script>
+</head>
+<body>
+<script src="nav.js" data-root="" data-current="home"></script>
+<main class="wrap">
+  <span class="eyebrow">Utah Division of Water Quality</span>
+  <h1>Flood and Post-Fire Water Quality Toolkit</h1>
+  <p class="lede">Tools for responding to floods and post-fire runoff: what to do and when, who samples what, how to plan a sampling run, and where partners share plans and results.</p>
+  <div class="steps">
+    <a class="card" href="response-guide.html"><span class="n">Start here</span><h2>Response Guide</h2><p>Step-by-step response for floods and post-fire runoff: activation, deadlines, notifications, field safety, screening results against criteria, advisories and long-term monitoring.</p></a>
+    <a class="card" href="who-samples-what.html"><span class="n">Coordinate</span><h2>Who Samples What</h2><p>Decision tree and roles table showing which agency leads each kind of sampling, and how partners avoid duplicating effort.</p></a>
+    <a class="card" href="sap-builder.html"><span class="n">Plan</span><h2>SAP Builder</h2><p>Pick sites and parameters, price the run or a multi-year program, and produce a sampling and analysis plan for the crew, lab and partners.</p></a>
+    <a class="card" href="data-hub.html"><span class="n">Share</span><h2>Shared Sampling Data Hub</h2><p>Partners post planned trips, see overlaps, and upload and download results during an event.</p></a>
+  </div>
+  <div class="more" id="more"></div>
+  <p class="note">Drafts for partner review. Tools save your work in your own browser; the data hub is shared when it is connected to the toolkit’s Google Sheet.</p>
+</main>
+<script>
+(function(){var c=window.TOOLKIT_CONFIG||{},m=document.getElementById('more'),h='';
+if(c.riskCommPlanUrl)h+='<a href="'+c.riskCommPlanUrl+'" target="_blank" rel="noopener">Risk Communication Plan ↗</a>';
+if(c.bmpToolUrl)h+='<a href="'+c.bmpToolUrl+'" target="_blank" rel="noopener">Post-Fire BMP Selection Tool ↗</a>';
+if(c.protocolLinks&&c.protocolLinks.flood)h+='<a href="'+c.protocolLinks.flood+'" target="_blank" rel="noopener">Flood protocol ↗</a>';
+if(c.protocolLinks&&c.protocolLinks.fire)h+='<a href="'+c.protocolLinks.fire+'" target="_blank" rel="noopener">Post-fire protocol ↗</a>';
+m.innerHTML=h;})();
+</script>
+</body>
+</html>

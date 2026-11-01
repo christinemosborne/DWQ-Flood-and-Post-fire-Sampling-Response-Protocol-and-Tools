@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Shared Sampling Data Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: event picker and tabs on top; plan board, upload and results views below. Same tokens as the other DWQ response tools. */
+:root{
+  --bg:#f3f6f5; --surface:#ffffff; --sunken:#eaf0ef; --ink:#16252a; --muted:#56696e; --line:#d3dddc;
+  --accent:#0b6a78; --accent-ink:#ffffff; --accent-soft:#dcedef;
+  --silt:#8a5d14; --silt-bg:#f6ecd8; --good:#2c7346; --good-bg:#e1f0e5; --bad:#a3372a; --bad-bg:#f8e4df;
+  --f-display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1618; --surface:#152124; --sunken:#1b2a2e; --ink:#e2ebe9; --muted:#97abad; --line:#2a3b3f;
+  --accent:#55b6c5; --accent-ink:#06252a; --accent-soft:#173439;
+  --silt:#dba84f; --silt-bg:#2c2413; --good:#6dc48c; --good-bg:#14281b; --bad:#ec8a78; --bad-bg:#331b16; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1618; --surface:#152124; --sunken:#1b2a2e; --ink:#e2ebe9; --muted:#97abad; --line:#2a3b3f;
+  --accent:#55b6c5; --accent-ink:#06252a; --accent-soft:#173439;
+  --silt:#dba84f; --silt-bg:#2c2413; --good:#6dc48c; --good-bg:#14281b; --bad:#ec8a78; --bad-bg:#331b16; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.15;text-wrap:balance;margin:0}
+h1{font-size:clamp(28px,4vw,40px)} h2{font-size:22px} h3{font-size:17px;font-weight:600}
+p{margin:0} a{color:var(--accent)}
+.eyebrow{font-family:var(--f-display);font-weight:600;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.muted{color:var(--muted)} .note{font-size:13px;color:var(--muted)}
+header.top{padding-block:28px 16px;display:flex;flex-direction:column;gap:10px}
+.lede{max-width:72ch;color:var(--muted)}
+button,.btn{font:600 14px/1 var(--f-body);border-radius:var(--r);padding:10px 14px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.small,.btn.small{padding:6px 10px;font-size:13px}
+button.ghost{background:transparent}
+button:hover,.btn:hover{border-color:var(--accent)}
+button:disabled{opacity:.5;cursor:not-allowed}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;margin-bottom:14px}
+.bar .field{min-width:240px;flex:1 1 280px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+label,.lbl{font-size:13px;font-weight:600;color:var(--muted)}
+input[type=text],input[type=date],input[type=search],select,textarea{font:400 15px/1.35 var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:8px 10px;width:100%;min-width:0}
+textarea{min-height:140px;font-family:var(--f-mono);font-size:13px;resize:vertical}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.tabs button{border:0;border-bottom:3px solid transparent;border-radius:0;background:transparent;padding:10px 14px;color:var(--muted)}
+.tabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+section.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:clamp(16px,3vw,24px);display:flex;flex-direction:column;gap:14px;min-width:0;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px 14px}
+.wide{grid-column:1/-1}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);background:var(--sunken);font-weight:600;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.num{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+td.mono{font-family:var(--f-mono);font-size:13px;white-space:nowrap}
+.chip{font-size:12px;font-weight:600;padding:3px 8px;border-radius:999px;background:var(--sunken);color:var(--muted);white-space:nowrap}
+.chip.bad{background:var(--bad-bg);color:var(--bad)} .chip.warn{background:var(--silt-bg);color:var(--silt)} .chip.ok{background:var(--good-bg);color:var(--good)} .chip.info{background:var(--accent-soft);color:var(--accent)}
+.banner{border-radius:var(--r);padding:12px 14px;border-left:4px solid var(--silt);background:var(--silt-bg);font-size:14px}
+.banner.bad{border-color:var(--bad);background:var(--bad-bg)}
+.empty{padding:22px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:var(--r)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.status{font-size:13px;min-height:1.2em}
+.status.ok{color:var(--good)} .status.bad{color:var(--bad)}
+.stats{display:flex;flex-wrap:wrap;gap:18px;font-size:14px}
+.stats b{font-family:var(--f-mono);font-size:20px;display:block;font-weight:500}
+[hidden]{display:none!important}
+[hidden]{display:none!important}body{margin:0}img{max-width:100%}
+.site-nav{background:var(--surface);border-bottom:1px solid var(--line);font-family:var(--f-body)}
+.site-nav .in{max-width:1280px;margin:0 auto;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}
+.site-nav .brand{font-family:var(--f-display);font-weight:700;font-size:16px;color:var(--ink);text-decoration:none;margin-right:8px}
+.site-nav a.nl{font-size:14px;font-weight:500;color:var(--muted);text-decoration:none;padding:4px 2px;border-bottom:2px solid transparent}
+.site-nav a.nl:hover{color:var(--accent)}
+.site-nav a.nl[aria-current="page"]{color:var(--accent);border-bottom-color:var(--accent)}
+</style>
+<script src="config.js"></script>
+</head>
+<body>
+<script src="nav.js" data-root="" data-current="hub"></script>
+<div class="wrap">
+<header class="top">
+  <span class="eyebrow">Utah DWQ and partners · Flood and post-fire response</span>
+  <h1>Shared Sampling Data Hub</h1>
+  <p class="lede">One place for partner agencies to post planned sampling, so nobody samples the same site twice, and to share results while an event is under way. Official records still go to each agency’s own system (AWQMS and WQX for DWQ).</p>
+  <div class="row"><a class="btn small" href="who-samples-what.html">Who Samples What</a><a class="btn small" href="response-guide.html">Response Guide</a><a class="btn small" href="sap-builder.html">SAP Builder</a></div>
+</header>
+
+<div class="banner" id="localMode" style="margin-bottom:14px" hidden><b>Test mode:</b> this hub isn’t connected to the shared database yet, so anything you enter stays in this browser only. A site administrator connects it by adding the Google Apps Script address to <code>config.js</code> (see the README).</div>
+<div class="banner bad" id="syncErr" style="margin-bottom:14px" hidden></div>
+<section class="card" id="keyBox" hidden>
+  <h2>Partner passcode</h2>
+  <p class="muted">Enter the passcode the DWQ coordinator shared with partner agencies. It’s saved in this browser so you only enter it once.</p>
+  <div class="row"><input type="text" id="keyIn" autocomplete="off" style="max-width:320px" aria-label="Partner passcode"><button type="button" class="primary small" id="keySave">Connect</button><span class="status" id="keyStatus" role="status"></span></div>
+</section>
+
+<div class="bar">
+  <div class="field"><label for="evSel">Event</label><select id="evSel"><option value="">Loading events…</option></select></div>
+  <button type="button" id="newEvBtn" class="small">New event</button>
+  <div class="stats" id="stats"></div>
+</div>
+<section class="card" id="newEv" hidden>
+  <h2>New event</h2>
+  <div class="grid">
+    <div class="field"><label for="ne_name">Event name</label><input type="text" id="ne_name" placeholder="e.g., Spring 2027 Weber River flood"></div>
+    <div class="field"><label for="ne_type">Type</label><select id="ne_type"><option value="flood">Flood or release</option><option value="fire">Post-fire runoff</option></select></div>
+    <div class="field"><label for="ne_water">Waters</label><input type="text" id="ne_water" placeholder="e.g., Weber River below Echo"></div>
+    <div class="field"><label for="ne_start">Start date</label><input type="date" id="ne_start"></div>
+  </div>
+  <div class="row"><button type="button" class="primary small" id="ne_save">Create event</button><button type="button" class="ghost small" id="ne_cancel">Cancel</button><span class="status" id="ne_status" role="status"></span></div>
+</section>
+
+<div class="tabs" role="tablist" aria-label="Hub views">
+  <button type="button" role="tab" id="t_plan" aria-selected="true" aria-controls="v_plan">Plan board</button>
+  <button type="button" role="tab" id="t_up" aria-selected="false" aria-controls="v_up">Upload results</button>
+  <button type="button" role="tab" id="t_res" aria-selected="false" aria-controls="v_res">Results</button>
+</div>
+
+<div id="v_plan" role="tabpanel" aria-labelledby="t_plan">
+  <section class="card">
+    <h2>Register planned sampling</h2>
+    <p class="muted">Post each trip before the crew goes out. If another agency already plans the same site within a day, the board flags it so you can split sites or combine trips.</p>
+    <div class="grid">
+      <div class="field"><label for="p_agency">Agency</label><select id="p_agency"></select></div>
+      <div class="field"><label for="p_agname">Agency name (if needed)</label><input type="text" id="p_agname" placeholder="e.g., San Juan Public Health"></div>
+      <div class="field"><label for="p_site">Site ID</label><input type="text" id="p_site" placeholder="DWQ ID or USGS number"></div>
+      <div class="field"><label for="p_sitename">Site name</label><input type="text" id="p_sitename" placeholder="e.g., San Juan River at Mexican Hat"></div>
+      <div class="field"><label for="p_date">Date</label><input type="date" id="p_date"></div>
+      <div class="field"><label for="p_contact">Contact</label><input type="text" id="p_contact" placeholder="Name, phone"></div>
+      <div class="field wide"><label for="p_params">Parameters</label><input type="text" id="p_params" placeholder="e.g., field, E. coli, nutrients, dissolved and total metals"></div>
+    </div>
+    <div class="row"><button type="button" class="primary small" id="p_save">Add to plan board</button><span class="status" id="p_status" role="status"></span></div>
+  </section>
+  <section class="card">
+    <div class="row" style="justify-content:space-between"><h2>Plan board</h2><span class="note" id="dupCount"></span></div>
+    <div id="planList"></div>
+  </section>
+</div>
+
+<div id="v_up" role="tabpanel" aria-labelledby="t_up" hidden>
+  <section class="card">
+    <h2>Upload results</h2>
+    <p class="muted">Paste or upload a CSV with these columns (header row first). One upload holds up to 1,000 rows; split larger files.</p>
+    <div class="scroll"><table><thead><tr><th>Column</th><th>Required</th><th>Example</th></tr></thead><tbody>
+      <tr><td class="mono">site_id</td><td>site_id or site_name</td><td>4953000</td></tr>
+      <tr><td class="mono">site_name</td><td></td><td>San Juan River at Mexican Hat</td></tr>
+      <tr><td class="mono">sample_date</td><td>Yes (YYYY-MM-DD)</td><td>2026-10-28</td></tr>
+      <tr><td class="mono">sample_time</td><td></td><td>10:45</td></tr>
+      <tr><td class="mono">parameter</td><td>Yes</td><td>E. coli</td></tr>
+      <tr><td class="mono">result</td><td>Yes, unless qualifier is &lt;</td><td>310</td></tr>
+      <tr><td class="mono">qualifier</td><td></td><td>&lt; or &gt;</td></tr>
+      <tr><td class="mono">unit</td><td>Yes</td><td>MPN/100 mL</td></tr>
+      <tr><td class="mono">fraction</td><td></td><td>total or dissolved</td></tr>
+      <tr><td class="mono">sample_type</td><td></td><td>sample, replicate or blank</td></tr>
+      <tr><td class="mono">lab</td><td></td><td>UPHL</td></tr>
+      <tr><td class="mono">status</td><td></td><td>preliminary or final</td></tr>
+    </tbody></table></div>
+    <div class="row"><button type="button" class="small" id="u_template">Copy blank template</button><span class="status" id="u_tstatus" role="status"></span></div>
+    <div class="grid">
+      <div class="field"><label for="u_agency">Agency</label><select id="u_agency"></select></div>
+      <div class="field"><label for="u_agname">Agency name (if needed)</label><input type="text" id="u_agname"></div>
+      <div class="field"><label for="u_file">CSV file</label><input type="file" id="u_file" accept=".csv,text/csv"></div>
+      <div class="field wide"><label for="u_text">Or paste CSV</label><textarea id="u_text" spellcheck="false" placeholder="site_id,site_name,sample_date,sample_time,parameter,result,qualifier,unit,fraction,sample_type,lab,status"></textarea></div>
+    </div>
+    <div class="row"><button type="button" class="small" id="u_check">Check file</button><button type="button" class="primary small" id="u_save" disabled>Save upload</button><span class="status" id="u_status" role="status"></span></div>
+    <div id="u_preview"></div>
+  </section>
+  <section class="card">
+    <h2>Uploads for this event</h2>
+    <div id="upList"></div>
+  </section>
+</div>
+
+<div id="v_res" role="tabpanel" aria-labelledby="t_res" hidden>
+  <section class="card">
+    <div class="grid">
+      <div class="field"><label for="f_site">Site</label><input type="search" id="f_site" placeholder="ID or name"></div>
+      <div class="field"><label for="f_param">Parameter</label><input type="search" id="f_param" placeholder="e.g., E. coli"></div>
+      <div class="field"><label for="f_agency">Agency</label><input type="search" id="f_agency"></div>
+      <div class="field"><label for="f_status">Status</label><select id="f_status"><option value="">All</option><option value="preliminary">Preliminary</option><option value="final">Final</option></select></div>
+    </div>
+    <div class="row" style="justify-content:space-between"><span class="note" id="resCount"></span><span><button type="button" class="small" id="r_export">Save filtered CSV</button> <button type="button" class="small" id="r_copy">Copy filtered CSV</button> <span class="status" id="r_status" role="status"></span></span></div>
+    <div id="resTable"></div>
+    <p class="note">Results are compared with nothing here except a flag for E. coli at or above Utah’s 235 MPN/100 mL recreation advisory value. Screen other results against criteria in the Response Guide.</p>
+  </section>
+</div>
+</div>
+
+<script>
+"use strict";
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const AGENCIES=["DWQ Monitoring Section","DWQ watershed coordinator","DWQ Spills Coordinator / C&E","Division of Drinking Water","Public water system","Utah Department of Agriculture and Food","Local health department","Tribal nation","EPA","USGS","BAER team or land manager","Conservation district","Upstream state agency","University or other partner"];
+const NEEDS_NAME=["Public water system","Local health department","Tribal nation","Conservation district","Upstream state agency","University or other partner","BAER team or land manager"];
+const COLS=["site_id","site_name","sample_date","sample_time","parameter","result","qualifier","unit","fraction","sample_type","lab","status"];
+const MAX_ROWS=1000;
+let B=null,uid=null,canWrite=true,canEdit=false;
+const CFG=window.TOOLKIT_CONFIG||{};
+try{uid=localStorage.getItem("dwq-hub-uid");if(!uid){uid="b-"+Math.random().toString(36).slice(2,12);localStorage.setItem("dwq-hub-uid",uid)}}catch(e){uid="b-"+Math.random().toString(36).slice(2,12)}
+const newId=p=>p+"-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7);
+
+/* ---------- backends ---------- */
+// Browser-only test mode: same calls, data kept in localStorage.
+const LocalBackend={kind:"local",
+ _get(){try{return JSON.parse(localStorage.getItem("dwq-hub-local")||'{"events":[],"plans":[],"uploads":[]}')}catch(e){return{events:[],plans:[],uploads:[]}}},
+ _put(d){localStorage.setItem("dwq-hub-local",JSON.stringify(d))},
+ async listEvents(){return this._get().events},
+ async load(ev){const d=this._get();return{plans:d.plans.filter(p=>p.eventId===ev),uploads:d.uploads.filter(u=>u.eventId===ev)}},
+ async addEvent(r){const d=this._get();d.events.push(r);this._put(d)},
+ async addPlan(r){const d=this._get();d.plans.push({id:newId("p"),...r});this._put(d)},
+ async updatePlan(id,f){const d=this._get();const p=d.plans.find(x=>x.id===id);if(p)Object.assign(p,f);this._put(d)},
+ async deletePlan(id){const d=this._get();d.plans=d.plans.filter(x=>x.id!==id);this._put(d)},
+ async addUpload(r){const d=this._get();d.uploads.push({id:newId("u"),...r});this._put(d)},
+ async deleteUpload(id){const d=this._get();d.uploads=d.uploads.filter(x=>x.id!==id);this._put(d)}};
+// Shared mode: Google Sheets through a Google Apps Script web app (backend/Code.gs).
+const SheetsBackend={kind:"sheets",url:CFG.hubBackendUrl,
+ key(){try{return localStorage.getItem("dwq-hub-key")||""}catch(e){return""}},
+ async get(params){const u=new URL(this.url);Object.entries({...params,key:this.key()}).forEach(([k,v])=>u.searchParams.set(k,v));
+  const r=await fetch(u.toString());const j=await r.json();if(!j.ok){const e=new Error(j.error||"Request failed");e.code=j.code;throw e}return j},
+ async post(body){const r=await fetch(this.url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({...body,key:this.key()})});
+  const j=await r.json();if(!j.ok){const e=new Error(j.error||"Request failed");e.code=j.code;throw e}return j},
+ async listEvents(){return(await this.get({action:"events"})).events},
+ async load(ev){const j=await this.get({action:"event",eventId:ev});return{plans:j.plans,uploads:j.uploads}},
+ async addEvent(r){await this.post({action:"addEvent",record:r})},
+ async addPlan(r){await this.post({action:"addPlan",record:{id:newId("p"),...r}})},
+ async updatePlan(id,f){await this.post({action:"updatePlan",id,fields:f})},
+ async deletePlan(id){await this.post({action:"deletePlan",id})},
+ async addUpload(r){await this.post({action:"addUpload",record:{id:newId("u"),...r}})},
+ async deleteUpload(id){await this.post({action:"deleteUpload",id})}};
+let events=[],plans=[],uploads=[],curEv="",unsubP=null,unsubU=null,parsed=null;
+const ag=(sel,name)=>sel&&NEEDS_NAME.includes(sel)&&name.trim()?`${sel}: ${name.trim()}`:(sel||name.trim());
+for(const id of ["#p_agency","#u_agency"])$(id).innerHTML=AGENCIES.map(a=>`<option>${esc(a)}</option>`).join("");
+try{const p=JSON.parse(localStorage.getItem("dwq-hub-prefs")||"{}");if(p.agency){$("#p_agency").value=p.agency;$("#u_agency").value=p.agency}if(p.agname){$("#p_agname").value=p.agname;$("#u_agname").value=p.agname}if(p.ev)curEv=p.ev}catch(e){}
+const savePrefs=()=>{try{localStorage.setItem("dwq-hub-prefs",JSON.stringify({agency:$("#p_agency").value,agname:$("#p_agname").value,ev:curEv}))}catch(e){}};
+const setStatus=(id,t,ok=true)=>{const e=$(id);e.textContent=t;e.className="status "+(ok?"ok":"bad")};
+const today=()=>new Date().toISOString().slice(0,10);
+$("#p_date").value=today();
+
+/* ---------- tabs ---------- */
+const TABS=[["t_plan","v_plan"],["t_up","v_up"],["t_res","v_res"]];
+TABS.forEach(([t,v])=>$("#"+t).onclick=()=>{TABS.forEach(([t2,v2])=>{$("#"+t2).setAttribute("aria-selected",t2===t?"true":"false");$("#"+v2).hidden=t2!==t})});
+
+/* ---------- rendering ---------- */
+function renderEvents(){
+ const sel=$("#evSel");
+ if(!events.length){sel.innerHTML=`<option value="">No events yet: create one</option>`;curEv="";renderAll();return}
+ if(!events.some(e=>e.id===curEv))curEv=events[0].id;
+ sel.innerHTML=events.map(e=>`<option value="${esc(e.id)}"${e.id===curEv?" selected":""}>${esc(e.name)}${e.start?` (${esc(e.start)})`:""}</option>`).join("");
+ subscribeEvent();
+}
+const siteKey=p=>(p.siteId||p.siteName||"").toLowerCase().replace(/\s+/g," ").trim();
+const dayDiff=(a,b)=>Math.abs((Date.parse(a)-Date.parse(b))/864e5);
+function dupsFor(p){return plans.filter(q=>q.id!==p.id&&q.status!=="cancelled"&&p.status!=="cancelled"&&siteKey(q)&&siteKey(q)===siteKey(p)&&q.date&&p.date&&dayDiff(q.date,p.date)<=1&&q.agency!==p.agency)}
+const mine=r=>canEdit||(uid&&r.createdBy===uid);
+function renderPlans(){
+ const box=$("#planList");
+ if(!curEv){box.innerHTML=`<div class="empty">Create or choose an event to see its plan board.</div>`;$("#dupCount").textContent="";return}
+ if(!plans.length){box.innerHTML=`<div class="empty">No sampling planned yet for this event. Add the first trip above.</div>`;$("#dupCount").textContent="";return}
+ const rows=plans.slice().sort((a,b)=>(a.date||"").localeCompare(b.date||"")||siteKey(a).localeCompare(siteKey(b)));
+ let nd=0;
+ box.innerHTML=`<div class="scroll"><table><thead><tr><th>Date</th><th>Site</th><th>Agency</th><th>Parameters</th><th>Contact</th><th>Status</th><th></th></tr></thead><tbody>${rows.map(p=>{const d=dupsFor(p);if(d.length)nd++;
+  return `<tr><td class="mono">${esc(p.date)}</td><td>${p.siteId?`<span class="mono">${esc(p.siteId)}</span> `:""}${esc(p.siteName)}${d.length?`<br><span class="chip warn">Also planned by ${esc([...new Set(d.map(x=>x.agency))].join(", "))}</span>`:""}</td><td>${esc(p.agency)}</td><td>${esc(p.params)}</td><td>${esc(p.contact)}</td>
+  <td>${mine(p)&&canWrite?`<select data-pstatus="${esc(p.id)}" aria-label="Status">${["planned","done","cancelled"].map(s=>`<option${p.status===s?" selected":""}>${s}</option>`).join("")}</select>`:`<span class="chip ${p.status==="done"?"ok":p.status==="cancelled"?"":"info"}">${esc(p.status)}</span>`}</td>
+  <td>${mine(p)&&canWrite?`<button type="button" class="small ghost" data-pdel="${esc(p.id)}">Remove</button>`:""}</td></tr>`}).join("")}</tbody></table></div>`;
+ $("#dupCount").textContent=nd?`${nd} trip${nd>1?"s":""} overlap with another agency’s plan`:"No overlaps";
+}
+function renderUploads(){
+ const box=$("#upList");
+ if(!curEv){box.innerHTML=`<div class="empty">Choose an event.</div>`;return}
+ if(!uploads.length){box.innerHTML=`<div class="empty">No results uploaded yet for this event.</div>`;return}
+ box.innerHTML=`<div class="scroll"><table><thead><tr><th>Uploaded</th><th>Agency</th><th>File</th><th class="num">Rows</th><th></th></tr></thead><tbody>${uploads.slice().sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||"")).map(u=>`<tr><td class="mono">${esc((u.createdAt||"").slice(0,16).replace("T"," "))}</td><td>${esc(u.agency)}</td><td>${esc(u.filename||"pasted")}</td><td class="num">${(u.rows||[]).length}</td><td>${mine(u)&&canWrite?`<button type="button" class="small ghost" data-udel="${esc(u.id)}">Delete upload</button>`:""}</td></tr>`).join("")}</tbody></table></div>`;
+}
+function allResults(){return uploads.flatMap(u=>(u.rows||[]).map(r=>({...r,agency:u.agency})))}
+function filtered(){const s=$("#f_site").value.toLowerCase(),p=$("#f_param").value.toLowerCase(),a=$("#f_agency").value.toLowerCase(),st=$("#f_status").value;
+ return allResults().filter(r=>(!s||`${r.site_id} ${r.site_name}`.toLowerCase().includes(s))&&(!p||(r.parameter||"").toLowerCase().includes(p))&&(!a||(r.agency||"").toLowerCase().includes(a))&&(!st||(r.status||"preliminary")===st)).sort((x,y)=>(x.sample_date+x.sample_time).localeCompare(y.sample_date+y.sample_time))}
+const isEcoli=r=>/e\.?\s*coli/i.test(r.parameter||"");
+function renderResults(){
+ const rs=filtered(),box=$("#resTable");
+ $("#resCount").textContent=`${rs.length} result${rs.length===1?"":"s"}`;
+ if(!rs.length){box.innerHTML=`<div class="empty">${curEv?"No results match.":"Choose an event."}</div>`;return}
+ const shown=rs.slice(0,500);
+ box.innerHTML=`<div class="scroll"><table><thead><tr><th>Date</th><th>Site</th><th>Parameter</th><th class="num">Result</th><th>Unit</th><th>Fraction</th><th>Type</th><th>Agency</th><th>Status</th></tr></thead><tbody>${shown.map(r=>{const flag=isEcoli(r)&&!r.qualifier&&parseFloat(r.result)>=235;
+  return `<tr><td class="mono">${esc(r.sample_date)} ${esc(r.sample_time||"")}</td><td>${r.site_id?`<span class="mono">${esc(r.site_id)}</span> `:""}${esc(r.site_name)}</td><td>${esc(r.parameter)}</td><td class="num">${esc(r.qualifier||"")}${esc(r.result)}${flag?` <span class="chip bad">≥ 235</span>`:""}</td><td>${esc(r.unit)}</td><td>${esc(r.fraction)}</td><td>${esc(r.sample_type||"sample")}</td><td>${esc(r.agency)}</td><td><span class="chip ${r.status==="final"?"ok":"info"}">${esc(r.status||"preliminary")}</span></td></tr>`}).join("")}</tbody></table></div>${rs.length>500?`<p class="note">Showing the first 500. Narrow the filters or save the CSV for the rest.</p>`:""}`;
+}
+function renderStats(){const nP=plans.filter(p=>p.status!=="cancelled").length,nR=uploads.reduce((t,u)=>t+(u.rows||[]).length,0),ags=new Set([...plans.map(p=>p.agency),...uploads.map(u=>u.agency)]);
+ $("#stats").innerHTML=curEv?`<span><b>${nP}</b>planned trips</span><span><b>${nR}</b>results</span><span><b>${ags.size}</b>agencies</span>`:""}
+function renderAll(){renderPlans();renderUploads();renderResults();renderStats()}
+
+/* ---------- data ---------- */
+function showSyncErr(e){const b=$("#syncErr");if(!e){b.hidden=true;return}
+ if(e.code==="bad_key"){b.hidden=true;$("#keyBox").hidden=false;setStatus("#keyStatus","That passcode didn’t work.",false);return}
+ b.hidden=false;b.textContent="Couldn’t reach the shared database: "+(e.message||"network error")+". Changes may not show until it reconnects."}
+async function loadEvents(){if(!B)return;try{events=(await B.listEvents()).sort((a,b)=>(b.start||b.createdAt||"").localeCompare(a.start||a.createdAt||""));showSyncErr(null);renderEvents()}catch(e){showSyncErr(e);$("#evSel").innerHTML=`<option value="">Couldn’t load events</option>`}}
+async function refresh(){if(!B||!curEv){plans=[];uploads=[];renderAll();return}
+ try{const d=await B.load(curEv);plans=d.plans||[];uploads=d.uploads||[];showSyncErr(null)}catch(e){showSyncErr(e)}renderAll()}
+function subscribeEvent(){plans=[];uploads=[];savePrefs();renderAll();refresh()}
+async function write(fn,statusId,okMsg){
+ try{await fn();if(okMsg)setStatus(statusId,okMsg,true);await refresh();return true}
+ catch(e){if(e&&e.code==="bad_key"){showSyncErr(e);setStatus(statusId,"Enter the partner passcode first.",false)}
+  else setStatus(statusId,"Couldn’t save: "+((e&&e.message)||"network error")+". Try again in a minute.",false);
+  return false}
+}
+
+/* ---------- events ---------- */
+$("#evSel").onchange=e=>{curEv=e.target.value;subscribeEvent()};
+$("#newEvBtn").onclick=()=>{$("#newEv").hidden=false;$("#ne_name").focus()};
+$("#ne_cancel").onclick=()=>{$("#newEv").hidden=true};
+$("#ne_save").onclick=async()=>{
+ const name=$("#ne_name").value.trim();if(!name){setStatus("#ne_status","Give the event a name.",false);$("#ne_name").focus();return}
+ if(!B)return setStatus("#ne_status","The hub isn’t ready yet.",false);
+ const id=(name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,40)||"event")+"-"+Date.now().toString(36);
+ const ok=await write(()=>B.addEvent({id,name,type:$("#ne_type").value,water:$("#ne_water").value.trim(),start:$("#ne_start").value,createdBy:uid,createdAt:new Date().toISOString()}),"#ne_status","Event created.");
+ if(ok){curEv=id;$("#newEv").hidden=true;$("#ne_name").value="";await loadEvents()}
+};
+
+/* ---------- plan board ---------- */
+$("#p_save").onclick=async()=>{
+ if(!curEv)return setStatus("#p_status","Create or choose an event first.",false);
+ const agency=ag($("#p_agency").value,$("#p_agname").value),siteId=$("#p_site").value.trim(),siteName=$("#p_sitename").value.trim(),date=$("#p_date").value;
+ if(!siteId&&!siteName)return setStatus("#p_status","Add a site ID or name.",false);
+ if(!date)return setStatus("#p_status","Add a date.",false);
+ savePrefs();
+ const rec={eventId:curEv,agency,siteId,siteName,date,params:$("#p_params").value.trim(),contact:$("#p_contact").value.trim(),status:"planned",createdBy:uid,createdAt:new Date().toISOString()};
+ const d=dupsFor({...rec,id:"new"});
+ const ok=await write(()=>B.addPlan(rec),"#p_status",d.length?`Added. Heads up: ${[...new Set(d.map(x=>x.agency))].join(", ")} also plan this site within a day.`:"Added to the plan board.");
+ if(ok){$("#p_site").value="";$("#p_sitename").value="";$("#p_site").focus()}
+};
+document.addEventListener("change",async e=>{const id=e.target.dataset&&e.target.dataset.pstatus;if(!id)return;await write(()=>B.updatePlan(id,{status:e.target.value}),"#p_status","Status updated.")});
+document.addEventListener("click",async e=>{
+ const b=e.target.closest("button");if(!b)return;
+ const del=b.dataset.pdel||b.dataset.udel;if(!del)return;
+ if(b.dataset.armed!=="1"){b.dataset.armed="1";const t=b.textContent;b.textContent="Click again to confirm";setTimeout(()=>{if(b.isConnected){b.dataset.armed="";b.textContent=t}},4000);return}
+ if(b.dataset.pdel)await write(()=>B.deletePlan(del),"#p_status","Removed.");
+ else await write(()=>B.deleteUpload(del),"#u_status","Upload deleted.");
+});
+
+/* ---------- upload ---------- */
+function parseCSV(t){const rows=[];let row=[],f="",q=false;for(let i=0;i<t.length;i++){const c=t[i];
+ if(q){if(c==='"'){if(t[i+1]==='"'){f+='"';i++}else q=false}else f+=c}
+ else if(c==='"')q=true;else if(c===","){row.push(f);f=""}else if(c==="\n"||c==="\r"){if(c==="\r"&&t[i+1]==="\n")i++;row.push(f);f="";if(row.some(x=>x.trim()!==""))rows.push(row);row=[]}else f+=c}
+ row.push(f);if(row.some(x=>x.trim()!==""))rows.push(row);return rows}
+function check(){
+ const txt=$("#u_text").value;parsed=null;$("#u_save").disabled=true;
+ if(!txt.trim()){setStatus("#u_status","Paste a CSV or choose a file.",false);$("#u_preview").innerHTML="";return}
+ const rows=parseCSV(txt);const head=rows.shift().map(h=>h.trim().toLowerCase().replace(/\s+/g,"_"));
+ const miss=["sample_date","parameter","unit"].filter(c=>!head.includes(c));if(!head.includes("site_id")&&!head.includes("site_name"))miss.push("site_id or site_name");if(!head.includes("result"))miss.push("result");
+ if(miss.length){setStatus("#u_status","Missing columns: "+miss.join(", "),false);$("#u_preview").innerHTML="";return}
+ const recs=[],errs=[];
+ rows.forEach((r,i)=>{const o={};COLS.forEach(c=>{const j=head.indexOf(c);o[c]=j>=0?(r[j]||"").trim():""});
+  const n=i+2,pr=[];if(!o.site_id&&!o.site_name)pr.push("no site");if(!/^\d{4}-\d{2}-\d{2}$/.test(o.sample_date))pr.push("date not YYYY-MM-DD");if(!o.parameter)pr.push("no parameter");
+  if(o.result===""&&o.qualifier!=="<")pr.push("no result");else if(o.result!==""&&isNaN(parseFloat(o.result)))pr.push("result not a number");if(!o.unit)pr.push("no unit");
+  if(o.qualifier&&!["<",">"].includes(o.qualifier))pr.push("qualifier must be < or >");
+  o.status=(o.status||"preliminary").toLowerCase();if(!["preliminary","final"].includes(o.status))pr.push("status must be preliminary or final");
+  o.sample_type=(o.sample_type||"sample").toLowerCase();
+  if(pr.length)errs.push(`Row ${n}: ${pr.join(", ")}`);else recs.push(o)});
+ if(recs.length>MAX_ROWS){setStatus("#u_status",`${recs.length} rows; split into files of ${MAX_ROWS} or fewer.`,false);return}
+ $("#u_preview").innerHTML=`${errs.length?`<div class="banner bad"><b>${errs.length} row${errs.length>1?"s":""} need fixing</b> and won’t be saved:<br>${errs.slice(0,12).map(esc).join("<br>")}${errs.length>12?"<br>…":""}</div>`:""}
+  ${recs.length?`<p class="note">${recs.length} row${recs.length>1?"s":""} ready. First rows:</p><div class="scroll"><table><thead><tr>${COLS.map(c=>`<th>${c}</th>`).join("")}</tr></thead><tbody>${recs.slice(0,5).map(r=>`<tr>${COLS.map(c=>`<td>${esc(r[c])}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`:""}`;
+ if(recs.length){parsed=recs;$("#u_save").disabled=!canWrite||!curEv;setStatus("#u_status",curEv?`${recs.length} rows ready to save.`:"Choose an event first.",!!curEv)}else setStatus("#u_status","No valid rows.",false);
+}
+$("#u_check").onclick=check;
+$("#u_text").oninput=()=>{parsed=null;$("#u_save").disabled=true};
+$("#u_file").onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{$("#u_text").value=rd.result;$("#u_text").dataset.fname=f.name;check()};rd.readAsText(f)};
+$("#u_save").onclick=async()=>{
+ if(!parsed||!curEv)return;
+ const agency=ag($("#u_agency").value,$("#u_agname").value);
+ const rec={eventId:curEv,agency,filename:$("#u_text").dataset.fname||"",rows:parsed,createdBy:uid,createdAt:new Date().toISOString()};
+ $("#u_save").disabled=true;
+ const ok=await write(()=>B.addUpload(rec),"#u_status",`Saved ${parsed.length} rows.`);
+ if(ok){parsed=null;$("#u_text").value="";delete $("#u_text").dataset.fname;$("#u_file").value="";$("#u_preview").innerHTML=""}else $("#u_save").disabled=false;
+};
+$("#u_template").onclick=()=>{const t=COLS.join(",")+"\n";try{navigator.clipboard.writeText(t).then(()=>setStatus("#u_tstatus","Template header copied."),()=>{$("#u_text").value=t;setStatus("#u_tstatus","Header placed in the paste box.")})}catch(e){$("#u_text").value=t;setStatus("#u_tstatus","Header placed in the paste box.")}};
+
+/* ---------- results export ---------- */
+["#f_site","#f_param","#f_agency"].forEach(s=>$(s).oninput=renderResults);$("#f_status").onchange=renderResults;
+const csvCell=v=>{v=String(v??"");return /[",\n]/.test(v)?`"${v.replace(/"/g,'""')}"`:v};
+const toCSV=rs=>[...COLS,"agency"].join(",")+"\n"+rs.map(r=>[...COLS,"agency"].map(c=>csvCell(r[c])).join(",")).join("\n");
+$("#r_copy").onclick=()=>{const t=toCSV(filtered());try{navigator.clipboard.writeText(t).then(()=>setStatus("#r_status","Copied."),()=>setStatus("#r_status","Copy isn’t available here; use Save.",false))}catch(e){setStatus("#r_status","Copy isn’t available here; use Save.",false)}};
+$("#r_export").onclick=()=>{const rs=filtered();if(!rs.length)return setStatus("#r_status","Nothing to save.",false);
+ const ev=events.find(e=>e.id===curEv);const name=((ev&&ev.name)||"results").replace(/[^A-Za-z0-9]+/g,"-")+"-results.csv";
+ const url=URL.createObjectURL(new Blob([toCSV(rs)],{type:"text/csv"}));const a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);setStatus("#r_status","Saved.")};
+
+/* ---------- start ---------- */
+renderAll();
+$("#keySave").onclick=()=>{const k=$("#keyIn").value.trim();if(!k)return;try{localStorage.setItem("dwq-hub-key",k)}catch(e){}$("#keyBox").hidden=true;setStatus("#keyStatus","");loadEvents()};
+(function start(){
+ if(CFG.hubBackendUrl){B=SheetsBackend;if(!SheetsBackend.key()){$("#keyBox").hidden=false;$("#evSel").innerHTML=`<option value="">Enter the partner passcode</option>`;return}}
+ else{B=LocalBackend;$("#localMode").hidden=false}
+ loadEvents();
+})();
+setInterval(()=>{if(document.visibilityState==="visible"&&B){refresh()}},60000);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&B)refresh()});
+</script>
+</body>
+</html>

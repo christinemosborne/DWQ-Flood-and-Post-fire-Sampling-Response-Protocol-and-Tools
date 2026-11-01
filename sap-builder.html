@@ -1,0 +1,765 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Flood and Post-Fire SAP Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: working form on the left, sticky run summary on the right; the finished SAP renders below as a document. */
+:root{
+  --bg:#f3f6f5; --surface:#ffffff; --sunken:#eaf0ef; --ink:#16252a; --muted:#56696e; --line:#d3dddc;
+  --accent:#0b6a78; --accent-ink:#ffffff; --accent-soft:#dcedef;
+  --silt:#8a5d14; --silt-bg:#f6ecd8; --good:#2c7346; --good-bg:#e1f0e5; --bad:#a3372a; --bad-bg:#f8e4df;
+  --f-display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1618; --surface:#152124; --sunken:#1b2a2e; --ink:#e2ebe9; --muted:#97abad; --line:#2a3b3f;
+  --accent:#55b6c5; --accent-ink:#06252a; --accent-soft:#173439;
+  --silt:#dba84f; --silt-bg:#2c2413; --good:#6dc48c; --good-bg:#14281b; --bad:#ec8a78; --bad-bg:#331b16; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1618; --surface:#152124; --sunken:#1b2a2e; --ink:#e2ebe9; --muted:#97abad; --line:#2a3b3f;
+  --accent:#55b6c5; --accent-ink:#06252a; --accent-soft:#173439;
+  --silt:#dba84f; --silt-bg:#2c2413; --good:#6dc48c; --good-bg:#14281b; --bad:#ec8a78; --bad-bg:#331b16; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.15;text-wrap:balance;margin:0}
+h1{font-size:clamp(28px,4vw,40px)}
+h2{font-size:22px}
+h3{font-size:17px;font-weight:600}
+p{margin:0}
+.eyebrow{font-family:var(--f-display);font-weight:600;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.muted{color:var(--muted)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+header.top{padding-block:28px 20px;display:flex;flex-direction:column;gap:10px}
+.lede{max-width:68ch;color:var(--muted)}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+button,.btn{font:600 14px/1 var(--f-body);border-radius:var(--r);padding:10px 14px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.ghost{background:transparent}
+button.small{padding:6px 10px;font-size:13px}
+button:hover{border-color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.banner{display:flex;gap:10px;align-items:flex-start;background:var(--silt-bg);color:var(--ink);border-left:4px solid var(--silt);padding:10px 14px;border-radius:var(--r);max-width:900px}
+.banner b{color:var(--silt)}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px;align-items:start;padding-bottom:28px}
+@media (max-width:960px){.layout{grid-template-columns:minmax(0,1fr)}}
+.form{display:flex;flex-direction:column;gap:20px;min-width:0}
+section.step{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.step-head{display:flex;gap:12px;align-items:baseline}
+.step-n{font-family:var(--f-mono);font-size:13px;color:var(--accent);border:1px solid var(--accent);border-radius:999px;min-width:28px;height:28px;display:inline-grid;place-items:center;flex:none}
+.step-head p{color:var(--muted);font-size:14px;margin-top:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px 16px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field.wide{grid-column:1/-1}
+label,.lbl{font-size:13px;font-weight:600;color:var(--muted)}
+input[type=text],input[type=date],input[type=number],select,textarea{font:400 15px/1.35 var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:8px 10px;width:100%;min-width:0}
+textarea{min-height:70px;resize:vertical}
+input.mono{font-family:var(--f-mono)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12.5px;font-weight:600;padding:4px 9px;border-radius:999px;background:var(--sunken);color:var(--muted);border:1px solid var(--line)}
+.chip.ok{background:var(--good-bg);color:var(--good);border-color:transparent}
+.chip.miss{background:var(--bad-bg);color:var(--bad);border-color:transparent}
+.chip.info{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+.guide{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.gcard{background:var(--sunken);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.gcard h3{font-size:15px}
+.gcard .req{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--accent)}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);background:var(--sunken);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.sites td{padding:6px}
+.sites input,.sites select{padding:6px 8px;font-size:14px}
+.sites td:first-child{min-width:110px}.sites td:nth-child(2){min-width:220px}.sites td:nth-child(3),.sites td:nth-child(4){min-width:170px}
+.types{display:flex;flex-wrap:wrap;gap:8px}
+.tog{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:6px 12px;background:var(--bg);cursor:pointer;font-size:14px}
+.tog input{accent-color:var(--accent);margin:0}
+.tog:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.bottles{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+fieldset.bottle{border:1px solid var(--line);border-radius:var(--r);padding:12px;margin:0;display:flex;flex-direction:column;gap:6px;min-width:0}
+fieldset.bottle legend{font-family:var(--f-display);font-weight:600;font-size:16px;padding:0 4px}
+.bmeta{font-size:12.5px;color:var(--muted);margin-bottom:4px}
+.item{display:flex;gap:8px;align-items:flex-start;font-size:14px}
+.item input{accent-color:var(--accent);margin-top:3px}
+.item .hold{margin-left:auto;font-family:var(--f-mono);font-size:12px;color:var(--muted);white-space:nowrap}
+.item .hold.short{color:var(--bad);font-weight:500}
+.check{display:flex;gap:8px;align-items:flex-start;font-size:14px}
+.check input{accent-color:var(--accent);margin-top:3px}
+.price{width:96px!important;text-align:right;font-family:var(--f-mono)}
+aside.summary{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);display:flex;flex-direction:column;gap:14px;min-width:0}
+@media (max-width:960px){aside.summary{position:static}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:10px}
+.total{font-family:var(--f-mono);font-size:32px;font-weight:500;font-variant-numeric:tabular-nums;line-height:1}
+.kv{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:14px}
+.kv dt{color:var(--muted)}.kv dd{margin:0;text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.alerts{display:flex;flex-direction:column;gap:6px;font-size:13.5px}
+.alert{padding:7px 10px;border-radius:var(--r);border-left:3px solid var(--silt);background:var(--silt-bg)}
+.alert.bad{border-color:var(--bad);background:var(--bad-bg)}
+.alert.ok{border-color:var(--good);background:var(--good-bg)}
+.note{font-size:13px;color:var(--muted)}
+section.preview{padding-block:8px 48px}
+.preview-head{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between;margin-bottom:14px}
+.doc{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:clamp(18px,4vw,44px);max-width:900px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.doc h2{font-size:26px}.doc h3{margin-top:8px;font-size:18px;border-bottom:1px solid var(--line);padding-bottom:4px}
+.doc p,.doc li{max-width:72ch}
+.doc ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:3px}
+.status{font-size:13px;color:var(--good);min-height:1.2em}
+@media (prefers-reduced-motion:no-preference){button{transition:border-color .15s}}
+.app[data-mode="flood"] .only-fire,.app[data-mode="fire"] .only-flood{display:none!important}
+.seg{display:inline-flex;flex-wrap:wrap;gap:0;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--surface);width:fit-content;max-width:100%}
+.seg label{cursor:pointer;display:flex}
+.seg input{position:absolute;opacity:0;width:1px;height:1px}
+.seg span{font:600 14px/1 var(--f-body);padding:9px 16px;border-radius:999px;color:var(--muted)}
+.seg input:checked+span{background:var(--accent);color:var(--accent-ink)}
+.seg input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.field .note{margin-top:2px}
+.partner-add{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.partner-add select{flex:1 1 240px;min-width:0}
+.partner-add input{flex:1 1 220px;min-width:0}
+.partner-add button{align-self:stretch}
+#cr_plist:not(:empty){margin:4px 0 6px}
+.chip .chip-x{border:0;background:none;color:inherit;padding:0 0 0 6px;font:700 14px/1 var(--f-body);cursor:pointer}
+[hidden]{display:none!important}body{margin:0}img{max-width:100%}
+.site-nav{background:var(--surface);border-bottom:1px solid var(--line);font-family:var(--f-body)}
+.site-nav .in{max-width:1280px;margin:0 auto;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}
+.site-nav .brand{font-family:var(--f-display);font-weight:700;font-size:16px;color:var(--ink);text-decoration:none;margin-right:8px}
+.site-nav a.nl{font-size:14px;font-weight:500;color:var(--muted);text-decoration:none;padding:4px 2px;border-bottom:2px solid transparent}
+.site-nav a.nl:hover{color:var(--accent)}
+.site-nav a.nl[aria-current="page"]{color:var(--accent);border-bottom-color:var(--accent)}
+</style>
+<script src="config.js"></script>
+</head>
+<body>
+<script src="nav.js" data-root="" data-current="sap"></script>
+<div class="wrap app" id="app" data-mode="flood">
+<header class="top">
+  <span class="eyebrow">Utah DWQ · Emergency water quality response</span>
+  <h1>Flood and Post-Fire SAP Builder</h1>
+  <p class="lede">Choose the event type, sites and parameters, price the run or the multi-year program, and get a sampling and analysis plan ready for the crew, the lab and partners. Methods, bottles and holding times follow the DWQ Water Chemistry Sample Collection SOP, Rev. 2.7 (February 2026), and the DWQ flood and post-wildfire response protocols.</p>
+  <div class="seg" role="radiogroup" aria-label="Event type">
+    <label for="mode_flood"><input type="radio" name="mode" id="mode_flood" value="flood"><span>Flood or release</span></label>
+    <label for="mode_fire"><input type="radio" name="mode" id="mode_fire" value="fire"><span>Post-fire runoff</span></label>
+  </div>
+  <div class="toolbar">
+    <button class="primary" id="copyTop" type="button">Copy SAP</button>
+    <button class="ghost" id="startBlank" type="button">Clear form</button>
+  </div>
+  <div class="banner"><span><b class="only-flood">Flood mode:</b><b class="only-fire">Post-fire mode:</b> <span class="only-flood">follows the DWQ Flood Event Water Quality Response Protocol.</span><span class="only-fire">follows the DWQ Post-Wildfire Water Quality Response Protocol.</span> Your draft saves in this browser only; copy the finished plan to share it.</span></div>
+</header>
+
+<main class="layout">
+<div class="form">
+
+<section class="step" aria-labelledby="h1s">
+  <div class="step-head"><span class="step-n">1</span><div><h2 id="h1s">Event</h2><p class="only-flood">What happened, where, and how big. The peak date sets the sampling schedule.</p><p class="only-fire">The fire, its burn severity, and the waters below it. The containment date sets the multi-year schedule.</p></div></div>
+  <div class="grid">
+    <div class="field"><label for="ev_name"><span class="only-flood">Event name</span><span class="only-fire">Fire name</span></label><input type="text" id="ev_name" placeholder="e.g., Spring 2027 Weber River flood" data-bind="event.name"></div>
+    <div class="field"><label for="ev_water"><span class="only-flood">Waterbody</span><span class="only-fire">Receiving waters</span></label><input type="text" id="ev_water" placeholder="e.g., Weber River" data-bind="event.water"></div>
+    <div class="field only-flood"><label for="ev_start">Event start</label><input type="date" id="ev_start" data-bind="event.start"></div>
+    <div class="field only-flood"><label for="ev_end">Event end</label><input type="date" id="ev_end" data-bind="event.end"></div>
+    <div class="field only-flood"><label for="ev_peak">Peak date</label><input type="date" id="ev_peak" data-bind="event.peak"></div>
+    <div class="field only-flood"><label for="ev_q">Peak discharge (cfs)</label><input type="number" id="ev_q" class="mono" placeholder="e.g., 12000" data-bind="event.q"></div>
+    <div class="field only-fire"><label for="ev_fstart">Fire start</label><input type="date" id="ev_fstart" data-bind="event.fstart"></div>
+    <div class="field only-fire"><label for="ev_contain">Containment date</label><input type="date" id="ev_contain" data-bind="event.contain"></div>
+    <div class="field only-fire"><label for="ev_acres">Acres burned</label><input type="number" id="ev_acres" class="mono" placeholder="Activation: ≥ 500" data-bind="event.acres"></div>
+    <div class="field only-fire"><label for="ev_sbs">Moderate + high soil burn severity (% of catchment)</label><input type="number" id="ev_sbs" class="mono" placeholder="From BAER or BARC map" data-bind="event.sbs"></div>
+    <div class="field only-fire"><label for="ev_dfa">USGS debris-flow assessment</label>
+      <select id="ev_dfa" data-bind="event.dfa"><option value="">Not yet available</option><option value="high">High likelihood in basins draining to streams, lakes or reservoirs</option><option value="moderate">Moderate likelihood</option><option value="low">Low likelihood</option></select></div>
+    <div class="field"><label for="ev_gage">USGS gage number</label><input type="text" id="ev_gage" class="mono" placeholder="8-digit station number" data-bind="event.gage"></div>
+    <div class="field"><label for="ev_gname">Gage name</label><input type="text" id="ev_gname" placeholder="e.g., Weber River near Plain City, UT" data-bind="event.gname"></div>
+    <div class="field"><label for="ev_level">Response level</label><select id="ev_level" data-bind="event.level"></select></div>
+    <div class="field"><label for="ev_prep">Prepared by</label><input type="text" id="ev_prep" placeholder="Name and title" data-bind="event.prep"></div>
+    <div class="field"><label for="ev_contact">DWQ contact</label><input type="text" id="ev_contact" placeholder="Phone or email" data-bind="event.contact"></div>
+    <div class="field"><label for="ev_date">Plan date</label><input type="date" id="ev_date" data-bind="event.date"></div>
+    <div class="field wide"><label for="ev_bg"><span class="only-flood">Known releases and sources</span><span class="only-fire">Values at risk and known sources</span></label><textarea id="ev_bg" placeholder="Facilities that overflowed, spills, fisheries, recreation areas, diversions and intakes below the burn, burned structures, retardant or foam use, and when each was reported" data-bind="event.bg"></textarea></div>
+  </div>
+  <div class="field"><span class="lbl">Protocol schedule</span><div class="chips" id="schedule"></div></div>
+</section>
+
+<section class="step" aria-labelledby="h2s">
+  <div class="step-head"><span class="step-n">2</span><div><h2 id="h2s">Sites</h2><p class="only-flood">Sample down the river, from what enters the reach to where people use the water. Reuse established DWQ, USGS and partner sites for baseline data.</p><p class="only-fire">Pair warning sites below the burn with long-record sites and an unburned reference, so fire effects can be told apart from a wet or dry year.</p></div></div>
+  <div class="guide" id="siteGuide"></div>
+  <div class="field"><span class="lbl">Coverage of site types</span><div class="chips" id="coverage"></div></div>
+  <div class="scroll"><table class="sites"><thead><tr><th>DWQ site ID</th><th>Site description</th><th>Site type</th><th>Collection method</th><th><span hidden>Remove</span></th></tr></thead><tbody id="siteRows"></tbody></table></div>
+  <div><button class="small" id="addSite" type="button">Add site</button></div>
+  <p class="note">No site ID yet? Leave it blank and request a new monitoring location ID before results are loaded to AWQMS. <span class="only-flood">During high water, use the bridge bucket or bank dip sampler methods; do not wade.</span><span class="only-fire">Never enter the channel during or right after a storm. Storm composites from autosamplers are outside the grab-sample SOP and follow this SAP.</span></p>
+</section>
+
+<section class="step" aria-labelledby="h3s">
+  <div class="step-head"><span class="step-n">3</span><div><h2 id="h3s">Parameters</h2><p>Pick the sources involved, then apply the recommended set: <span class="only-flood">the flood protocol's Tier A set (field, E. coli, general chemistry, nutrients, dissolved metals)</span><span class="only-fire">the post-fire core set (field, general chemistry, nutrients with TOC, dissolved metals)</span> plus analytes for each source. Adjust from there.</p></div></div>
+  <div class="types" id="eventTypes"></div>
+  <label class="check" for="addons"><input type="checkbox" id="addons"> <span>Include recommended add-on screens (contract lab or partner; see the protocol's add-ons appendix)</span></label>
+  <div class="toolbar"><button class="small primary" id="applyRec" type="button">Apply recommended parameters</button><button class="small ghost" id="clearParams" type="button">Clear parameters</button></div>
+  <div class="bottles" id="bottles"></div>
+</section>
+
+<section class="step" aria-labelledby="h4s">
+  <div class="step-head"><span class="step-n">4</span><div><h2 id="h4s">Crew, lab and budget scope</h2><p>Who samples, when, how samples reach the lab within holding times, and how much of the program to budget.</p></div></div>
+  <div class="grid">
+    <div class="field"><label for="cr_who">Sampler(s)</label><input type="text" id="cr_who" placeholder="At least two people" data-bind="crew.who"></div>
+    <div class="field wide"><label for="cr_pick">Partner agencies</label>
+      <div class="partner-add">
+        <select id="cr_pick"><option value="">Choose a partner…</option></select>
+        <input type="text" id="cr_pname" hidden>
+        <button class="small" id="cr_padd" type="button">Add partner</button>
+      </div>
+      <div class="chips" id="cr_plist" aria-live="polite"></div>
+      <input type="text" id="cr_partners" placeholder="Other partners not in the list, e.g., USGS" aria-label="Other partners" data-bind="crew.partners">
+    </div>
+    <div class="field"><label for="cr_date">Sampling date (this round)</label><input type="date" id="cr_date" data-bind="crew.date"></div>
+    <div class="field"><label for="cr_round">Round</label><select id="cr_round" data-bind="crew.round"></select></div>
+    <div class="field wide"><label for="lg_scope">Budget scope</label><select id="lg_scope"></select><span class="note" id="scopeNote"></span></div>
+    <div class="field"><label for="lg_rounds">Visits per site</label><input type="number" min="1" id="lg_rounds" class="mono" data-bind="log.rounds"></div>
+    <div class="field"><label for="lg_srounds">Visits with contract-lab screens</label><input type="number" min="0" id="lg_srounds" class="mono" data-bind="log.srounds"></div>
+    <div class="field"><label for="lg_days">Field days per visit</label><input type="number" min="1" id="lg_days" class="mono" data-bind="log.days"></div>
+    <div class="field"><label for="lg_lab">Primary lab</label>
+      <select id="lg_lab" data-bind="log.lab"><option>Utah Public Health Laboratory (State Lab)</option><option>Contract lab</option><option>Partner lab</option></select></div>
+    <div class="field wide"><label for="lg_ship">Delivery plan</label><input type="text" id="lg_ship" placeholder="e.g., same-day delivery to the State Lab; E. coli by field Colilert" data-bind="log.ship"></div>
+    <div class="field wide"><label class="check" for="lg_coc"><input type="checkbox" id="lg_coc" data-bind="log.coc"> <span>Follow legal chain of custody (SOP 9.5). Recommended for emergency and spill response.</span></label></div>
+    <div class="field wide"><label for="lg_notes">Other notes for the crew</label><textarea id="lg_notes" placeholder="Access permits, incident contacts, road closures, gear" data-bind="log.notes"></textarea></div>
+  </div>
+</section>
+
+<section class="step" aria-labelledby="h5s">
+  <div class="step-head"><span class="step-n">5</span><div><h2 id="h5s">Cost sheet</h2><p>Unit prices start from the DWQ 2027 Field Season Budget Request template. Blank prices need a lookup and are left out of the total.</p></div></div>
+  <div class="scroll"><table><thead><tr><th>Bottle</th><th>Parameter</th><th class="num">Unit price ($)</th></tr></thead><tbody id="priceRows"></tbody></table></div>
+  <div class="scroll"><table><thead><tr><th>Sample type</th><th class="num">Cost each</th><th class="num">Quantity</th><th class="num">Subtotal</th></tr></thead><tbody id="costRows"></tbody></table></div>
+  <p class="note">QA counts follow SOP 11.0: one equipment blank per 10 samples and at least one per field day, and one field replicate per 10 samples. BOD is left off blanks and replicates. Contract-lab screens are budgeted only for their visits and screening sites. The estimate assumes every site is sampled on every visit; <span class="only-fire">storm composites are usually only at Tier 1 and 2, so</span><span class="only-flood">where some sites are skipped on some visits,</span> treat it as an upper estimate.</p>
+</section>
+</div>
+
+<aside class="summary" aria-label="Run summary">
+  <div class="panel">
+    <span class="eyebrow">Estimated analytical cost</span>
+    <div class="total" id="sumTotal">$0.00</div>
+    <span class="note" id="sumScope"></span>
+    <dl class="kv" id="sumKv"></dl>
+  </div>
+  <div class="panel">
+    <span class="eyebrow">Before you go</span>
+    <div class="alerts" id="alerts"></div>
+  </div>
+</aside>
+</main>
+
+<section class="preview" aria-labelledby="hprev">
+  <div class="preview-head">
+    <div><span class="eyebrow">Step 6</span><h2 id="hprev">Sampling and analysis plan</h2><p class="muted">Updates as you type. Copy it into an email or a Word document for the crew, lab and partners.</p></div>
+    <div class="toolbar"><button class="primary" id="copyBottom" type="button">Copy SAP</button><button id="copyText" type="button">Copy as plain text</button></div>
+  </div>
+  <div class="status" id="copyStatus" role="status"></div>
+  <article class="doc" id="doc"></article>
+</section>
+</div>
+
+<script>
+const BOTTLES=[
+ {id:'field',name:'Field measurements (sonde)',container:'In situ',preserve:'—',hold:'Record on site',lab:'—'},
+ {id:'ecoli',name:'E. coli',container:'120 mL sterile bottle with sodium thiosulfate',preserve:'Wet ice or 4 °C; do not freeze',hold:'In the incubator within 8 h',lab:'DWQ or cooperator (Colilert Quanti-Tray, DWQ E. coli SOP)'},
+ {id:'gen',name:'General chemistry',container:'32 oz plastic',preserve:'Store 4–6 °C',hold:'48 h for turbidity; 7–28 d for the rest',lab:'State Lab'},
+ {id:'nut',name:'Nutrients (unfiltered)',container:'250 mL plastic',preserve:'H₂SO₄ to pH <2; 4–6 °C',hold:'28 d',lab:'State Lab'},
+ {id:'ortho',name:'Orthophosphate',container:'150 mL plastic',preserve:'Unfiltered (QAPP Table 4); 4–6 °C',hold:'48 h',lab:'State Lab'},
+ {id:'doc',name:'Dissolved organic carbon',container:'250 mL plastic (filtered nutrient bottle)',preserve:'Field filter, 0.45 µm cartridge after 2,000 mL purge; H₂SO₄ to pH <2; 4–6 °C',hold:'28 d',lab:'State Lab (QAPP Table 4)'},
+ {id:'dmet',name:'Dissolved metals (filtered)',container:'250 mL plastic',preserve:'Field filter, 0.45 µm cartridge, 2,000 mL purge; HNO₃ to pH <2',hold:'6 mo',lab:'State Lab'},
+ {id:'tmet',name:'Total metals',container:'250 mL plastic',preserve:'HNO₃ to pH <2',hold:'6 mo (Hg 28 d)',lab:'State Lab'},
+ {id:'bod',name:'BOD₅',container:'1,000 mL plastic',preserve:'None; 4–6 °C',hold:'48 h',lab:'Chemtech-Ford'},
+ {id:'sulf',name:'Sulfide',container:'125 mL plastic',preserve:'Zinc acetate + NaOH to pH >9',hold:'7 d',lab:'State Lab'},
+ {id:'chl',name:'Chlorophyll-a (lakes)',container:'Filter, foil-wrapped in a bag (up to 2 L filtered)',preserve:'Keep frozen',hold:'28 d',lab:'State Lab (DWQ chlorophyll-a SOP)'},
+ {id:'hab',name:'HAB (lakes; only when a bloom is seen)',container:'Amber 250 mL glass (toxins); 250 mL plastic (phytoplankton)',preserve:'Wet ice, dark; freeze toxin jars if held over 48 h; glutaraldehyde for phytoplankton held over 24 h',hold:'Toxins 48 h; phytoplankton 24 h',lab:'DWQ HAB program (PhycoTech for phytoplankton)'},
+ {id:'con',name:'Add-on screens (contract lab or partner)',container:'Per lab (amber glass, VOA vials)',preserve:'Per lab; cool, dark',hold:'Per lab, often 7–14 d',lab:'Chemtech-Ford or another contract lab'}
+];
+const METALS=[['al','Aluminum'],['as','Arsenic'],['b','Boron'],['ca','Calcium'],['cd','Cadmium'],['cr','Chromium'],['cu','Copper'],['fe','Iron'],['mg','Magnesium'],['na','Sodium'],['pb','Lead'],['se','Selenium'],['tl','Thallium'],['zn','Zinc']];
+const ITEMS=[
+ {id:'f_temp',b:'field',name:'Water temperature',method:'Sonde',cost:null,hold:'—'},
+ {id:'f_ph',b:'field',name:'pH',method:'Sonde',cost:null,hold:'—'},
+ {id:'f_do',b:'field',name:'Dissolved oxygen',method:'Sonde',cost:null,hold:'—'},
+ {id:'f_spc',b:'field',name:'Specific conductance',method:'Sonde',cost:null,hold:'—'},
+ {id:'f_turb',b:'field',name:'Turbidity (sensor, only if fitted)',method:'Sonde with turbidity sensor',cost:null,hold:'—'},
+ {id:'ecoli',b:'ecoli',name:'E. coli',method:'Colilert Quanti-Tray/2000 (SM 9223B)',cost:null,hold:'8 h'},
+ {id:'g_alk',b:'gen',name:'Alkalinity',method:'SM 2320B',cost:25,hold:'14 d'},
+ {id:'g_cl',b:'gen',name:'Chloride',method:'EPA 300.0',cost:20,hold:'28 d'},
+ {id:'g_so4',b:'gen',name:'Sulfate',method:'EPA 300.0',cost:25,hold:'28 d'},
+ {id:'g_tss',b:'gen',name:'TSS',method:'SM 2540D',cost:15,hold:'7 d'},
+ {id:'g_tds',b:'gen',name:'TDS',method:'SM 2540C',cost:14.03,hold:'7 d'},
+ {id:'g_turb',b:'gen',name:'Turbidity (lab)',method:'EPA 180.1',cost:null,hold:'48 h'},
+ {id:'n_nh3',b:'nut',name:'Total ammonia as N',method:'SM 4500-NH3 H',cost:22,hold:'28 d'},
+ {id:'n_no3',b:'nut',name:'Nitrate + nitrite',method:'EPA 353.2',cost:20,hold:'28 d'},
+ {id:'n_tn',b:'nut',name:'Total nitrogen',method:'ASTM D8083-16',cost:35,hold:'28 d'},
+ {id:'n_tp',b:'nut',name:'Total phosphorus as P',method:'EPA 365.1',cost:23,hold:'28 d'},
+ {id:'n_toc',b:'nut',name:'Total organic carbon',method:'SM 5310B',cost:null,hold:'28 d'},
+ {id:'ortho',b:'ortho',name:'Orthophosphate',method:'EPA 300.0',cost:null,hold:'48 h'},
+ {id:'n_doc',b:'doc',name:'Dissolved organic carbon',method:'SM 5310B (filtered)',cost:null,hold:'28 d'},
+ ...METALS.map(([i,n])=>({id:'dm_'+i,b:'dmet',name:n,method:'EPA 200.7/200.8',cost:13.20,hold:'6 mo'})),
+ {id:'dm_mn',b:'dmet',name:'Manganese',method:'EPA 200.7/200.8',cost:null,hold:'6 mo'},
+ {id:'dm_ni',b:'dmet',name:'Nickel',method:'EPA 200.7/200.8',cost:null,hold:'6 mo'},
+ {id:'dm_u',b:'dmet',name:'Uranium',method:'EPA 200.8',cost:null,hold:'6 mo'},
+ ...METALS.map(([i,n])=>({id:'tm_'+i,b:'tmet',name:n,method:'EPA 200.7/200.8',cost:null,hold:'6 mo'})),
+ {id:'tm_mn',b:'tmet',name:'Manganese',method:'EPA 200.7/200.8',cost:null,hold:'6 mo'},
+ {id:'tm_ni',b:'tmet',name:'Nickel',method:'EPA 200.7/200.8',cost:null,hold:'6 mo'},
+ {id:'tm_u',b:'tmet',name:'Uranium',method:'EPA 200.8',cost:null,hold:'6 mo'},
+ {id:'tm_hg',b:'tmet',name:'Mercury (EPA 245.1 screens Class 1C only; aquatic life needs low-level EPA 1631 from a contract lab)',method:'EPA 245.1',cost:null,hold:'28 d'},
+ {id:'bod',b:'bod',name:'BOD₅',method:'SM 5210B',cost:null,hold:'48 h'},
+ {id:'sulf',b:'sulf',name:'Sulfide',method:'EPA 376.2',cost:null,hold:'7 d'},
+ {id:'c_pest',b:'con',name:'Pesticides and herbicides screen',method:'Per lab',cost:null,hold:'Per lab'},
+ {id:'c_ppcp',b:'con',name:'Wastewater tracers (PPCPs)',method:'EPA 1694 or USGS schedule',cost:null,hold:'Per lab'},
+ {id:'c_pet',b:'con',name:'Petroleum: BTEX/VOCs and TPH',method:'EPA 8260 / 8015',cost:null,hold:'VOCs 14 d'},
+ {id:'c_pah',b:'con',name:'PAHs',method:'EPA 8270',cost:null,hold:'7 d to extraction'},
+ {id:'c_pfas',b:'con',name:'PFAS',method:'EPA 1633',cost:null,hold:'28 d'},
+ {id:'c_rad',b:'con',name:'Radionuclides: gross alpha/beta, radium',method:'Per lab',cost:null,hold:'6 mo'},
+ {id:'chl',b:'chl',name:'Chlorophyll-a',method:'SM 10200H, EPA 445/447',cost:null,hold:'28 d'},
+ {id:'hab',b:'hab',name:'Cyanotoxins and phytoplankton ID',method:'ELISA / LC-MS/MS; phytoplankton count (DWQ HAB SOP)',cost:null,hold:'24–48 h'}
+];
+const ITEM=Object.fromEntries(ITEMS.map(i=>[i.id,i]));
+const TM_ALL=[...METALS.map(m=>'tm_'+m[0]),'tm_mn','tm_ni'];
+const MINE=['dm_mn','dm_u',...TM_ALL,'tm_u','tm_hg','c_rad'];
+const METHODS_ALL={
+ bridge:'Bridge: rope and HDPE bucket (SOP 9.2.3)',
+ bank:'Bank: dip sampler (SOP 9.2.4)',
+ wade:'Wading: thalweg bucket (SOP 9.2.2)',
+ auto:'Portable autosampler storm composite (DWQ stormwater SOP), plus grabs at service visits',
+ sonde:'Continuous sonde (15-min) with grab at service visits'
+};
+const MODES={
+ flood:{
+  label:'Flood',protocol:'DWQ Flood Event Water Quality Response Protocol',
+  levels:[['1','1 — Runoff event'],['2','2 — Response'],['3','3 — Major']],
+  standard:['f_temp','f_ph','f_do','f_spc','ecoli','g_turb','g_alk','g_cl','g_so4','g_tss','g_tds','n_nh3','n_no3','n_tn','n_tp',...METALS.map(m=>'dm_'+m[0])],
+  types:[
+   {id:'runoff',name:'Storm runoff, no known release (metals entrained or mobilized)',add:['ecoli','ortho','n_toc',...TM_ALL]},
+   {id:'sewage',name:'Sewage or wastewater release',add:['ecoli','ortho','bod','n_toc'],opt:['c_ppcp']},
+   {id:'ag',name:'Farm, feedlot or yard runoff',add:['ecoli','ortho'],opt:['c_pest']},
+   {id:'oil',name:'Fuel, oil field or industrial',add:['g_turb'],opt:['c_pet']},
+   {id:'mine',name:'Mining, uranium or legacy metals',add:MINE,opt:['c_rad']},
+   {id:'urban',name:'Urban stormwater',add:['ecoli','tm_cu','tm_pb','tm_zn'],opt:['c_pet']},
+   {id:'burn',name:'Recent burn scar upstream',add:['n_toc','ortho',...TM_ALL],opt:['c_pah']},
+   {id:'lake',name:'Reservoir or lake downstream',add:['chl','hab']}
+  ],
+  sites:[
+   {id:'up',name:'Upstream boundary',why:'Where the river enters the state or the affected reach. Separates incoming load from local sources.',req:'Required'},
+   {id:'above',name:'Above a release',why:'Just above an overflowing plant or other known source.',req:'Pair with a below site'},
+   {id:'below',name:'Below a release',why:'Below the mixing zone of each major release. Shows that source’s contribution.',req:'One per major release'},
+   {id:'trib',name:'Tributary mouth',why:'Major tributaries draining farms, towns or mines, as flows allow.',req:'As sources warrant'},
+   {id:'use',name:'Use point',why:'Fisheries, spawning reaches and wetlands; boat ramps and swimming areas; irrigation diversions and stock water; drinking water intakes.',req:'Required'},
+   {id:'down',name:'Downstream end',why:'Above the next reservoir or state line. Total export and reservoir loading.',req:'Required'},
+   {id:'ref',name:'Reference',why:'Unaffected tributary or long-record site for normal high-flow conditions.',req:'Recommended'}
+  ],
+  screen:['below','use','down'],
+  defaultSites:['up','below','use','down'],
+  methods:['bridge','bank','wade','sonde'],
+  rounds:['Peak or rising limb','Falling limb','Days 3–5','Day 7','Day 14','Day 30','Trend: recovery year 1 (monthly)','Trend: years 2–3','Trend: high-flow event'],
+  scopes:[
+   {id:'round',name:'This visit only',r:1,s:1,note:'One sampling visit at every site.'},
+   {id:'event',name:'Event response, first 90 days',r:5,s:2,note:'Falling limb, days 3–5, 7, 14 and 30 (protocol §5). Screens in the first two visits.'},
+   {id:'y1',name:'Recovery year 1 (months 3–12)',r:12,s:0,note:'10 monthly visits plus the next 2 high-flow events (protocol §10). Screens repeated only where event screening found detections. With E. coli selected, adds a summer E. coli series: 4 extra E. coli-only visits so 5 samples fall within 30 days, at least 48 hours apart (Integrated Report 30-day geometric mean).'},
+   {id:'y23',name:'Each of trend years 2–3',r:11,s:0,note:'Monthly April–October (7), every other month November–March (3), plus one high-flow event (protocol §10). With E. coli selected, adds the summer E. coli series (4 extra E. coli-only visits).'},
+   {id:'custom',name:'Custom',note:'Set visits per site yourself.'}
+  ]
+ },
+ fire:{
+  label:'Post-fire',protocol:'DWQ Post-Wildfire Water Quality Response Protocol',
+  levels:[['0','0 — Watch'],['1','1 — Advisory'],['2','2 — Warning'],['3','3 — Severe']],
+  standard:['f_temp','f_ph','f_do','f_spc','ecoli','g_turb','g_alk','g_cl','g_so4','g_tss','g_tds','n_nh3','n_no3','n_tn','n_tp','n_toc',...METALS.map(m=>'dm_'+m[0])],
+  types:[
+   {id:'ash',name:'Ash and sediment (every burn)',add:['n_toc','n_doc','ortho','g_turb','dm_mn','dm_ni',...TM_ALL]},
+   {id:'intake',name:'Drinking water intake downstream',add:['n_toc','n_doc','g_turb'],opt:['c_pet']},
+   {id:'wui',name:'Burned homes, vehicles or infrastructure',add:['tm_cr','tm_cu','tm_ni','tm_pb','tm_zn','dm_ni'],opt:['c_pet','c_pah']},
+   {id:'retard',name:'Fire retardant drops near water',add:['ortho','n_tp','n_nh3']},
+   {id:'foam',name:'Firefighting foam used',add:[],opt:['c_pfas']},
+   {id:'septic',name:'Burned septic systems or livestock areas',add:['ecoli','ortho','bod']},
+   {id:'mine',name:'Mining, uranium or legacy metals in the burn',add:MINE,opt:['c_rad']},
+   {id:'lake',name:'Supply reservoir or lake downstream',add:['chl','hab']}
+  ],
+  sites:[
+   {id:'t1',name:'Tier 1: below the burn',why:'On each major stream draining the burn, above the first downstream use: fishery or sensitive-species reach, recreation area, diversion or drinking water intake. Early warning for DWR, health departments, irrigators and water systems.',req:'Required'},
+   {id:'t2',name:'Tier 2: baseline / historic',why:'Existing USGS gages and DWQ ambient sites with pre-fire data, for before-and-after comparison and loads.',req:'Required'},
+   {id:'t3',name:'Tier 3: unburned reference',why:'Nearby unburned catchment with similar geology, elevation, cover and climate. Separates fire effects from regional weather.',req:'Required'},
+   {id:'delta',name:'Reservoir delta',why:'Inflow area of a supply reservoir below a major burn, for DO and temperature profiles and metal release.',req:'Where a reservoir is downstream'},
+   {id:'head',name:'Burned headwater',why:'Inside or just below the burn, to show source strength. Only where safe and access is approved.',req:'Add-on: partner or Red-carded crew'}
+  ],
+  screen:['t1','t2'],
+  defaultSites:['t1','t2','t3'],
+  methods:['auto','sonde','bridge','bank','wade'],
+  rounds:['Pre-storm baseline','Storm composite','Monthly baseflow','Snowmelt peak','Trend: year 1','Trend: years 2–3','Trend: years 4–10'],
+  scopes:[
+   {id:'round',name:'This visit only',r:1,s:1,note:'One sampling visit at every site.'},
+   {id:'y0',name:'Year 0 (fire through first winter)',r:9,s:2,note:'Pre-storm baseline, about 5 storms that meet the trigger, and 3 monthly visits (protocol §10). Screens on the first 2 storms.'},
+   {id:'y1',name:'Year 1 (first full year)',r:17,s:2,note:'Snowmelt peak, the first 4 monsoon storms, and 12 monthly baseflow visits (protocol §10).'},
+   {id:'y23',name:'Each of years 2–3',r:14,s:0,note:'Snowmelt peak, about 3 monsoon storms, monthly April–October (7) and every other month November–March (3), so each year has the 10 baseflow samples the Integrated Report needs (protocol §10).'},
+   {id:'y410',name:'Each of years 4–10 (sites not recovered)',r:7,s:0,note:'Snowmelt peak, 2 monsoon storms and 4 quarterly visits (protocol §10). Fewer than 10 samples a year, so judge recovery over several years pooled.'},
+   {id:'custom',name:'Custom',note:'Set visits per site yourself.'}
+  ]
+ }
+};
+const DEFAULT_PRICES=Object.fromEntries(ITEMS.filter(i=>i.cost!=null).map(i=>[i.id,i.cost]));
+const M=()=>MODES[S.mode]||MODES.flood;
+
+const BLANK=(mode='flood')=>({mode,
+ event:{name:'',water:'',start:'',end:'',peak:'',q:'',fstart:'',contain:'',acres:'',sbs:'',dfa:'',gage:'',gname:'',level:mode==='fire'?'0':'2',prep:'',contact:'',date:new Date().toISOString().slice(0,10),bg:''},
+ crew:{who:'',partners:'',partnerList:[],date:'',round:MODES[mode].rounds[0]},
+ sites:MODES[mode].defaultSites.map(t=>({id:'',desc:'',type:t,method:METHODS_ALL[MODES[mode].methods[mode==='fire'&&t==='t3'?2:0]]})),
+ types:[],params:[],
+ log:{scope:'round',rounds:'1',srounds:'1',days:'1',lab:'Utah Public Health Laboratory (State Lab)',ship:'',coc:true,notes:''},
+ prices:{...DEFAULT_PRICES}});
+
+const PARTNERS=[
+ {id:'dwq_mon',name:'Division of Water Quality monitoring section'},
+ {id:'wcoord',name:'Watershed coordinator'},
+ {id:'ddw',name:'Division of Drinking Water'},
+ {id:'pws',name:'Public water system',ask:'Name of the water system'},
+ {id:'udaf',name:'Utah Department of Agriculture and Food'},
+ {id:'lhd',name:'Local health department',ask:'Name of the local health department'},
+ {id:'tribe',name:'Tribal nation',ask:'Name of the tribe'},
+ {id:'epa',name:'EPA'},
+ {id:'baer',name:'BAER team'},
+ {id:'cd',name:'Conservation district',ask:'Name of the conservation district'}];
+const partnerLabel=p=>{const d=PARTNERS.find(x=>x.id===p.id);return d?(p.name?`${d.name}: ${p.name}`:d.name):(p.name||'')};
+const partnerNames=()=>[...(S.crew.partnerList||[]).map(partnerLabel),...(S.crew.partners||'').split(/[;,]\s*/).map(t=>t.trim()).filter(Boolean)];
+const KEY='dwq-flood-sap-generic-v1';
+let S;
+try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){S=null}
+if(!S||!S.event)S=BLANK();
+// fill fields older drafts don't have
+(()=>{const b=BLANK(S.mode||'flood');if(S.crew&&!Array.isArray(S.crew.partnerList))S.crew.partnerList=[];S.mode=S.mode||'flood';for(const k of ['event','crew','log'])S[k]={...b[k],...S[k]};S.prices={...DEFAULT_PRICES,...S.prices};S.types=S.types||[];S.params=S.params||[];if(!S.log.scope)S.log.scope='custom'})();
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const money=n=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const num=n=>(+n).toLocaleString('en-US');
+const pd=s=>{if(!s)return null;const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const fmtD=(d,opt={weekday:'short',month:'short',day:'numeric'})=>d?d.toLocaleDateString('en-US',opt):'';
+const longD=s=>fmtD(pd(s),{month:'long',day:'numeric',year:'numeric'});
+const monY=d=>fmtD(d,{month:'short',year:'numeric'});
+const addD=(d,n)=>new Date(d.getFullYear(),d.getMonth(),d.getDate()+n);
+const addY=(d,n)=>new Date(d.getFullYear()+n,d.getMonth(),d.getDate());
+const get=p=>p.split('.').reduce((o,k)=>o?.[k],S);
+const set=(p,v)=>{const ks=p.split('.');let o=S;ks.slice(0,-1).forEach(k=>o=o[k]);o[ks.at(-1)]=v};
+const opts=(list,val)=>list.map(([v,t])=>`<option value="${esc(v)}"${String(v)===String(val)?' selected':''}>${esc(t)}</option>`).join('');
+
+function renderModeBits(){
+ $('#app').dataset.mode=S.mode;
+ document.getElementById('mode_'+S.mode).checked=true;
+ $('#ev_level').innerHTML=opts(M().levels,S.event.level);
+ if(!M().levels.some(l=>l[0]===S.event.level)){S.event.level=M().levels[0][0];$('#ev_level').value=S.event.level}
+ if(!M().rounds.includes(S.crew.round))S.crew.round=M().rounds[0];
+ $('#cr_round').innerHTML=opts(M().rounds.map(r=>[r,r]),S.crew.round);
+ if(!M().scopes.some(s=>s.id===S.log.scope))S.log.scope='custom';
+ $('#lg_scope').innerHTML=opts(M().scopes.map(s=>[s.id,s.name]),S.log.scope);
+ $('#ev_name').placeholder=S.mode==='fire'?'e.g., 2027 Hogsback Fire':'e.g., Spring 2027 Weber River flood';
+ $('#siteGuide').innerHTML=M().sites.map(t=>`<div class="gcard"><span class="req">${esc(t.req)}</span><h3>${esc(t.name)}</h3><p class="muted">${esc(t.why)}</p></div>`).join('');
+}
+function bindStatic(){
+ document.querySelectorAll('[data-bind]').forEach(el=>{
+  const p=el.dataset.bind,v=get(p);
+  if(el.type==='checkbox')el.checked=!!v;else el.value=v??'';
+  el.oninput=el.onchange=()=>{set(p,el.type==='checkbox'?el.checked:el.value);
+   if(p==='log.rounds'||p==='log.srounds'){S.log.scope='custom';$('#lg_scope').value='custom'}
+   update()};
+ });
+ $('#lg_scope').onchange=e=>{const sc=M().scopes.find(s=>s.id===e.target.value);S.log.scope=sc.id;
+  if(sc.r){S.log.rounds=String(sc.r);S.log.srounds=String(sc.s);$('#lg_rounds').value=sc.r;$('#lg_srounds').value=sc.s}update()};
+}
+function renderSites(){
+ const types=M().sites,meths=M().methods.map(k=>METHODS_ALL[k]);
+ $('#siteRows').innerHTML=S.sites.map((s,i)=>`<tr>
+  <td><input type="text" class="mono" id="site_id_${i}" aria-label="DWQ site ID, row ${i+1}" value="${esc(s.id)}" data-i="${i}" data-k="id" placeholder="New site"></td>
+  <td><input type="text" id="site_desc_${i}" aria-label="Site description, row ${i+1}" value="${esc(s.desc)}" data-i="${i}" data-k="desc" placeholder="Stream at bridge or landmark"></td>
+  <td><select id="site_type_${i}" aria-label="Site type, row ${i+1}" data-i="${i}" data-k="type">${opts(types.map(t=>[t.id,t.name]),s.type)}</select></td>
+  <td><select id="site_m_${i}" aria-label="Collection method, row ${i+1}" data-i="${i}" data-k="method">${opts(meths.map(m=>[m,m]),s.method)}</select></td>
+  <td><button class="small ghost" type="button" data-rm="${i}" aria-label="Remove site ${i+1}">Remove</button></td></tr>`).join('');
+ $('#siteRows').querySelectorAll('[data-k]').forEach(el=>{el.oninput=el.onchange=()=>{S.sites[el.dataset.i][el.dataset.k]=el.value;update()}});
+ $('#siteRows').querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{S.sites.splice(+b.dataset.rm,1);renderSites();update()});
+}
+function renderTypes(){
+ $('#eventTypes').innerHTML=M().types.map(t=>`<label class="tog" for="ty_${t.id}"><input type="checkbox" id="ty_${t.id}" data-t="${t.id}"${S.types.includes(t.id)?' checked':''}> ${esc(t.name)}</label>`).join('');
+ $('#eventTypes').querySelectorAll('input').forEach(c=>c.onchange=()=>{S.types=[...$('#eventTypes').querySelectorAll('input:checked')].map(x=>x.dataset.t);update()});
+}
+function renderBottles(){
+ $('#bottles').innerHTML=BOTTLES.map(b=>{
+  const its=ITEMS.filter(i=>i.b===b.id);
+  return `<fieldset class="bottle"><legend>${esc(b.name)}</legend><div class="bmeta">${esc(b.container)} · ${esc(b.preserve)} · ${esc(b.lab)}</div>${its.map(i=>`<label class="item" for="p_${i.id}"><input type="checkbox" id="p_${i.id}" data-p="${i.id}"${S.params.includes(i.id)?' checked':''}><span>${esc(i.name)}</span><span class="hold${/^(8 h|48 h)$/.test(i.hold)?' short':''}">${esc(i.hold)}</span></label>`).join('')}</fieldset>`;
+ }).join('');
+ $('#bottles').querySelectorAll('[data-p]').forEach(c=>c.onchange=()=>{S.params=[...$('#bottles').querySelectorAll('[data-p]:checked')].map(x=>x.dataset.p);update()});
+}
+
+function calc(){
+ const sel=S.params.map(id=>ITEM[id]).filter(Boolean);
+ const priced=sel.filter(i=>i.b!=='field');
+ const price=i=>{const v=S.prices[i.id];return v===''||v==null||isNaN(+v)?null:+v};
+ const sum=a=>a.reduce((t,i)=>t+(price(i)??0),0);
+ const core=priced.filter(i=>i.b!=='con'),con=priced.filter(i=>i.b==='con');
+ const perSite=sum(core),qaSite=sum(core.filter(i=>i.b!=='bod')),repSite=sum(core.filter(i=>i.b!=='bod'&&i.b!=='chl')),conSite=sum(con);
+ const unpriced=priced.filter(i=>price(i)==null);
+ const n=S.sites.length,r=Math.max(1,+S.log.rounds||1),days=Math.max(1,+S.log.days||1);
+ const qa=(k,rr)=>k?[Math.max(rr*days,Math.ceil(k/10)),Math.ceil(k/10)]:[0,0];
+ const samples=n*r,[blanks,reps]=qa(samples,r);
+ const screenSites=S.sites.filter(s=>M().screen.includes(s.type)).length;
+ const sr=con.length?Math.min(r,Math.max(0,+(S.log.srounds??1)||0)):0;
+ const sSamples=screenSites*sr,[sBlanks,sReps]=qa(sSamples,sr);
+ const ec=ITEM.ecoli,ePrice=price(ec)??0;
+ const eRounds=(S.mode==='flood'&&['y1','y23'].includes(S.log.scope)&&S.params.includes('ecoli'))?4:0;
+ const eSamples=n*eRounds,[eBlanks,eReps]=eSamples?[eRounds,Math.ceil(eSamples/10)]:[0,0];
+ const eCost=(eSamples+eBlanks+eReps)*ePrice;
+ const total=samples*perSite+blanks*qaSite+reps*repSite+(sSamples+sBlanks+sReps)*conSite+eCost;
+ const [b1,r1]=qa(n,1),[sb1,sr1]=qa(sr?screenSites:0,1);
+ const perVisit=n*perSite+b1*qaSite+r1*repSite+((sr?screenSites:0)+sb1+sr1)*conSite;
+ return{sel,priced,core,con,price,perSite,qaSite,repSite,conSite,unpriced,n,r,days,samples,blanks,reps,screenSites,sr,sSamples,sBlanks,sReps,eRounds,eSamples,eBlanks,eReps,ePrice,eCost,total,perVisit};
+}
+function costRows(C){
+ const rows=[
+  [`Routine samples (${C.n} sites × ${C.r} visit${C.r===1?'':'s'})`,money(C.perSite),String(C.samples),money(C.samples*C.perSite)],
+  ['Equipment blanks',money(C.qaSite),String(C.blanks),money(C.blanks*C.qaSite)],
+  ['Field replicates',money(C.repSite),String(C.reps),money(C.reps*C.repSite)]];
+ if(C.con.length){
+  rows.push([`Contract-lab screens (${C.screenSites} sites × ${C.sr} visit${C.sr===1?'':'s'})`,money(C.conSite),String(C.sSamples),money(C.sSamples*C.conSite)]);
+  rows.push(['Screen blanks and replicates',money(C.conSite),String(C.sBlanks+C.sReps),money((C.sBlanks+C.sReps)*C.conSite)]);
+ }
+ if(C.eRounds)rows.push([`Summer E. coli series (${C.n} sites × ${C.eRounds} extra visits, with blanks and replicates)`,money(C.ePrice),String(C.eSamples+C.eBlanks+C.eReps),money(C.eCost)]);
+ rows.push(['Total analytical cost','',String(C.samples+C.blanks+C.reps+C.sSamples+C.sBlanks+C.sReps+C.eSamples+C.eBlanks+C.eReps),money(C.total)]);
+ return rows;
+}
+function schedule(){
+ if(S.mode==='flood'){
+  const p=pd(S.event.peak);if(!p)return[];
+  return[['Peak or rising limb',`${fmtD(p)}, only if safe`],['Falling limb',`${fmtD(addD(p,1))} – ${fmtD(addD(p,3))}`],['Days 3–5',`${fmtD(addD(p,3))} – ${fmtD(addD(p,5))}`],['Day 7',fmtD(addD(p,7))],['Day 14',fmtD(addD(p,14))],['Day 30',fmtD(addD(p,30))],['Event report and after-action review',fmtD(addD(p,90))],['Recovery year 1',`${monY(addD(p,90))} – ${monY(addY(p,1))}: monthly + next 2–3 high flows`],['Trend years 2–3',`${monY(addY(p,1))} – ${monY(addY(p,3))}: monthly April–October, every other month in winter`],['Recovery decision',monY(addY(p,3))]];
+ }
+ const c=pd(S.event.contain)||pd(S.event.fstart);if(!c)return[];
+ return[['Pre-storm baseline','before the first storm over the burn'],['Tier 1 sondes live','within 72 h of activation'],['Year 0',`${monY(c)} – first freeze-up: every storm that meets the trigger`],['Year 1',`${c.getFullYear()+1}: snowmelt peak, first 3–5 monsoon storms, monthly baseflow`],['Years 2–3',`${c.getFullYear()+2}–${c.getFullYear()+3}: snowmelt, first 2–3 monsoon storms, monthly April–October`],['Recovery decision',`end of ${c.getFullYear()+3}`],['Years 4–10',`${c.getFullYear()+4}–${c.getFullYear()+10}: sites not yet recovered`]];
+}
+function update(){
+ save();
+ const sc=schedule();
+ $('#schedule').innerHTML=sc.length?sc.map(([a,b])=>`<span class="chip info">${esc(a)} · ${esc(b)}</span>`).join(''):`<span class="note">Enter the ${S.mode==='fire'?'containment date':'peak date'} to see the schedule.</span>`;
+ const have=new Set(S.sites.map(s=>s.type));
+ $('#coverage').innerHTML=M().sites.map(t=>`<span class="chip ${have.has(t.id)?'ok':(t.req==='Required'?'miss':'')}">${have.has(t.id)?'✓ ':''}${esc(t.name)}</span>`).join('');
+ const C=calc();
+ $('#priceRows').innerHTML=C.priced.length?C.priced.map(i=>`<tr><td>${esc(BOTTLES.find(b=>b.id===i.b).name)}</td><td>${esc(i.name)}</td><td class="num"><input type="number" step="0.01" min="0" class="price" id="pr_${i.id}" aria-label="Unit price, ${esc(i.name)}" data-pr="${i.id}" value="${S.prices[i.id]??''}" placeholder="—"></td></tr>`).join(''):'<tr><td colspan="3" class="muted">Choose lab parameters in step 3.</td></tr>';
+ $('#priceRows').querySelectorAll('[data-pr]').forEach(el=>el.oninput=()=>{S.prices[el.dataset.pr]=el.value;softUpdate()});
+ const scope=M().scopes.find(s=>s.id===S.log.scope);
+ $('#scopeNote').textContent=scope?scope.note:'';
+ softUpdate();
+}
+function softUpdate(){
+ save();
+ const C=calc();
+ $('#costRows').innerHTML=costRows(C).map((r,i,a)=>i===a.length-1?`<tr><th>${esc(r[0])}</th><th></th><th class="num">${r[2]}</th><th class="num">${r[3]}</th></tr>`:`<tr><td>${esc(r[0])}</td><td class="num">${r[1]}</td><td class="num">${r[2]}</td><td class="num">${r[3]}</td></tr>`).join('');
+ $('#sumTotal').textContent=money(C.total);
+ const scope=M().scopes.find(s=>s.id===S.log.scope);
+ $('#sumScope').textContent=(scope&&scope.id!=='custom'?scope.name:`Custom: ${C.r} visit${C.r===1?'':'s'} per site`);
+ const sets=C.samples+C.blanks+C.reps+C.sSamples+C.sBlanks+C.sReps+C.eSamples+C.eBlanks+C.eReps;
+ $('#sumKv').innerHTML=`<dt>Per site, core</dt><dd>${money(C.perSite)}</dd>${C.con.length?`<dt>Per site, screens</dt><dd>${money(C.conSite)}</dd>`:''}<dt>One visit, with QA</dt><dd>${money(C.perVisit)}</dd><dt>Sites × visits</dt><dd>${C.n} × ${C.r}</dd><dt>Sample sets to labs</dt><dd>${sets}</dd><dt>Lab analytes</dt><dd>${C.priced.length}</dd>`;
+ const A=[];
+ if(C.unpriced.length)A.push(['', `${C.unpriced.length} parameter${C.unpriced.length>1?'s have':' has'} no price yet: ${C.unpriced.slice(0,4).map(i=>i.name).join(', ')}${C.unpriced.length>4?'…':''}. Total is low until priced.`]);
+ if(S.params.includes('ecoli'))A.push(['bad','E. coli samples must be in the incubator within 8 hours of collection.']);
+ if(S.params.includes('ecoli')&&(S.types.includes('sewage')||S.types.includes('septic')||(S.mode==='flood'&&+S.event.level>=2)))A.push(['','Plan 1:10 E. coli dilutions with a dilution blank: Quanti-Tray reads only to >2,419.6 MPN/100 mL.']);
+ if(S.mode==='flood'&&S.types.includes('sewage'))A.push(['','Sampling at or next to an overflowing facility for compliance is done by DWQ’s Spills Coordinator and C&E Section under chain of custody. Coordinate sites with them; this plan covers the receiving water.']);
+ if(S.params.includes('f_turb'))A.push(['','Turbidity from the sonde needs a turbidity sensor, which DWQ’s standard sondes don’t have. Lab turbidity is in the general chemistry bottle.']);
+ if(S.params.includes('hab'))A.push(['','HAB bottles are collected only when a bloom is visible. Coordinate with DWQ’s Recreational Health Coordinator and lab before sampling.']);
+ if(S.params.includes('chl'))A.push(['','Lake sampling needs a boat and follows the lake SOP: 1 m sonde profiles and a photic-zone sample at the primary site.']);
+ if(S.sites.some(s=>s.method===METHODS_ALL.auto))A.push(['','Retrieve autosampler bottles within 8 hours of the sampler triggering (portable sampler SOP), and collect E. coli and orthophosphate as grabs.']);
+ const short=S.params.map(i=>ITEM[i]).filter(i=>i&&i.hold==='48 h');
+ if(short.length)A.push(['',`48-hour holds: ${short.map(i=>i.name).join(', ')}. Ship the same or next day.`]);
+ if(S.params.some(i=>i.startsWith('dm_')||i==='n_doc'))A.push(['','Filtered bottles: use a 0.45 µm cartridge after a 2,000 mL purge. Fill the bucket with enough water.']);
+ if(S.params.some(i=>ITEM[i]?.b==='con'))A.push(['','Contract-lab screens: confirm bottles, holds and price with the lab before the run.']);
+ if(C.con.length&&!C.screenSites)A.push(['bad',`Contract-lab screens are selected, but no ${S.mode==='fire'?'Tier 1 or Tier 2':'below-release, use-point or downstream'} sites are listed to screen.`]);
+ if(S.params.includes('bod'))A.push(['','BOD goes to Chemtech-Ford, not the State Lab.']);
+ const dm=S.params.filter(i=>i.startsWith('dm_')&&!['dm_ca','dm_mg','dm_na','dm_b','dm_u'].includes(i));
+ if(dm.length&&!(S.params.includes('dm_ca')&&S.params.includes('dm_mg')))A.push(['bad','Add dissolved calcium and magnesium: hardness-based metals criteria need them, and the Integrated Report drops metals results without a hardness value.']);
+ if(S.params.includes('n_nh3')&&!(S.params.includes('f_ph')&&S.params.includes('f_temp')))A.push(['bad','Ammonia needs field pH and temperature on the same visit; the Integrated Report drops ammonia results without them.']);
+ if(C.eRounds)A.push(['',`Trend scope with E. coli: the plan adds a summer E. coli series (${C.eRounds} extra E. coli-only visits, so 5 samples fall within 30 days at least 48 hours apart, May 1–October 31). That is what the Integrated Report needs to assess the 30-day geometric mean.`]);
+ const req=M().sites.filter(t=>t.req==='Required'&&!S.sites.some(s=>s.type===t.id));
+ if(req.length)A.push(['bad',`Missing site types: ${req.map(t=>t.name).join(', ')}.`]);
+ const newIds=S.sites.filter(s=>!s.id.trim()).length;
+ if(newIds)A.push(['',`${newIds} site${newIds>1?'s need':' needs'} a DWQ monitoring location ID.`]);
+ if(S.mode==='flood'&&S.sites.some(s=>s.method.startsWith('Wading'))&&+S.event.level>=2)A.push(['bad','Wading is selected at a Level 2–3 event. Use bridge or bank methods until flows are near normal.']);
+ if(S.mode==='fire'){
+  if(S.sites.some(s=>s.method.startsWith('Wading')))A.push(['','Wading only at baseflow, never during or right after a storm.']);
+  if(S.sites.some(s=>s.type==='head'))A.push(['bad','Burned headwater sites may be inside an active perimeter. That is an add-on: it needs incident clearance and Red-carded crews or a qualified partner.']);
+  const a=+S.event.acres,b=+S.event.sbs;
+  if(S.event.acres&&a<500)A.push(['',`${num(a)} acres is below the 500-acre activation size (post-fire protocol §4). Activate only if a BAER team lists water as a value at risk or the Program Manager decides to.`]);
+  if(!S.event.dfa)A.push(['','Check for a USGS debris-flow assessment; its rainfall thresholds set the storm trigger.']);
+  if(!S.event.sbs)A.push(['','Add burn severity from the BAER or BARC map; it helps decide activation and site priorities.']);
+ }
+ if(S.mode==='flood'&&S.types.includes('burn'))A.push(['','Recent burn upstream: also run the Post-Wildfire protocol (switch to post-fire mode for that plan).']);
+ if(!S.crew.who.trim())A.push(['bad','Add the sampler(s); both protocols require at least two people in the field.']);
+ if(!S.params.length)A.push(['bad','No parameters selected. Pick the sources in step 3 and apply the recommended set.']);
+ const out=A.filter(a=>a[1]);
+ if(!out.length)out.push(['ok','Plan is complete.']);
+ $('#alerts').innerHTML=out.map(([k,t])=>`<div class="alert ${k}">${esc(t)}</div>`).join('');
+ $('#doc').innerHTML=sapHTML(C,false);
+}
+
+function sapHTML(C,inline){
+ const E=S.event,fire=S.mode==='fire',mo=M(),
+  tb=inline?' style="border-collapse:collapse;width:100%;font-size:11pt"':'',
+  td=inline?' style="border:1px solid #999;padding:4px 6px;vertical-align:top"':'',
+  th=inline?' style="border:1px solid #999;padding:4px 6px;background:#e8eeee;text-align:left"':'';
+ const T=(heads,rows)=>`<div class="scroll"><table${tb}><thead><tr>${heads.map(h=>`<th${th}>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td${td}>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+ const water=E.water||(fire?'[receiving waters]':'[Waterbody]');
+ const gageTxt=E.gage?`USGS gage ${E.gage}${E.gname?' ('+E.gname+')':''}`:'';
+ const levelName=(mo.levels.find(l=>l[0]===E.level)||['',E.level])[1];
+ let bg;
+ if(fire){
+  bg=`The ${E.name||'[fire name]'}${E.fstart?' started '+longD(E.fstart):''}${E.contain?(E.fstart?' and was':' was')+' contained '+longD(E.contain):''}${E.acres?`, burning ${num(E.acres)} acres`:''}${E.sbs?`, with ${E.sbs}% moderate and high soil burn severity in the contributing catchment`:''}. Runoff drains to ${water}.${E.dfa?` The USGS debris-flow assessment shows ${E.dfa} likelihood of debris flows.`:''}${gageTxt?` Flow is tracked at ${gageTxt}.`:''}`;
+ }else{
+  const span=E.start&&E.end?`Between ${longD(E.start)} and ${longD(E.end)}, `:E.start?`Beginning ${longD(E.start)}, `:'';
+  const peak=E.q?`, peaking at ${num(E.q)} cfs${E.peak?' on '+longD(E.peak):''}${gageTxt?' at '+gageTxt:''}`:'';
+  bg=`${span}${water} ${span?'experienced':'had'} a major high-flow event${peak}. Storm runoff carries sediment, nutrients, bacteria and urban and agricultural pollutants, and high flows entrain or mobilize metals from channel and floodplain deposits, so the event is sampled whether or not a release is known.`;
+ }
+ const typeNames=mo.types.filter(t=>S.types.includes(t.id)).map(t=>t.name.toLowerCase());
+ const field=C.sel.filter(i=>i.b==='field').map(i=>i.name.toLowerCase());
+ const lab=C.priced;
+ const groups=BOTTLES.filter(b=>b.id!=='field'&&lab.some(i=>i.b===b.id));
+ const fmtP=i=>{const v=C.price(i);return v==null?'TBD':money(v)};
+ const sc=schedule();
+ const scope=mo.scopes.find(s=>s.id===S.log.scope);
+ const hasAuto=S.sites.some(s=>s.method===METHODS_ALL.auto),hasSonde=S.sites.some(s=>s.method===METHODS_ALL.sonde||s.method===METHODS_ALL.auto);
+ const notify=fire?[
+   'Level 1 (Advisory): DWR, the health department and UDAF by email within 24 hours; DDW and water systems too if an intake is downstream.',
+   'Level 2 (Warning): DWR and the health department by phone, then email, within 1 hour; DDW and water systems too if an intake is downstream.',
+   'Level 3 (Severe): DWR and DWQ’s Spills Coordinator by phone within 15 minutes, plus the water system operator and DDW on-call if an intake is downstream, then the DEM duty officer and health department. DDW and the water system decide on intake operation.',
+   'Routine results: all partners in the weekly status note during storm season.']:[
+   'Confirmed sewage release reaching the river: DWQ’s Spills Coordinator and C&E Section, health departments, tribes, DDW, UDAF and downstream states within 2 hours.',
+   'E. coli at or above 235 MPN/100 mL (Utah recreation advisory value): health agencies the same day the result is in; resample within 24 hours.',
+   'Fish kill, fuel sheen or chemical odor in any water: DWQ’s Spills Coordinator, DWR, DERR and DEM immediately by phone, plus DDW and the water system if an intake is downstream; EPA if oil or hazardous material.',
+   'Results that exceed aquatic life criteria (DO sag, ammonia or metals) below a release: DWR regional aquatics staff and the Spills Coordinator within 24 hours.',
+   'Routine results: all partners in the weekly status note.'];
+ const safety=fire?[
+   'Two-person crew minimum; check in and out with dispatch or a set contact; satellite device where there is no cell service.',
+   'Stay outside active incident perimeters. Work inside one only with incident clearance and Red-carded crews or a qualified escort.',
+   'Never enter a channel during or right after a storm. Service equipment from banks, or after flows recede. Debris flows can arrive with little warning even when it is not raining at the site.',
+   'Watch for fire-killed trees, ash pits and slick ash-covered slopes. Wear an N95 respirator, nitrile gloves and eye protection when handling ash.',
+   'PFD within reach of post-fire flows; stop and move to safety for rising water, lightning or a flash flood warning.']:[
+   'Two-person crew minimum; check in and out with a set contact.',
+   'No wading during high water. Sample from bridges with a tethered bucket or from stable banks with a dip sampler. Wear a PFD within reach of the water.',
+   'Treat floodwater as sewage-contaminated: gloves, no eating or touching your face until hands are washed, and disinfect gear between sites.',
+   'Stop and move to safety for rising water, lightning or a flash flood warning. Back away from fuel odor, sheen, drums or tanks and report them instead of sampling.'];
+ return `
+ <span class="eyebrow">Utah Division of Water Quality · ${esc(mo.label)} response · Level ${esc(levelName)}</span>
+ <h2>${fire?`Post-Fire Special Sampling: ${esc(E.name||'[Fire name]')}`:`${esc(water)} Special Sampling${E.name?': '+esc(E.name):''}`}</h2>
+ <p class="muted">Prepared by ${esc(E.prep||'[name]')}${E.date?' · '+esc(longD(E.date)):''}${E.contact?' · Contact: '+esc(E.contact):''}</p>
+ <h3>Background</h3>
+ <p>${esc(bg)}${typeNames.length?' Sources of concern: '+esc(typeNames.join('; '))+'.':''}</p>
+ ${E.bg?`<p>${esc(E.bg)}</p>`:''}
+ <h3>Sampling</h3>
+ <p>${esc(S.crew.who||'[Sampler(s)]')} will conduct the ${esc((S.crew.round||'').toLowerCase())} visit at ${C.n} station${C.n===1?'':'s'}${S.crew.date?' on '+esc(longD(S.crew.date)):''}.${field.length?` Sonde measurements (${esc(field.join(', '))}) and flow are recorded at each site after sample collection, or downstream during collection (SOP 9.2.1).`:''}${S.params.includes('ecoli')?' E. coli is analyzed by Colilert Quanti-Tray/2000 per DWQ’s E. coli SOP, with samples in the incubator within 8 hours.'+((S.types.includes('sewage')||S.types.includes('septic'))?' Below sewage releases, a second bottle is run at a 1:10 dilution with a dilution blank, because the test reads only to >2,419.6 MPN/100 mL.':''):''}${S.crew.partners?' Partners: '+esc(S.crew.partners)+'.':''}</p>
+ ${partnerNames().length?`<p>Partners for this run: ${esc(partnerNames().join('; '))}.</p>`:''}
+ ${hasAuto?'<p>Storm composites: autosamplers are armed when the storm trigger is met and programmed for flow-weighted composites in four bottle sets (rising limb, peak, early recession, late recession), or two bottles (rise; peak through mid-recession) when flow is too uncertain to program. Setup and programming follow DWQ’s SOP for Stormwater Monitoring Using Portable Samplers. Bottles are collected within 8 hours of the sampler triggering, iced, and composited and processed at the DEQ Tech Support Center. Holding times count from the first aliquot, so composites reach the lab within 48 hours of it for lab turbidity, or lab turbidity is collected as a grab. E. coli and orthophosphate are collected as grabs at service visits because their holding times are too short for an autosampler.</p>':''}
+ ${hasSonde?'<p>Continuous sondes log every 15 minutes. They are calibrated per DWQ’s sonde SOP and, for long-term deployment, checked against a freshly calibrated sonde at each service visit (USGS TM1-D3). Turbidity is logged only where the sonde has a turbidity sensor. Service every two weeks (weekly at Level 1 or above and after every major storm), recording readings before and after cleaning.</p>':''}
+ ${T(['Monitoring location ID','Site description','Site type','Collection method'],S.sites.map(s=>[s.id||'New (ID requested)',s.desc,mo.sites.find(t=>t.id===s.type)?.name||'',s.method]))}
+ <h3>Parameters and cost per site</h3>
+ ${lab.length?T(['Bottle','Parameter','Method','Holding time','Cost'],lab.map(i=>[BOTTLES.find(b=>b.id===i.b).name,i.name,i.method,i.hold,fmtP(i)]).concat([['Core total per site','','','',money(C.perSite)+(C.core.some(i=>C.price(i)==null)?' + TBD':'')]]).concat(C.con.length?[['Contract-lab screens per site','','','',money(C.conSite)+(C.con.some(i=>C.price(i)==null)?' + TBD':'')]]:[])):'<p class="muted">No lab parameters selected.</p>'}
+ ${C.con.length?`<p>Contract-lab screens are collected on ${C.sr} visit${C.sr===1?'':'s'} at ${fire?'Tier 1 and Tier 2':'below-release, use-point and downstream'} sites (${C.screenSites} site${C.screenSites===1?'':'s'}).</p>`:''}
+ <h3>Sample handling</h3>
+ ${groups.length?T(['Bottle','Container','Preservation','Holding time','Lab'],groups.map(b=>[b.name,b.container,b.preserve,b.hold,b.lab])):''}
+ <ul>
+  <li>Keep samples on ice at 4–6 °C until delivery.${S.params.includes('chl')?' Chlorophyll-a filters are kept frozen.':''}${S.params.includes('hab')?' Freeze HAB toxin jars if they will be held more than 48 hours.':''}</li>
+  <li>Label bottles with DWQ site ID, site description, date, time and sampler. Write specific conductance on the lab sheet if above 3,500 µS/cm.</li>
+  <li>Delivery: ${esc(S.log.ship||'[delivery plan]')}. Primary lab: ${esc(S.log.lab)}.</li>
+  ${S.log.coc?'<li>Follow legal chain of custody (SOP 9.5): seal bottles or coolers, keep custody, document every transfer, and send a copy of the form to the Monitoring Section Manager.</li>':''}
+ </ul>
+ <h3>Quality control</h3>
+ <p>One equipment blank per 10 samples and at least one per field day, using DI water through the same bucket, tubing and cartridge filter, for every bottle type collected that day except BOD, labeled with the project's BLANK site ID. One field replicate per 10 samples, collected 5–10 minutes after the original and treated as a new site; for E. coli, one replicate per 10 sampling locations, and blanks should read <1 MPN/100 mL. QAPP targets: replicate pairs within 20% RPD, blanks below the method detection limit, 100% holding-time compliance and 95% completeness. This plan budgets ${C.blanks+C.sBlanks} blank${C.blanks+C.sBlanks===1?'':'s'} and ${C.reps+C.sReps} replicate${C.reps+C.sReps===1?'':'s'}.</p>
+ <h3>Field records</h3>
+ <ul>
+  <li>At each site, note flow conditions, site photos, anything that could make the sample unrepresentative and any pollution sources seen nearby (SOP 11.0).</li>
+  ${fire?'<li>For storm visits, record storm start and end, rainfall intensity, autosampler program and bottle fill times, and peak stage.</li>':''}
+  <li>Record any sampling window that was missed, so later assessments don't treat the record as complete.</li>
+  <li>Before leaving each site, confirm every bottle is collected and labeled and the lab sheet and field notes are complete.</li>
+ </ul>
+ <h3>Screening and notification</h3>
+ <p>Results are screened against the ${esc(mo.protocol)} benchmarks (${fire?'§9':'§7'}). DWQ notifies partners as follows (${fire?'§3A':'§4'}):</p>
+ <ul>${notify.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>
+ <h3>Cost summary${scope&&scope.id!=='custom'?': '+esc(scope.name.toLowerCase()):''}</h3>
+ ${scope&&scope.id!=='custom'?`<p>${esc(scope.note)}</p>`:''}
+ ${T(['Sample type','Cost each','Quantity','Subtotal'],costRows(C))}
+ ${C.unpriced.length?`<p class="muted">Not yet priced: ${esc(C.unpriced.map(i=>i.name).join(', '))}.</p>`:''}
+ <p class="muted">Unit prices from the DWQ 2027 Field Season Budget Request template. The estimate assumes every site is sampled on every visit.</p>
+ ${sc.length?`<h3>Schedule</h3>${T(['Period','Timing'],sc)}`:''}
+ <h3>Long-term monitoring</h3>
+ <p>${fire?'Tier 1–3 sites continue on the protocol schedule for at least three years. Results are compared each year with Utah numeric and narrative criteria by the Integrated Report rules (at least 10 samples for DO, pH, temperature and TDS, with 10% or fewer exceeding; at least 4 for metals and ammonia, with no more than one exceedance), and with pre-fire data and the Tier 3 reference. In headwater streams, TN and TP are averaged over at least 4 June–September samples for the headwater nutrient criteria. A site moves to routine monitoring when, for two consecutive years, storm peaks are similar to the reference, baseflow results meet these rules, sonde DO and pH meet criteria outside storms, no narrative problems are seen, and macroinvertebrate O/E is 0.76 or higher or back to the pre-fire score (post-fire protocol §10).':'Four to six trend sites continue for at least three years. Results are compared each year with Utah numeric and narrative criteria by the Integrated Report rules (at least 10 samples for DO, pH, temperature and TDS, with 10% or fewer exceeding; at least 4 for metals and ammonia, with no more than one exceedance), and with pre-flood data and the reference site. A site moves to routine monitoring when, for two consecutive years, the summer E. coli series meets the 30-day geometric mean criterion with no more than one sample above the maximum, the rules above are met, nutrient and specific conductance medians are within the pre-flood or reference range, and macroinvertebrate O/E is 0.76 or higher. Where a water was already listed as impaired, recovery means a return to the pre-flood range (flood protocol §10).'}</p>
+ <h3>Safety</h3>
+ <ul>${safety.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>
+ ${S.log.notes?`<h3>Crew notes</h3><p>${esc(S.log.notes)}</p>`:''}
+ <h3>Data</h3>
+ <p>Post preliminary field data to partners within 72 hours and lab results in the weekly status note. Load all results to AWQMS${fire?', with continuous sonde files saved to project folders on DWQ’s server,':''} tagged with the ${fire?'fire name':'event identifier'} and a period code, so event data can be separated from routine data and compared year to year. Record flow, weather and photos with ${fire?'storm':'event'} samples: the Integrated Report’s secondary review decides whether they represent ambient conditions. Summaries use water years (October 1–September 30), as the Integrated Report does.</p>
+ <p class="muted">Methods follow DWQ's SOPs for Collection of Water Chemistry Samples in Streams and Wetlands (Rev. 2.7, February 2026) and for Total Coliform and E. coli${hasSonde?', Multiparameter Water Quality Sondes':''}${hasAuto?', Stormwater Monitoring Using Portable Samplers':''}${S.params.includes('chl')||S.params.includes('hab')?', Lakes, Chlorophyll-a and Harmful Algal Blooms':''}, and the ${esc(mo.protocol)}. Add-on screens follow the lab's own methods.</p>`;
+}
+function sapText(){
+ const d=document.createElement('div');d.innerHTML=sapHTML(calc(),false);
+ let out=[];
+ d.querySelectorAll('span.eyebrow,h2,h3,p,li,table').forEach(n=>{
+  if(n.closest('table')&&n.tagName!=='TABLE')return;
+  if(n.tagName==='TABLE'){n.querySelectorAll('tr').forEach(r=>out.push([...r.children].map(c=>c.textContent.trim()).join(' | ')));out.push('')}
+  else if(n.tagName==='H2')out.push(n.textContent.toUpperCase(),'');
+  else if(n.tagName==='H3')out.push('',n.textContent,'-'.repeat(n.textContent.length));
+  else if(n.tagName==='LI')out.push('• '+n.textContent.trim());
+  else out.push(n.textContent.trim());
+ });
+ return out.join('\n').replace(/\n{3,}/g,'\n\n');
+}
+async function copySAP(plain){
+ const st=$('#copyStatus');const txt=sapText();
+ try{
+  if(!plain&&window.ClipboardItem){
+   const html=`<div style="font-family:Calibri,Arial,sans-serif;font-size:11pt">${sapHTML(calc(),true)}</div>`;
+   await navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([txt],{type:'text/plain'})})]);
+  }else await navigator.clipboard.writeText(txt);
+  st.textContent=plain?'Copied as plain text.':'Copied. Paste into Word or an email; tables come with it.';
+ }catch(e){
+  const r=document.createRange();r.selectNodeContents($('#doc'));const s=getSelection();s.removeAllRanges();s.addRange(r);
+  st.textContent='Copy was blocked here. The plan is selected; press Ctrl+C (or ⌘C) to copy it.';
+  $('#doc').scrollIntoView({behavior:'smooth',block:'start'});
+ }
+}
+function switchMode(mode){
+ if(mode===S.mode)return;
+ const valid=new Set(MODES[mode].sites.map(t=>t.id)),meths=MODES[mode].methods.map(k=>METHODS_ALL[k]);
+ const blankSites=S.sites.every(s=>!s.id.trim()&&!s.desc.trim());
+ S.mode=mode;S.types=[];S.event.level=BLANK(mode).event.level;S.crew.round=MODES[mode].rounds[0];
+ if(blankSites)S.sites=BLANK(mode).sites;
+ else S.sites.forEach(s=>{if(!valid.has(s.type))s.type=MODES[mode].sites[0].id;if(!meths.includes(s.method))s.method=meths[mode==='fire'?2:0]});
+ if(!S.params.length||S.params.every(p=>MODES[mode==='fire'?'flood':'fire'].standard.includes(p)))S.params=[];
+ S.log.scope='round';S.log.rounds='1';S.log.srounds='1';
+ init();
+}
+document.querySelectorAll('input[name=mode]').forEach(r=>r.onchange=()=>switchMode(r.value));
+$('#copyTop').onclick=()=>copySAP(false);$('#copyBottom').onclick=()=>copySAP(false);$('#copyText').onclick=()=>copySAP(true);
+$('#addSite').onclick=()=>{S.sites.push({id:'',desc:'',type:M().sites[S.mode==='fire'?0:2].id,method:METHODS_ALL[M().methods[0]]});renderSites();update()};
+$('#addons').onchange=e=>{S.addons=e.target.checked;save()};
+$('#applyRec').onclick=()=>{const add=M().types.filter(t=>S.types.includes(t.id)).flatMap(t=>[...t.add,...(S.addons?(t.opt||[]):[])]);S.params=[...new Set([...M().standard,...add])];renderBottles();update()};
+$('#clearParams').onclick=()=>{S.params=[];renderBottles();update()};
+$('#startBlank').onclick=()=>{const b=$('#startBlank');if(S.sites.some(s=>s.id||s.desc)&&!b.dataset.armed){b.dataset.armed='1';b.textContent='Click again to clear';setTimeout(()=>{delete b.dataset.armed;b.textContent='Clear form'},4000);return}b.textContent='Clear form';delete b.dataset.armed;S=BLANK(S.mode);init()};
+function renderPartners(){
+ const pick=$('#cr_pick'),nm=$('#cr_pname');
+ if(pick.options.length<2)pick.insertAdjacentHTML('beforeend',PARTNERS.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join(''));
+ const d=PARTNERS.find(p=>p.id===pick.value);
+ nm.hidden=!(d&&d.ask);nm.placeholder=d&&d.ask?d.ask:'';nm.setAttribute('aria-label',d&&d.ask?d.ask:'Partner name');
+ $('#cr_plist').innerHTML=(S.crew.partnerList||[]).map((p,i)=>`<span class="chip info">${esc(partnerLabel(p))}<button type="button" class="chip-x" data-rmp="${i}" aria-label="Remove ${esc(partnerLabel(p))}">×</button></span>`).join('');
+ $('#cr_plist').querySelectorAll('[data-rmp]').forEach(b=>b.onclick=()=>{S.crew.partnerList.splice(+b.dataset.rmp,1);renderPartners();update()});
+}
+function addPartner(){
+ const pick=$('#cr_pick'),nm=$('#cr_pname'),d=PARTNERS.find(p=>p.id===pick.value);
+ if(!d){pick.focus();return}
+ const name=d.ask?nm.value.trim():'';
+ if(d.ask&&!name){nm.focus();return}
+ const L=S.crew.partnerList||(S.crew.partnerList=[]);
+ if(!L.some(p=>p.id===d.id&&(p.name||'').toLowerCase()===name.toLowerCase()))L.push(d.ask?{id:d.id,name}:{id:d.id});
+ pick.value='';nm.value='';renderPartners();update();pick.focus();
+}
+$('#cr_pick').onchange=()=>{renderPartners();if(!$('#cr_pname').hidden)$('#cr_pname').focus()};
+$('#cr_padd').onclick=addPartner;
+$('#cr_pname').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();addPartner()}};
+function init(){$('#addons').checked=!!S.addons;renderModeBits();bindStatic();renderSites();renderTypes();renderBottles();renderPartners();update()}
+init();
+</script>
+</body>
+</html>

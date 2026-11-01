@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Who Samples What</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a static decision tree up top, then questions on the left and the roles table they produce on the right, then the collaboration steps. Same tokens as the SAP Builder and Response Guide. */
+:root{
+  --bg:#f3f6f5; --surface:#ffffff; --sunken:#eaf0ef; --ink:#16252a; --muted:#56696e; --line:#d3dddc;
+  --accent:#0b6a78; --accent-ink:#ffffff; --accent-soft:#dcedef;
+  --silt:#8a5d14; --silt-bg:#f6ecd8; --good:#2c7346; --good-bg:#e1f0e5; --bad:#a3372a; --bad-bg:#f8e4df;
+  --f-display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1618; --surface:#152124; --sunken:#1b2a2e; --ink:#e2ebe9; --muted:#97abad; --line:#2a3b3f;
+  --accent:#55b6c5; --accent-ink:#06252a; --accent-soft:#173439;
+  --silt:#dba84f; --silt-bg:#2c2413; --good:#6dc48c; --good-bg:#14281b; --bad:#ec8a78; --bad-bg:#331b16; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1618; --surface:#152124; --sunken:#1b2a2e; --ink:#e2ebe9; --muted:#97abad; --line:#2a3b3f;
+  --accent:#55b6c5; --accent-ink:#06252a; --accent-soft:#173439;
+  --silt:#dba84f; --silt-bg:#2c2413; --good:#6dc48c; --good-bg:#14281b; --bad:#ec8a78; --bad-bg:#331b16; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.15;text-wrap:balance;margin:0}
+h1{font-size:clamp(28px,4vw,40px)} h2{font-size:24px} h3{font-size:17px;font-weight:600}
+p{margin:0} a{color:var(--accent)}
+.eyebrow{font-family:var(--f-display);font-weight:600;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.muted{color:var(--muted)} .note{font-size:13px;color:var(--muted)}
+header.top{padding-block:28px 18px;display:flex;flex-direction:column;gap:10px}
+.lede{max-width:72ch;color:var(--muted)}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px}
+button,.btn{font:600 14px/1 var(--f-body);border-radius:var(--r);padding:10px 14px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn.primary,button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.small,button.small{padding:6px 10px;font-size:13px}
+button:hover,.btn:hover{border-color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+section.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:clamp(16px,3vw,24px);display:flex;flex-direction:column;gap:14px;min-width:0;margin-bottom:20px}
+.tree{overflow-x:auto}
+.tree svg{min-width:880px;width:100%;height:auto;display:block}
+.layout{display:grid;grid-template-columns:340px minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr)}}
+fieldset{border:1px solid var(--line);border-radius:var(--r);padding:12px 14px 14px;margin:0;display:flex;flex-direction:column;gap:6px;min-width:0}
+legend{font-family:var(--f-display);font-weight:600;font-size:16px;padding:0 4px}
+.opt{display:flex;gap:10px;align-items:flex-start;font-size:14.5px;padding:4px 2px;cursor:pointer}
+.opt input{accent-color:var(--accent);margin-top:3px;width:17px;height:17px;flex:none}
+.qs{display:flex;flex-direction:column;gap:12px;min-width:0}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);background:var(--sunken);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.task{font-weight:600;min-width:180px}
+td .why{display:block;font-weight:400;font-size:13px;color:var(--muted);margin-top:2px}
+.lead{display:inline-block;font-weight:600;color:var(--accent)}
+.tag{font-size:11.5px;font-weight:600;padding:2px 7px;border-radius:999px;background:var(--sunken);color:var(--muted);white-space:nowrap}
+.tag.dwq{background:var(--accent-soft);color:var(--accent)}
+.tag.partner{background:var(--silt-bg);color:var(--silt)}
+ol.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px;max-width:80ch}
+ol.steps b{font-weight:600}
+.status{font-size:13px;color:var(--good);min-height:1.2em}
+.summary-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+[hidden]{display:none!important}body{margin:0}img{max-width:100%}
+.site-nav{background:var(--surface);border-bottom:1px solid var(--line);font-family:var(--f-body)}
+.site-nav .in{max-width:1280px;margin:0 auto;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}
+.site-nav .brand{font-family:var(--f-display);font-weight:700;font-size:16px;color:var(--ink);text-decoration:none;margin-right:8px}
+.site-nav a.nl{font-size:14px;font-weight:500;color:var(--muted);text-decoration:none;padding:4px 2px;border-bottom:2px solid transparent}
+.site-nav a.nl:hover{color:var(--accent)}
+.site-nav a.nl[aria-current="page"]{color:var(--accent);border-bottom-color:var(--accent)}
+</style>
+<script src="config.js"></script>
+</head>
+<body>
+<script src="nav.js" data-root="" data-current="roles"></script>
+<div class="wrap">
+<header class="top">
+  <span class="eyebrow">Utah DWQ · Flood and post-fire response</span>
+  <h1>Who Samples What</h1>
+  <p class="lede">A draft decision tree for sorting out sampling roles after a flood or post-fire runoff, so every concern is covered by the agency with the authority for it and nobody samples the same site twice. Answer the questions to get the roles table for your event.</p>
+  <div class="toolbar">
+    <a class="btn small" href="response-guide.html">Response Guide</a>
+    <a class="btn small" href="sap-builder.html">SAP Builder</a>
+    <a class="btn small" id="hubLink" href="#" target="_blank" rel="noopener">Shared Sampling Data Hub</a>
+  </div>
+</header>
+
+<section class="card">
+  <h2>The decision tree</h2>
+  <p class="muted">DWQ samples the receiving water in every event. Each “yes” adds the partner who leads that piece; DWQ coordinates so the pieces fit together.</p>
+  <div class="tree" id="tree"></div>
+</section>
+
+<div class="layout">
+  <section class="card qs" aria-labelledby="qh">
+    <h2 id="qh">About this event</h2>
+    <fieldset><legend>Event type</legend>
+      <label class="opt" for="ev_flood"><input type="radio" name="ev" id="ev_flood" value="flood" checked><span>Flood, no recent fire</span></label>
+      <label class="opt" for="ev_fire"><input type="radio" name="ev" id="ev_fire" value="fire"><span>Post-fire runoff</span></label>
+      <label class="opt" for="ev_both"><input type="radio" name="ev" id="ev_both" value="both"><span>Flood draining a recent burn</span></label>
+    </fieldset>
+    <fieldset><legend>Releases or sources</legend>
+      <label class="opt" for="r_none"><input type="checkbox" id="r_none" data-k="none"><span>None known: storm runoff only</span></label>
+      <label class="opt" for="r_ww"><input type="checkbox" id="r_ww" data-k="ww"><span>Wastewater bypass, overflow or sewage release</span></label>
+      <label class="opt" for="r_haz"><input type="checkbox" id="r_haz" data-k="haz"><span>Fuel, oil, chemical or hazardous material</span></label>
+      <label class="opt" for="r_mine"><input type="checkbox" id="r_mine" data-k="mine"><span>Mine waste or legacy contamination</span></label>
+      <label class="opt" for="r_dam"><input type="checkbox" id="r_dam" data-k="dam"><span>Dam, levee or canal failure</span></label>
+      <label class="opt fireonly" for="r_wui"><input type="checkbox" id="r_wui" data-k="wui"><span>Burned homes, vehicles or infrastructure</span></label>
+    </fieldset>
+    <fieldset><legend>Where</legend>
+      <label class="opt" for="w_tribal"><input type="checkbox" id="w_tribal" data-k="tribal"><span>Tribal lands or waters</span></label>
+      <label class="opt" for="w_inter"><input type="checkbox" id="w_inter" data-k="inter"><span>River crosses a state line, or the source is upstream out of state</span></label>
+      <label class="opt" for="w_fed"><input type="checkbox" id="w_fed" data-k="fed"><span>Federal land (Forest Service, BLM, Park Service)</span></label>
+    </fieldset>
+    <fieldset><legend>Downstream uses</legend>
+      <label class="opt" for="u_aq"><input type="checkbox" id="u_aq" data-k="aq" checked><span>Fishery or aquatic habitat</span></label>
+      <label class="opt" for="u_rec"><input type="checkbox" id="u_rec" data-k="rec" checked><span>Swimming, boating or fishing access</span></label>
+      <label class="opt" for="u_ag"><input type="checkbox" id="u_ag" data-k="ag"><span>Irrigation diversion or stock water</span></label>
+      <label class="opt" for="u_lake"><input type="checkbox" id="u_lake" data-k="lake"><span>Lake or reservoir</span></label>
+      <label class="opt" for="u_dw"><input type="checkbox" id="u_dw" data-k="dw"><span>Drinking water intake</span></label>
+      <label class="opt" for="u_well"><input type="checkbox" id="u_well" data-k="well"><span>Flooded private wells</span></label>
+      <label class="opt" for="u_fishkill"><input type="checkbox" id="u_fishkill" data-k="fishkill"><span>Fish kill observed</span></label>
+    </fieldset>
+  </section>
+
+  <section class="card" aria-labelledby="rh">
+    <div class="summary-row"><h2 id="rh">Sampling roles for this event</h2><span><button class="small primary" id="copy" type="button">Copy roles table</button> <span class="status" id="copyStatus" role="status"></span></span></div>
+    <p class="muted" id="rcount"></p>
+    <div class="scroll"><table><thead><tr><th>Sampling or data task</th><th>Lead</th><th>Supports</th><th>Coordination</th></tr></thead><tbody id="rows"></tbody></table></div>
+    <p class="note">Draft for partner review. Leads reflect each agency’s authority as understood by DWQ; confirm with partners at the first interagency call.</p>
+  </section>
+</div>
+
+<section class="card" aria-labelledby="ch">
+  <h2 id="ch">How partners collaborate without duplicating effort</h2>
+  <ol class="steps">
+    <li><b>Confirm roles at the first interagency call (by 24 hours).</b> Walk through this table, name a sampling lead and a backup for each agency, and record them in the response roster.</li>
+    <li><b>Register every planned sampling trip before going out.</b> Enter the site, date, agency and parameters on the plan board in the Shared Sampling Data Hub. The board flags any other agency planning the same site within a day.</li>
+    <li><b>One agency per site per round.</b> When two plans overlap, one agency samples and the other moves to an uncovered site or adds its parameters to the same trip. Split samples happen only by agreement, for QA comparisons.</li>
+    <li><b>Use shared site IDs.</b> DWQ monitoring location IDs and USGS station numbers; a new site gets an ID before its data are shared.</li>
+    <li><b>Share results on a set clock.</b> Upload preliminary results to the hub within 72 hours, marked preliminary; replace them with final, validated results when they’re available. Official records still go to each agency’s own system (AWQMS and WQX for DWQ).</li>
+    <li><b>Review coverage weekly.</b> The weekly call goes over the plan board, gaps (uses or reaches nobody is covering) and the next round.</li>
+    <li><b>Speak with one voice.</b> Results that may lead to an advisory go to the health department and the communications lead before anyone posts them (Risk Communication Plan).</li>
+  </ol>
+</section>
+</div>
+
+<script>
+"use strict";
+const HUB_URL="data-hub.html";
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ---------- the static tree ---------- */
+(function drawTree(){
+ const W=1100,H=640,ink="var(--ink)",muted="var(--muted)",line="var(--line)",acc="var(--accent)",accS="var(--accent-soft)",silt="var(--silt)",siltB="var(--silt-bg)";
+ const box=(x,y,w,h,t1,t2,kind)=>{const f=kind==="dwq"?accS:kind==="q"?"var(--surface)":siltB,s=kind==="dwq"?acc:kind==="q"?line:silt;
+  return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${f}" stroke="${s}" stroke-width="${kind==="q"?1.25:1.5}"/>
+  <text x="${x+w/2}" y="${y+(t2?h/2-3:h/2+5)}" text-anchor="middle" font-size="14" font-weight="600" fill="${ink}">${t1}</text>${t2?`<text x="${x+w/2}" y="${y+h/2+15}" text-anchor="middle" font-size="12" fill="${muted}">${t2}</text>`:""}`};
+ const arrow=(d)=>`<path d="${d}" fill="none" stroke="${muted}" stroke-width="1.25" marker-end="url(#ar)"/>`;
+ const lab=(x,y,t,a="start")=>`<text x="${x}" y="${y}" font-size="12" fill="${muted}" text-anchor="${a}">${t}</text>`;
+ // columns
+ const qx=40,qw=300,lx=420,lw=300,rx=760,rw=300;
+ const qs=[["Is there a release at a facility?","wastewater, fuel, chemical, mine, dam"],["Tribal lands or waters?",""],["Upstream out of state?",""],["Drinking water intake or wells?",""],["Fish kill, fishery or irrigation?",""],["Post-fire burned area?",""]];
+ const rs=[["Spills Coordinator and C&E","compliance sampling (DERR or EPA for hazmat)"],["Tribal EPA leads on tribal waters","DWQ supports, government to government"],["Upstream state or EPA region","their facilities and waters"],["Water system with DDW; health dept","raw and finished water; private wells"],["DWR (fish) and UDAF (irrigation)","DWQ samples water at those points"],["BAER team and land manager","hillslope, ash; USGS debris flow"]];
+ let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Decision tree: DWQ samples ambient water in every event; each yes adds a lead partner"><defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${muted}"/></marker></defs>`;
+ s+=box(lx,18,lw,52,"DWQ samples the receiving water","every event, at every core site","dwq");
+ s+=box(qx,18,qw,52,"Flood or post-fire runoff","activated under the protocol","q");
+ s+=arrow(`M${qx+qw} 44H${lx}`);
+ const y0=110,dy=78;
+ qs.forEach((q,i)=>{const y=y0+i*dy;s+=box(qx,y,qw,52,q[0],q[1],"q");s+=box(rx,y,rw,52,rs[i][0],rs[i][1],"p");s+=arrow(`M${qx+qw} ${y+26}H${rx}`);s+=lab(qx+qw+12,y+20,"yes");
+  if(i<qs.length-1){s+=arrow(`M${qx+qw/2} ${y+52}V${y+dy}`);s+=lab(qx+qw/2+8,y+68,"no, or after")}});
+ s+=`<path d="M${lx+lw/2} 70V${y0+5*dy+26}" fill="none" stroke="${acc}" stroke-width="1.5" stroke-dasharray="5 5"/>`;
+ s+=lab(lx+lw/2,y0+5*dy+80,"DWQ keeps sampling ambient water and shares data with every lead","middle");
+ s+=`<g font-size="12"><rect x="${qx}" y="${H-30}" width="14" height="14" rx="3" fill="${accS}" stroke="${acc}"/><text x="${qx+22}" y="${H-19}" fill="${muted}">DWQ</text><rect x="${qx+80}" y="${H-30}" width="14" height="14" rx="3" fill="${siltB}" stroke="${silt}"/><text x="${qx+102}" y="${H-19}" fill="${muted}">Partner leads</text></g></svg>`;
+ $("#tree").innerHTML=s;
+})();
+
+/* ---------- role rules ---------- */
+const R=[
+ {k:"ambient",task:"Ambient receiving-water sampling",why:"Upstream boundary, below sources, use points, downstream end, reference; event rounds and recovery",lead:"DWQ (Monitoring Section and watershed coordinator)",dwq:true,sup:"USGS (gages, co-sampling); watershed and grant-funded partners; conservation districts",co:"Register trips on the plan board; DWQ site IDs",when:()=>true},
+ {k:"flow",task:"Flow and forecasts",why:"Peak and recession timing; storm triggers",lead:"USGS (gages); NWS (forecasts)",sup:"DWQ field flow measurements",co:"Pair every sample with flow",when:()=>true},
+ {k:"comp",task:"Compliance sampling at an overflowing Utah facility",why:"Bypasses and unauthorized releases, under legal chain of custody",lead:"DWQ Spills Coordinator and Compliance and Enforcement Section",dwq:true,sup:"Facility operator (permit-required monitoring); DWQ permitting staff",co:"Watershed Protection samples the river, not the outfall; agree sites so efforts don’t overlap",when:a=>a.ww},
+ {k:"haz",task:"Fuel, oil, chemical or hazardous material",why:"Source sampling and cleanup",lead:"DEQ Environmental Response and Remediation; EPA for oil and hazardous substances; responsible party",sup:"DWQ Spills Coordinator as liaison; National Response Center report",co:"DWQ samples only ambient sites downstream, coordinated through the Environmental Unit if an incident command forms",when:a=>a.haz},
+ {k:"mine",task:"Mine waste or legacy contamination",why:"Source characterization",lead:"DEQ Environmental Response and Remediation, or EPA for Superfund and removal sites; Division of Oil, Gas and Mining for abandoned mines",sup:"DWQ ambient metals below the source",co:"Share metals results; add total and dissolved metals at ambient sites",when:a=>a.mine},
+ {k:"dam",task:"Dam, levee or canal failure",why:"Structure, flood routing and public safety",lead:"Division of Water Rights Dam Safety; DEM; dam or canal owner",sup:"DWQ ambient sampling once safe",co:"Ambient crews stay clear until the structure is declared safe",when:a=>a.dam},
+ {k:"tribal",task:"Sampling on tribal lands and waters",why:"Tribal jurisdiction",lead:"Tribal environmental agency (for example, Navajo Nation EPA)",sup:"DWQ by agreement; EPA Region 9 for Navajo Nation facilities",co:"Government-to-government coordination; agree shared sites and data sharing",when:a=>a.tribal},
+ {k:"inter",task:"Upstream facilities and waters in another state",why:"Out-of-state releases and loads",lead:"Upstream state water quality agency; EPA region that permits the facility (Region 8 Utah, Region 6 New Mexico, Region 9 Navajo Nation)",sup:"DWQ upstream-boundary site",co:"Ask what they sampled; shared data folder; joint boundary site",when:a=>a.inter},
+ {k:"dw",task:"Drinking water intake: raw and finished water",why:"Treatment decisions and customer notices",lead:"Water system with the Division of Drinking Water",sup:"DWQ ambient site above the intake",co:"Ask systems, through DDW, to share raw-water turbidity and TOC in the hub",when:a=>a.dw},
+ {k:"well",task:"Private wells",why:"Well testing and disinfection advice",lead:"Local health department (tribal health agency on tribal lands); well owners test",sup:"DWQ shares river results near flooded wells",co:"Health department posts well guidance (Risk Communication Plan)",when:a=>a.well},
+ {k:"rec",task:"Recreation: E. coli and harmful algal blooms",why:"Advisory decisions",lead:"DWQ (Recreational Health Coordinator) samples; local health department posts advisories",dwq:true,sup:"Tribal health agencies on tribal waters; land managers for signs",co:"Results go to the health department the same day",when:a=>a.rec||a.lake},
+ {k:"lake",task:"Lakes and reservoirs",why:"Profiles, chlorophyll-a, HAB checks",lead:"DWQ lakes and HAB programs",dwq:true,sup:"Reservoir operator; Bureau of Reclamation for federal reservoirs",co:"Through the next warm season",when:a=>a.lake},
+ {k:"fish",task:"Fish kills and fisheries",why:"Kill investigation, fish counts, tissue",lead:"Division of Wildlife Resources",sup:"DWQ water samples at the kill site; DHHS for fish advisories",co:"Call DWR immediately; DWQ samples DO, ammonia and metals at the site",when:a=>a.aq||a.fishkill},
+ {k:"ag",task:"Irrigation and stock water",why:"Producer notices",lead:"Utah Department of Agriculture and Food; irrigation companies",sup:"DWQ samples at diversions as use points; conservation districts",co:"UDAF notifies producers using DWQ results",when:a=>a.ag},
+ {k:"fire",task:"Burned area: hillslopes, ash and debris-flow hazard",why:"Values at risk and stabilization",lead:"BAER team and land manager (Forest Service, BLM, Park Service); FFSL on state and private land; USGS debris-flow assessments",sup:"DWQ Tier 1–3 water sites below the burn",co:"Share site list with BAER; DWQ water data feed restoration targeting",when:a=>a.ev!=="flood"},
+ {k:"sensor",task:"Continuous turbidity and DOC sensors",why:"Storm peaks between grabs",lead:"USGS or water-system partner sondes (add-on)",sup:"DWQ sondes (temperature, pH, DO, specific conductance)",co:"Share sensor files in the hub folder",when:a=>a.ev!=="flood"},
+ {k:"wui",task:"Burned structures and distribution systems",why:"Benzene and other VOCs in pipes; hazardous debris",lead:"Water systems with DDW (distribution); DERR or EPA (debris)",sup:"DWQ metals at ambient sites; VOCs as an add-on",co:"Don’t sample burned pipes or debris yourself",when:a=>a.wui&&a.ev!=="flood"},
+ {k:"ash",task:"Ash and sediment chemistry, toxicity",why:"What storms can mobilize",lead:"USGS, EPA or university partners (add-on)",sup:"DWQ contract lab if funded",co:"DWQ seldom samples sediment",when:a=>a.ev!=="flood"||a.mine},
+ {k:"bio",task:"Macroinvertebrates and habitat (recovery)",why:"Ecological recovery, O/E scores",lead:"DWQ",dwq:true,sup:"DWR fisheries; land managers",co:"Growing season (May–October), at least four weeks after scouring flows",when:()=>true}
+];
+function answers(){const a={ev:document.querySelector('input[name=ev]:checked').value};document.querySelectorAll('input[type=checkbox][data-k]').forEach(i=>a[i.dataset.k]=i.checked);return a}
+function render(){
+ const a=answers();document.querySelectorAll('.fireonly').forEach(e=>e.hidden=a.ev==="flood");
+ const rows=R.filter(r=>r.when(a));
+ $("#rows").innerHTML=rows.map(r=>`<tr><td class="task">${esc(r.task)}<span class="why">${esc(r.why)}</span></td><td><span class="lead">${esc(r.lead)}</span> ${r.dwq?'<span class="tag dwq">DWQ</span>':'<span class="tag partner">Partner</span>'}</td><td>${esc(r.sup)}</td><td>${esc(r.co)}</td></tr>`).join("");
+ const p=rows.filter(r=>!r.dwq).length;$("#rcount").textContent=`${rows.length} tasks: ${rows.length-p} led by DWQ, ${p} led by partners.`;
+ try{localStorage.setItem("dwq-roles-tree",JSON.stringify(a))}catch(e){}
+}
+function textTable(){const a=answers(),rows=R.filter(r=>r.when(a));return ["Sampling or data task\tLead\tSupports\tCoordination",...rows.map(r=>[r.task,r.lead,r.sup,r.co].join("\t"))].join("\n")}
+try{const a=JSON.parse(localStorage.getItem("dwq-roles-tree")||"null");if(a){const ev=document.getElementById("ev_"+a.ev);if(ev)ev.checked=true;document.querySelectorAll('input[type=checkbox][data-k]').forEach(i=>{if(i.dataset.k in a)i.checked=!!a[i.dataset.k]})}}catch(e){}
+document.addEventListener("change",e=>{if(e.target.matches("input"))render()});
+$("#copy").onclick=()=>{const t=textTable(),st=$("#copyStatus");try{navigator.clipboard.writeText(t).then(()=>st.textContent="Copied. Paste into an email or spreadsheet.",()=>st.textContent="Copy isn’t available here; select the table and copy it.")}catch(e){st.textContent="Copy isn’t available here; select the table and copy it."}};
+if(HUB_URL)$("#hubLink").href=HUB_URL;else $("#hubLink").hidden=true;
+render();
+</script>
+</body>
+</html>
