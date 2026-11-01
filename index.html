@@ -33,7 +33,7 @@ p{margin:0}
 a{color:var(--accent)}
 :focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 /* Side margins for the whole page. Raise the middle number in clamp() for more space. */
-.wrap{max-width:1360px;margin:0 auto;padding-left:max(clamp(20px,4.5vw,64px),env(safe-area-inset-left,0px));padding-right:max(clamp(20px,4.5vw,64px),env(safe-area-inset-right,0px))}
+.wrap{max-width:1440px;margin:0 auto;padding-left:max(clamp(20px,4vw,56px),env(safe-area-inset-left,0px));padding-right:max(clamp(20px,4vw,56px),env(safe-area-inset-right,0px))}
 
 /* ---------- Hero banner ---------- */
 .hero{position:relative;overflow:hidden;color:#fff;background:#0b5561;border-bottom:4px solid #0b6a78}
@@ -41,13 +41,16 @@ a{color:var(--accent)}
 /* Right side of the banner: the five steps of a response */
 .steps-panel{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.25);border-radius:16px;padding:22px 24px;}
 .steps-panel h2{font-size:24px;color:#fff;margin-bottom:14px}
-.steps-panel ol{list-style:none;margin:0;padding:0;display:grid;gap:12px}
-.steps-panel li{display:grid;grid-template-columns:34px 1fr;gap:0 14px;align-items:start}
+.steps-panel ol{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+/* Each step is a clickable row: hover highlight plus an arrow on the right */
+.steps-panel a.step{display:grid;grid-template-columns:34px 1fr 28px;gap:0 14px;align-items:center;padding:9px 10px;margin:0 -10px;border-radius:10px;text-decoration:none;transition:background-color .15s}
+.steps-panel a.step:hover,.steps-panel a.step:focus-visible{background:rgba(255,255,255,.14)}
+.steps-panel a.step:focus-visible{outline:2px solid #fff;outline-offset:0}
+.steps-panel .go{grid-row:span 2;grid-column:3;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;border:1.5px solid rgba(255,255,255,.55);color:#fff;font-size:15px;transition:background-color .15s,transform .15s}
+.steps-panel a.step:hover .go{background:#fff;color:#0a4b55;transform:translateX(2px)}
 .steps-panel .num{grid-row:span 2;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#fff;color:#0a4b55;font-family:var(--f-display);font-weight:700;font-size:18px}
 .steps-panel b{font-family:var(--f-display);font-size:20px;font-weight:700;color:#fff;line-height:1.2}
-.steps-panel b a{color:#fff;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.45)}
-.steps-panel b a:hover{border-bottom-color:#fff}
-.steps-panel span{font-size:15.5px;color:#d4ecef;line-height:1.4}
+.steps-panel .d{font-size:15.5px;color:#d4ecef;line-height:1.4}
 .hero .eyebrow{display:inline-block;font-family:var(--f-display);font-weight:600;font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:#bfe6ec;margin-bottom:14px}
 .hero h1{font-size:clamp(38px,6vw,68px);max-width:15ch;color:#fff}
 .hero .lede{font-size:clamp(18px,2vw,21px);line-height:1.5;max-width:58ch;margin-top:18px;color:#e3f3f5}
@@ -113,7 +116,7 @@ footer p+p{margin-top:6px}
 @media (prefers-reduced-motion:reduce){a.tool{transition:none}a.tool:hover{transform:none}}
 [hidden]{display:none!important}body{margin:0}img{max-width:100%}
 .site-nav{background:var(--surface);border-bottom:1px solid var(--line);font-family:var(--f-body)}
-.site-nav .in{max-width:1280px;margin:0 auto;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}
+.site-nav .in{max-width:1440px;margin:0 auto;padding:10px max(clamp(20px,4vw,56px),env(safe-area-inset-right,0px)) 10px max(clamp(20px,4vw,56px),env(safe-area-inset-left,0px));display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}
 .site-nav .brand{font-family:var(--f-display);font-weight:700;font-size:16px;color:var(--ink);text-decoration:none;margin-right:8px}
 .site-nav a.nl{font-size:14px;font-weight:500;color:var(--muted);text-decoration:none;padding:4px 2px;border-bottom:2px solid transparent}
 .site-nav a.nl:hover{color:var(--accent)}
@@ -142,11 +145,11 @@ footer p+p{margin-top:6px}
     <aside class="steps-panel" aria-labelledby="flow-h">
       <h2 id="flow-h">During an event</h2>
       <ol>
-        <li><span class="num">1</span><b><a href="response-guide.html">Activate</a></b><span>Confirm the trigger, set the response level and start the clock.</span></li>
-        <li><span class="num">2</span><b><a href="who-samples-what.html">Coordinate</a></b><span>Sort out which agency samples which waters and who gets notified.</span></li>
-        <li><span class="num">3</span><b><a href="sap-builder.html">Plan</a></b><span>Choose sites and parameters, line up the lab and check the budget.</span></li>
-        <li><span class="num">4</span><b><a href="data-hub.html">Share</a></b><span>Post trips so nobody doubles up, then upload results for everyone.</span></li>
-        <li><span class="num">5</span><b><a href="response-guide.html">Communicate</a></b><span>Screen results against criteria and tell affected people first.</span></li>
+        <li><a class="step" href="response-guide.html"><span class="num">1</span><b>Activate</b><span class="go" aria-hidden="true">→</span><span class="d">Confirm the trigger, set the response level and start the clock.</span></a></li>
+        <li><a class="step" href="who-samples-what.html"><span class="num">2</span><b>Coordinate</b><span class="go" aria-hidden="true">→</span><span class="d">Sort out which agency samples which waters and who gets notified.</span></a></li>
+        <li><a class="step" href="sap-builder.html"><span class="num">3</span><b>Plan</b><span class="go" aria-hidden="true">→</span><span class="d">Choose sites and parameters, line up the lab and check the budget.</span></a></li>
+        <li><a class="step" href="data-hub.html"><span class="num">4</span><b>Share</b><span class="go" aria-hidden="true">→</span><span class="d">Post trips so nobody doubles up, then upload results for everyone.</span></a></li>
+        <li><a class="step" href="risk-communication.html"><span class="num">5</span><b>Communicate</b><span class="go" aria-hidden="true">→</span><span class="d">Screen results against criteria and tell affected people first.</span></a></li>
       </ol>
     </aside>
   </div>
@@ -203,10 +206,10 @@ footer p+p{margin-top:6px}
     </div>
     <!-- EDIT: resource cards. Change the link inside href="..." or the wording. -->
     <div class="res" id="res">
-      <a class="r" href="https://claude.ai/artifact/R9ffZtuJcCvn8dTeCDFcUq" target="_blank" rel="noopener">
+      <a class="r" href="risk-communication.html">
         <h3>Risk Communication Plan</h3>
-        <p>Who leads public messaging, message maps, templates for news releases and social media, and rumor control.</p>
-        <span class="ext">Open ↗</span>
+        <p>Who leads public messaging, ready-to-copy messages that fill in from your event details, a message map builder and a rumor log.</p>
+        <span class="ext">Open →</span>
       </a>
       <a class="r" href="https://christinemosborne.github.io/Post-fire-Best-Management-Practice-BMP-Tool-v2/" target="_blank" rel="noopener">
         <h3>Post-Fire BMP Selection Tool</h3>
