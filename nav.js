@@ -8,6 +8,8 @@
     ['roles', 'Who Samples What', root + 'who-samples-what.html'],
     ['hub', 'Data Hub', root + 'data-hub.html'],
     ['sap', 'SAP Builder', root + 'sap-builder.html']
+    /* Add back when the Risk Communication Plan is ready:
+    ,['risk', 'Risk Communication', root + 'risk-communication.html'] */
   ];
   var nav = document.createElement('nav');
   nav.className = 'site-nav';
@@ -16,7 +18,6 @@
   items.forEach(function (it) {
     html += '<a class="nl" href="' + it[2] + '"' + (it[0] === cur ? ' aria-current="page"' : '') + '>' + it[1] + '</a>';
   });
-  if (cfg.riskCommPlanUrl) html += '<a class="nl" href="' + cfg.riskCommPlanUrl + '" target="_blank" rel="noopener">Risk Communication Plan ↗</a>';
   html += '</div>';
   nav.innerHTML = html;
   me.parentNode.insertBefore(nav, me);

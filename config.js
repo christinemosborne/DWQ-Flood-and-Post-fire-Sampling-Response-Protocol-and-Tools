@@ -5,10 +5,6 @@ window.TOOLKIT_CONFIG = {
      Leave empty to run the hub in browser-only test mode. */
   hubBackendUrl: "",
 
-  /* Final flood and post-fire protocol links for the Response Guide's "Read the full protocol" button. */
-  protocolLinks: { flood: "", fire: "" },
-
-  /* Other resources shown in the site menu. */
-  riskCommPlanUrl: "https://claude.ai/artifact/R9ffZtuJcCvn8dTeCDFcUq",
+  /* Post-Fire BMP Selection Tool (live site). */
   bmpToolUrl: "https://christinemosborne.github.io/Post-fire-Best-Management-Practice-BMP-Tool-v2/"
 };

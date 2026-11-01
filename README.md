@@ -9,11 +9,12 @@ A static website for Utah Division of Water Quality's response to floods and pos
 | `who-samples-what.html` | Decision tree and roles table for which agency samples what |
 | `sap-builder.html` | Builds a sampling and analysis plan with costs |
 | `data-hub.html` | Shared Sampling Data Hub: partners share planned sampling and upload results |
-| `config.js` | Settings: data hub connection, protocol links, outside links |
+| `risk-communication.html` | Risk Communication Plan (draft; not linked from the site yet) |
+| `config.js` | Settings: data hub connection, BMP tool link |
 | `nav.js` | The shared top menu |
 | `Code.gs`, `BACKEND-SETUP.md` | Google Sheets backend for the data hub, and how to set it up |
 
-The Risk Communication Plan and the Post-Fire BMP Selection Tool are linked from the menu and home page; they live elsewhere.
+The Post-Fire BMP Selection Tool is linked from the home page; it lives in its own repository.
 
 ## Publish on GitHub Pages
 
@@ -28,15 +29,9 @@ The hub works right away in **test mode** (data stays in each person's browser).
 
 **Never put the passcode in this repository.** It lives only in the Apps Script project's Script Properties.
 
-## Add the protocol links
+## Linking the Risk Communication Plan later
 
-When the protocols are final, edit `config.js`:
-
-```js
-protocolLinks: { flood: "https://...", fire: "https://..." },
-```
-
-The Response Guide's "Read the full protocol" button and the home page pick these up automatically.
+The plan page is in the site but not linked. When it is ready: in `nav.js`, remove the `/*` and `*/` around the Risk Communication line; in `index.html`, follow the note above the Risk Communication Plan card and change step 5 (`<div class="step soon">`) back to a link.
 
 ## Editing the tools
 
