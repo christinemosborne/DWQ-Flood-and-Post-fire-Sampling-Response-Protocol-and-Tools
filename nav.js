@@ -7,9 +7,8 @@
     ['guide', 'Response Guide', root + 'response-guide.html'],
     ['roles', 'Who Samples What', root + 'who-samples-what.html'],
     ['hub', 'Data Hub', root + 'data-hub.html'],
-    ['sap', 'SAP Builder', root + 'sap-builder.html']
-    /* Add back when the Risk Communication Plan is ready:
-    ,['risk', 'Risk Communication', root + 'risk-communication.html'] */
+    ['sap', 'SAP Builder', root + 'sap-builder.html'],
+    ['risk', 'Risk Communication', root + 'risk-communication.html']
   ];
   var nav = document.createElement('nav');
   nav.className = 'site-nav';
