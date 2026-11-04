@@ -5,6 +5,7 @@
   var items = [
     ['home', 'Home', root + 'index.html'],
     ['guide', 'Response Guide', root + 'response-guide.html'],
+    ['min', 'Minimum Response', root + 'minimum-response.html'],
     ['roles', 'Who Samples What', root + 'who-samples-what.html'],
     ['hub', 'Data Hub', root + 'data-hub.html'],
     ['sap', 'SAP Builder', root + 'sap-builder.html'],

@@ -6,6 +6,7 @@ A static website for Utah Division of Water Quality's response to floods and pos
 |---|---|
 | `index.html` | Home page with links to every tool |
 | `response-guide.html` | Step-by-step flood and post-fire response, from activation to long-term monitoring |
+| `minimum-response.html` | Minimum Response: scaled-down flood and post-fire sampling plans for limited time, staff and lab budget (sites, schedule, samples, cost, E. coli tracking, printable plan) |
 | `who-samples-what.html` | Decision tree and roles table for which agency samples what |
 | `sap-builder.html` | Builds a sampling and analysis plan with costs |
 | `data-hub.html` | Shared Sampling Data Hub: partners share planned sampling and upload results |

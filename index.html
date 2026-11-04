@@ -87,6 +87,11 @@ a.tool:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(10,61,70,.14
 .tool.t3{--c:#8a5d14;--cs:#f6ecd8}
 .tool.t4{--c:#3d5a9e;--cs:#e3e9f6}
 
+/* Limited-budget strip under the tool cards */
+a.minstrip{display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center;justify-content:space-between;margin-top:20px;padding:18px 22px;border-radius:14px;background:var(--accent-soft);border:1px solid var(--accent);color:var(--ink);text-decoration:none;font-size:17px}
+a.minstrip b{font-family:var(--f-display);font-size:21px;margin-right:6px}
+a.minstrip .go{font-weight:600;color:var(--accent);white-space:nowrap}
+a.minstrip:hover{box-shadow:0 8px 22px rgba(10,61,70,.14)}
 /* ---------- Resource cards ---------- */
 .res{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:20px}
 a.r{display:flex;flex-direction:column;gap:6px;background:var(--sunken);border:1px solid var(--line);border-radius:12px;padding:20px 22px;text-decoration:none;color:var(--ink)}
@@ -142,6 +147,7 @@ footer p+p{margin-top:6px}
     <div class="cta">
       <a class="btn light" href="response-guide.html">Start a response →</a>
       <a class="btn outline" href="who-samples-what.html">See who samples what</a>
+      <a class="btn outline" href="minimum-response.html">Limited budget? Minimum response</a>
     </div>
   </div>
 
@@ -199,6 +205,11 @@ footer p+p{margin-top:6px}
         <span class="go">Open the data hub →</span>
       </a>
     </div>
+    <!-- EDIT: the limited-budget strip under the tool cards. -->
+    <a class="minstrip" href="minimum-response.html">
+      <span><b>Short on time, staff or lab budget?</b> The Minimum Response plan covers floods and post-fire runoff with a few sites and visits, about $545 (flood) or $1,960 (post-fire) in lab fees.</span>
+      <span class="go">Open Minimum Response →</span>
+    </a>
   </section>
 
   <!-- ================= RELATED RESOURCES =================

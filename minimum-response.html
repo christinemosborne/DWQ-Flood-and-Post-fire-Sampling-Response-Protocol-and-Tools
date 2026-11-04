@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Minimum Response</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap">
+<style>
+/* Minimum Flood Response: the scaled-down plan from the flood protocol's appendix.
+   Same colors and fonts as the other tools. */
+:root{
+  --bg:#f3f6f5; --surface:#ffffff; --sunken:#eaf0ef; --ink:#16252a; --muted:#56696e; --line:#d3dddc;
+  --accent:#0b6a78; --accent-ink:#ffffff; --accent-soft:#dcedef;
+  --silt:#8a5d14; --silt-bg:#f6ecd8; --good:#2c7346; --good-bg:#e1f0e5; --bad:#a3372a; --bad-bg:#f8e4df;
+  --f-display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1618; --surface:#152124; --sunken:#1b2a2e; --ink:#e2ebe9; --muted:#97abad; --line:#2a3b3f;
+  --accent:#55b6c5; --accent-ink:#06252a; --accent-soft:#173439;
+  --silt:#dba84f; --silt-bg:#2c2413; --good:#6dc48c; --good-bg:#14281b; --bad:#ec8a78; --bad-bg:#331b16; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1618; --surface:#152124; --sunken:#1b2a2e; --ink:#e2ebe9; --muted:#97abad; --line:#2a3b3f;
+  --accent:#55b6c5; --accent-ink:#06252a; --accent-soft:#173439;
+  --silt:#dba84f; --silt-bg:#2c2413; --good:#6dc48c; --good-bg:#14281b; --bad:#ec8a78; --bad-bg:#331b16; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15.5px;line-height:1.5}
+/* Side margins. Raise the middle number in clamp() for more space. */
+.wrap{max-width:1440px;margin:0 auto;padding-left:max(clamp(20px,4vw,56px),env(safe-area-inset-left,0px));padding-right:max(clamp(20px,4vw,56px),env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.15;text-wrap:balance;margin:0}
+h1{font-size:clamp(28px,4vw,40px)} h2{font-size:26px} h3{font-size:18px}
+p{margin:0} a{color:var(--accent)}
+.eyebrow{font-family:var(--f-display);font-weight:600;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+header.top{padding-block:28px 18px;display:flex;flex-direction:column;gap:10px}
+.lede{max-width:76ch;color:var(--muted)}
+.modes{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--surface);width:max-content;max-width:100%}
+.modes button{border:0;border-radius:999px;padding:8px 18px;font-size:14.5px;background:transparent}
+.modes button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button,.btn{font:600 14px/1 var(--f-body);border-radius:var(--r);padding:10px 14px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+button.primary,.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.ghost{background:transparent}
+button.small,.btn.small{padding:6px 10px;font-size:13px}
+button:hover,.btn:hover{border-color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:24px;align-items:start;padding-bottom:40px}
+@media (max-width:760px){.layout{grid-template-columns:minmax(0,1fr)}}
+nav.steps{position:sticky;top:12px;display:flex;flex-direction:column;gap:1px;min-width:0}
+nav.steps button{justify-content:space-between;width:100%;border:0;background:transparent;padding:9px 10px;border-radius:var(--r);font-weight:500;text-align:left;line-height:1.25;color:var(--ink);gap:10px}
+nav.steps button .n{font-family:var(--f-mono);font-size:12px;color:var(--muted);min-width:18px}
+nav.steps button .t{flex:1}
+nav.steps button .c{font-family:var(--f-mono);font-size:11.5px;color:var(--muted);white-space:nowrap}
+nav.steps button.done .c{color:var(--good)}
+nav.steps button[aria-current="step"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+nav.steps button:hover{background:var(--sunken)}
+@media (max-width:760px){
+  nav.steps{position:static;flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:6px}
+  nav.steps button{width:auto;flex:none;border:1px solid var(--line);background:var(--surface)}
+}
+main.stage{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:clamp(18px,3vw,32px);display:flex;flex-direction:column;gap:22px;min-width:0}
+.stage-head{display:flex;flex-direction:column;gap:6px}
+.stage-head p{color:var(--muted);max-width:76ch;font-size:16px}
+.block{display:flex;flex-direction:column;gap:10px;min-width:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px 16px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+label,.lbl{font-size:13px;font-weight:600;color:var(--muted)}
+input[type=text],input[type=number],input[type=date],input[type=datetime-local],select,textarea{font:400 15px/1.35 var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:8px 10px;width:100%;min-width:0}
+input[type=number]{font-family:var(--f-mono)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.four{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:1100px){.four{grid-template-columns:repeat(2,minmax(0,1fr))}.three{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){.two,.three,.four{grid-template-columns:1fr}}
+
+/* Choice cards */
+.choice{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:760px){.choice{grid-template-columns:1fr}}
+.choice button{flex-direction:column;align-items:flex-start;gap:6px;padding:16px;text-align:left;line-height:1.4;font-weight:400;border-width:2px}
+.choice button b{font-family:var(--f-display);font-size:20px}
+.choice button span{font-size:14.5px;color:var(--muted)}
+.choice button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+
+/* Action rows */
+.acts{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.act{display:grid;grid-template-columns:auto 1fr auto;gap:2px 12px;align-items:start;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r);background:var(--bg)}
+.act:has(input:checked){background:var(--good-bg);border-color:transparent}
+.acts.warn .act:has(input:checked){background:var(--bad-bg)}
+.act input{accent-color:var(--accent);width:19px;height:19px;margin-top:2px;grid-row:span 2;cursor:pointer}
+.act b{font-size:16px;font-weight:600;cursor:pointer}
+.act .d{grid-column:2;color:var(--muted);font-size:14.5px}
+.act .side{grid-column:3;grid-row:1 / span 2;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.act .when{font-family:var(--f-mono);font-size:12px;color:var(--good);white-space:nowrap}
+
+.card{border:1px solid var(--line);border-radius:var(--r);padding:16px;background:var(--bg);display:flex;flex-direction:column;gap:8px;min-width:0}
+.card h3{font-size:19px}
+.card ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px;font-size:14.5px}
+.card .lbl{text-transform:uppercase;letter-spacing:.06em;font-size:11.5px}
+.card.off{opacity:.65;border-style:dashed}
+.chip{font-size:12.5px;font-weight:600;padding:4px 9px;border-radius:999px;background:var(--sunken);color:var(--muted);border:1px solid var(--line);white-space:nowrap;display:inline-block}
+.chip.ok{background:var(--good-bg);color:var(--good);border-color:transparent}
+.chip.bad{background:var(--bad-bg);color:var(--bad);border-color:transparent}
+.chip.warn{background:var(--silt-bg);color:var(--silt);border-color:transparent}
+.chip.info{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);background:var(--sunken);font-weight:600}
+td.num,th.num{text-align:right;font-family:var(--f-mono);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+tr.total td{font-weight:700;background:var(--sunken)}
+.banner{border-radius:var(--r);padding:14px 18px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;font-size:16px}
+.banner.ok{background:var(--good-bg);border-left:5px solid var(--good)}
+.banner.bad{background:var(--bad-bg);border-left:5px solid var(--bad)}
+.banner b{font-family:var(--f-display);font-size:20px}
+.key{background:var(--accent-soft);border-left:4px solid var(--accent);padding:12px 16px;border-radius:var(--r)}
+details.why{border:1px solid var(--line);border-radius:var(--r);background:var(--bg)}
+details.why summary{cursor:pointer;padding:10px 14px;font-weight:600;font-size:14.5px;color:var(--accent);list-style:none;display:flex;align-items:center;gap:8px}
+details.why summary::-webkit-details-marker{display:none}
+details.why summary::before{content:"+";font-family:var(--f-mono);width:14px}
+details.why[open] summary::before{content:"\2013"}
+details.why .in{padding:0 16px 14px;font-size:14.5px}
+details.why ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px}
+.foot{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;border-top:1px solid var(--line);padding-top:16px}
+.inline{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.note{font-size:13px;color:var(--muted)}
+.big{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1}
+.stat{display:flex;flex-direction:column;gap:4px}
+.stat .lbl{text-transform:uppercase;letter-spacing:.06em;font-size:11.5px}
+.sitebox{display:grid;grid-template-columns:180px minmax(0,1fr) minmax(0,1fr) auto;gap:10px 14px;align-items:end;padding:14px;border:1px solid var(--line);border-radius:var(--r);background:var(--bg)}
+.sitebox .nm b{font-family:var(--f-display);font-size:19px;display:block}
+.sitebox .nm span{font-size:13.5px;color:var(--muted)}
+.sitebox.covered{border-style:dashed}
+.sitebox .pc{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:var(--ink);white-space:nowrap;padding-bottom:8px}
+.sitebox .pc input{accent-color:var(--accent);width:17px;height:17px}
+.sitebox .pname{grid-column:2 / -1}
+@media (max-width:900px){.sitebox{grid-template-columns:1fr}.sitebox .pname{grid-column:auto}}
+.visit{border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.visit-head{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--sunken)}
+.visit-head h3{font-size:19px}
+.visit-head .dt{font-family:var(--f-mono);font-size:13.5px;color:var(--accent);font-weight:500}
+.visit-head label{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--ink);cursor:pointer}
+.visit-head input{accent-color:var(--accent);width:18px;height:18px}
+.visit.done .visit-head{background:var(--good-bg)}
+.pre{white-space:pre-wrap;font-family:var(--f-mono);font-size:13px;background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:14px;max-height:520px;overflow:auto}
+@media (prefers-reduced-motion:no-preference){button,.btn{transition:border-color .15s,background-color .15s}}
+@media print{nav.steps,.toolbar,.foot,button,.site-nav{display:none!important}.layout{display:block}main.stage{border:0;padding:0}.pre{max-height:none;border:0}}
+[hidden]{display:none!important}body{margin:0}img{max-width:100%}
+.site-nav{background:var(--surface);border-bottom:1px solid var(--line);font-family:var(--f-body)}
+.site-nav .in{max-width:1440px;margin:0 auto;padding:10px max(clamp(20px,4vw,56px),env(safe-area-inset-right,0px)) 10px max(clamp(20px,4vw,56px),env(safe-area-inset-left,0px));display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}
+.site-nav .brand{font-family:var(--f-display);font-weight:700;font-size:16px;color:var(--ink);text-decoration:none;margin-right:8px}
+.site-nav a.nl{font-size:14px;font-weight:500;color:var(--muted);text-decoration:none;padding:4px 2px;border-bottom:2px solid transparent}
+.site-nav a.nl:hover{color:var(--accent)}
+.site-nav a.nl[aria-current="page"]{color:var(--accent);border-bottom-color:var(--accent)}
+</style>
+<script src="config.js"></script>
+</head>
+<body>
+<script src="nav.js" data-root="" data-current="min"></script>
+<div class="wrap">
+<header class="top">
+  <span class="eyebrow">Utah DWQ · Response with limited time, staff and lab budget</span>
+  <div class="modes" role="group" aria-label="Event type"><button type="button" data-mode="flood" aria-pressed="true">Flood</button><button type="button" data-mode="fire" aria-pressed="false">Post-fire runoff</button></div>
+  <h1 id="pageTitle">Minimum Flood Response</h1>
+  <p class="lede" id="pageLede"></p>
+  <div class="toolbar">
+    <a class="btn small" href="response-guide.html">Full Response Guide</a>
+    <a class="btn small" href="data-hub.html">Shared Data Hub</a>
+    <a class="btn small" href="sap-builder.html">SAP Builder</a>
+    <button type="button" class="small ghost" id="printBtn">Print this section</button>
+    <button type="button" class="small ghost" id="resetBtn">Start a new event</button>
+  </div>
+</header>
+<div class="layout">
+  <nav class="steps" id="steps" aria-label="Steps"></nav>
+  <main class="stage" id="stage" tabindex="-1"></main>
+</div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const KEY="dwq-minimum-response-v1";
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money=v=>"$"+(Math.round(v*100)/100).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const EC_ADV=235; // MPN/100 mL, Utah recreation advisory value used in the protocols
+
+/* ================= CONTENT (edit wording here) ================= */
+const M={
+ flood:{
+  title:"Minimum Flood Response",
+  lede:"The scaled-down sampling plan from the flood protocol: four sites, two full visits, then <i>E. coli</i> only until results clear. About $545 in lab fees and 8 person-days. Everything else in the protocol still applies.",
+  fitIntro:"Use the minimum plan for Level 1 and Level 2 floods. Tick anything that applies; any one means step up to the full protocol.",
+  stepup:[
+   ["Several facilities overwhelmed","More than one plant bypassing or overflowing"],
+   ["Chemical or fuel release","Spill, tank failure or hazardous material in floodwaters"],
+   ["Fish kill, sheen or odor","Seen at any site"],
+   ["Interstate or tribal-water impact","The release or plume reaches another state's or a tribe's waters"],
+   ["DEM emergency declaration",""],
+   ["DO below the minimum criterion below the release","From sondes or field readings"],
+   ["A drinking water intake may be affected","DDW and the water system lead"]],
+  sites:[
+   {k:"U",name:"Upstream boundary",where:"Where the river enters Utah or the affected reach"},
+   {k:"R",name:"Below the release",where:"Below the largest overflowing plant or source, after mixing",release:true},
+   {k:"P",name:"Use point",where:"Most-used swimming area, boat ramp, irrigation diversion or stock watering area"},
+   {k:"D",name:"Downstream end",where:"Above the next reservoir or the state line"}],
+  prep:[
+   ["Get the bypass and overflow list","Locations, start and end times and volumes from the permitting authority, in Utah and upstream."],
+   ["Call health departments and tribes","River contact, livestock watering and irrigation along the reach."],
+   ["Check the Shared Data Hub","Post DWQ's planned sites; drop any site a partner already covers."],
+   ["Leave the facility to C&E","C&E and the Spills Coordinator sample at the plant under their own budget."],
+   ["Pull USGS gages and download sondes","Fix the peak and recession; existing sensors show the pulse at no lab cost."],
+   ["Alert UPHL and book the E. coli incubator","E. coli must be in the incubator within 8 hours."],
+   ["Start the event log","Record any missed sampling windows."]],
+  limits:["It can't separate sources when several facilities release at once.","It can't estimate loads or track the full recovery curve.","It won't meet Integrated Report sample minimums (10 samples for conventional parameters, 4 for toxics), so event data support advisories and the event record, not 303(d) decisions on their own.","Missed peak samples can't be recovered. Record missed windows in the event log."],
+  stretch:["Use partners' samples first and drop any site someone else covers.","Let C&E cover the facility under their own lab budget.","Download existing sondes and miniDOTs instead of sampling.","Stop a site once two visits in a row meet criteria.","Pair visit 2 or the weekly E. coli runs with scheduled ambient monitoring.","Ask EPA, USGS or a grant-funded partner network for support early in a major event."],
+  metalsDefault:""
+ },
+ fire:{
+  title:"Minimum Post-Fire Response",
+  lede:"The scaled-down sampling plan for post-fire runoff: three sites, a baseline visit, the first two storms that meet the trigger, and one end-of-season check. About $1,960 in lab fees and 9 person-days. Everything else in the post-fire guidance still applies.",
+  fitIntro:"Use the minimum plan when sondes, autosamplers and every-storm sampling aren't possible. Tick anything that applies; any one means step up to the full post-fire response.",
+  stepup:[
+   ["DO below 2 mg/L or a fish kill","Below the burn"],
+   ["Debris flow reaching a stream or lake","Or turbidity off-scale (above 4,000 FNU)"],
+   ["Metals above acute aquatic life criteria","Or above Class 1C criteria near an intake"],
+   ["A drinking water intake below the burn may be affected","DDW and the water system lead"],
+   ["Listed or sensitive species below the burn","DWR leads on fisheries; more sampling is likely needed"],
+   ["BAER, EPA or a partner offers sensors, lab or staff support","Use it: the full program becomes affordable"]],
+  sites:[
+   {k:"B",name:"Below the burn",where:"Main stream draining the burn, above the first downstream use (Tier 1)"},
+   {k:"P",name:"Use point",where:"First downstream intake, diversion, fishery or recreation area"},
+   {k:"G",name:"Baseline gage",where:"Existing USGS gage or DWQ ambient site with pre-fire data (Tier 2)"}],
+  prep:[
+   ["Get the burn severity map and BAER status","Or the USGS debris-flow assessment while BAER is pending."],
+   ["Ask NWS for the burn's flash-flood rainfall threshold","That's the trigger for storm sampling."],
+   ["Alert DWR and DDW","Fisheries below the burn; water systems with intakes downstream."],
+   ["Check the Shared Data Hub and USGS","Use partner sites and existing sensors; drop any site someone else covers."],
+   ["Confirm safe access and a backup station","Burned slopes and roads fail in storms. Pick a downstream backup."],
+   ["Alert UPHL to storm samples","Shortest holds: E. coli 8 hours; lab turbidity 48 hours."],
+   ["Start the incident log","Record storm dates, rainfall and any missed storms."]],
+  limits:["Without sondes or autosamplers it misses storm peaks; grab samples show the falling limb only.","Without an unburned reference it can't separate fire effects from a wet or dry year.","Two storms can't show the full first season or when the stream has recovered.","It won't meet Integrated Report sample minimums, so data support alerts and the event record, not 303(d) decisions on their own."],
+  stretch:["Download any existing USGS or water-system sondes; ask water systems to share raw-water turbidity.","Use partner sites (USGS, the land manager, tribes, water systems) and drop any site someone else covers.","Combine the baseline visit with BAER or land-manager field days.","Pair the end-of-season check with scheduled ambient monitoring.","Ask BAER, NRCS (EWP) or a grant-funded network to fund sensors or extra storms."],
+  metalsDefault:"Al, As, Cu, Fe, Mn, Pb, Zn"
+ }
+};
+const FIRE_TRIGGERS=["NWS Flash Flood Watch or Warning for the burn scar","Rainfall at the burn's USGS or NWS debris-flow threshold","No threshold yet: about 0.25 in (6 mm) in 15 minutes, 0.4 in/hr over an hour, or monsoon storms tracking over the burn"];
+
+/* ================= STATE ================= */
+const blankSite=()=>({name:"",id:"",partner:false,pname:""});
+const DEF={mode:"flood",sec:"fit",
+ flood:{type:"release",stepup:{},prep:{},done:{},ev:{name:"",water:"",peak:"",lead:"",lab:"Utah Public Health Laboratory (State Lab)"},metals:false,metalList:"",weekly:2},
+ fire:{stepup:{},prep:{},done:{},ev:{name:"",water:"",contain:"",lead:"",lab:"Utah Public Health Laboratory (State Lab)"},rec:true,metalList:M.fire.metalsDefault,storms:["",""]},
+ sites:{U:blankSite(),R:blankSite(),P:blankSite(),D:blankSite(),B:blankSite(),G:blankSite()},
+ prices:{tss:15,nut:65,met:13.2},ec:{U:[],R:[],P:[],D:[],B:[],G:[]}};
+let S;
+try{S=JSON.parse(localStorage.getItem(KEY))||null}catch(e){S=null}
+function merge(d,s){if(!s||typeof s!=="object"||Array.isArray(s))return s===undefined?d:s;const o={...d};for(const k in s)o[k]=(d&&typeof d[k]==="object"&&!Array.isArray(d[k]))?merge(d[k],s[k]):s[k];return o}
+S=merge(JSON.parse(JSON.stringify(DEF)),S||{});
+for(const k of Object.keys(DEF.sites)){if(!Array.isArray(S.ec[k]))S.ec[k]=[]}
+if(!Array.isArray(S.fire.storms))S.fire.storms=["",""];
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const X=()=>S[S.mode];         // the current mode's working state
+const C_=()=>M[S.mode];        // the current mode's content
+
+/* ================= LOGIC ================= */
+const stepUp=()=>C_().stepup.some((x,i)=>X().stepup[i]);
+const activeSites=()=>C_().sites.filter(s=>!(s.release&&S.flood.type!=="release"));
+const dwqSites=()=>activeSites().filter(s=>!S.sites[s.k].partner);
+const siteLabel=s=>S.sites[s.k].name||s.name;
+const metals=()=>X().metalList.split(/[,;\s]+/).filter(Boolean);
+function ecOn(k){
+ if(S.mode==="flood")return true;
+ return k==="P"&&S.fire.rec;
+}
+// Visits for the current mode
+function dt(base,hours){if(!base)return null;const d=new Date(base);if(isNaN(d))return null;return new Date(d.getTime()+hours*3600e3)}
+const fd=d=>d?d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}):"";
+const fdt=d=>d?d.toLocaleString(undefined,{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}):"";
+function visits(){
+ if(S.mode==="flood"){const pk=S.flood.ev.peak,out=[
+  {id:"v1",v:"v1",title:"Visit 1 · falling limb",when:pk?`${fdt(dt(pk,24))} to ${fdt(dt(pk,72))}`:"24–72 hours after the peak",note:"The minimum for every event. Sample the rising limb or peak only if the crew is already out and it's safe."},
+  {id:"v2",v:"v2",title:"Visit 2",when:pk?`${fd(dt(pk,120))} to ${fd(dt(pk,168))}`:"Days 5–7 after the peak"}];
+  for(let i=0;i<Math.max(0,+S.flood.weekly||0);i++)out.push({id:"w"+i,v:"wk",title:`E. coli follow-up ${i+1}`,when:pk?`Week of ${fd(dt(pk,168+24*7*(i+1)))}`:`${i+2} weeks after the peak`,note:"Only at sites still above the advisory value."});
+  return out}
+ const c=S.fire.ev.contain,st=S.fire.storms;
+ return [
+  {id:"base",v:"base",title:"Baseline · before the first storm",when:c?`By ${fd(dt(c+"T12:00",24*14))} (2 weeks after containment), and before the first storm`:"As soon as access is safe, before the first storm",note:"Outside any active perimeter."},
+  {id:"s1",v:"s1",title:"Storm 1",when:st[0]?`Storm ${fd(new Date(st[0]+"T12:00"))}: sample the falling limb by ${fd(dt(st[0]+"T12:00",24))}`:"First storm that meets the trigger: falling limb, within 24 hours",storm:0,note:"No channel entry during or right after the storm. Use the backup station if access is unsafe."},
+  {id:"s2",v:"s2",title:"Storm 2",when:st[1]?`Storm ${fd(new Date(st[1]+"T12:00"))}: sample the falling limb by ${fd(dt(st[1]+"T12:00",24))}`:"Next storm that meets the trigger, at least a week after storm 1",storm:1},
+  {id:"end",v:"end",title:"End of season · baseflow",when:"October–November, after monsoon",note:"Shows whether baseflow has settled before winter."}];
+}
+// What to collect at a site on each visit
+function collect(k,v){
+ const ec=ecOn(k)?["E. coli"]:[];
+ if(S.mode==="flood"){
+  const m=S.flood.metals&&metals().length>0&&(k==="U"||k==="D");
+  if(v==="v1")return {U:["Field","E. coli","TSS","Nutrients"].concat(m?["Metals"]:[]),R:["Field","E. coli + 1:10 dilution bottle","TSS","Nutrients"],P:["Field","E. coli","TSS"],D:["Field","E. coli","TSS","Nutrients"].concat(m?["Metals"]:[])}[k];
+  if(v==="v2")return {U:["Field","E. coli"],R:["Field","E. coli","Nutrients"],P:["Field","E. coli"],D:["Field","E. coli"]}[k];
+  return {U:null,R:["E. coli until below "+EC_ADV],P:["E. coli until two results in a row, a week apart, are below "+EC_ADV],D:null}[k];
+ }
+ const met=metals().length?["Metals"]:[];
+ const T={
+  base:{B:["Field","TSS","Nutrients"].concat(met),P:["Field"].concat(ec),G:["Field","Download sensors"]},
+  s1:{B:["Field","TSS","Nutrients"].concat(met),P:["Field","TSS","Nutrients"].concat(met,ec),G:["Field","TSS"]},
+  s2:{B:["Field","TSS","Nutrients"].concat(met),P:["Field","TSS","Nutrients"].concat(met,ec),G:["Field"]},
+  end:{B:["Field","TSS","Nutrients"],P:["Field"].concat(ec),G:["Field"]}};
+ return T[v][k];
+}
+function qaText(v){
+ if(S.mode==="flood")return v==="v1"?"One equipment blank and one field replicate for each lab bottle type collected; one E. coli replicate":v==="v2"?"One equipment blank for the nutrient bottle":"";
+ return v==="s1"?"One equipment blank and one field replicate (composite split) for each lab bottle type collected":"One equipment blank for each lab bottle type collected";
+}
+function cost(){
+ const p=S.prices,sites=dwqSites(),rows=[];let lab=0;
+ const add=(label,count,unit)=>{if(count>0&&unit>0){rows.push([label,count,unit,count*unit]);lab+=count*unit}};
+ const metUnit=(metals().length+2)*p.met;
+ const vs=visits().filter((v,i,a)=>a.findIndex(x=>x.v===v.v)===i&&v.v!=="wk");
+ for(const v of vs){
+  const has=item=>sites.filter(s=>{const c=collect(s.k,v.v);return c&&c.some(x=>x===item)}).length;
+  const t=has("TSS"),n=has("Nutrients"),m=has("Metals");
+  const name=v.title.split(" · ")[0];
+  add(`${name}: TSS`,t,p.tss);
+  add(`${name}: nutrients (ammonia, nitrate + nitrite, total P)`,n,p.nut);
+  if(m)add(`${name}: metals (${metals().length} metals + Ca, Mg)`,m,metUnit);
+  // Flood follows the appendix: metals get a blank only. Post-fire: one blank (and on storm 1 a replicate) for every bottle type.
+  const fm=S.mode==="flood"&&m;
+  const qa=(t?p.tss:0)+(n?p.nut:0)+(m&&!fm?metUnit:0);
+  const reps=(S.mode==="flood"&&v.v==="v1")||(S.mode==="fire"&&v.v==="s1")?2:1;
+  if(qa)add(`${name}: ${reps===2?"equipment blank and field replicate":"equipment blank"}`,reps,qa);
+  if(fm)add(`${name}: metals equipment blank`,1,metUnit);
+ }
+ let days,full;
+ if(S.mode==="flood"){const trips=Math.max(0,+S.flood.weekly||0);days=2+2+2*0.5*trips+1+1;full=activeSites().length*5*384+5*2*384}
+ else{days=2*(1+1+1+0.5)+1+1;full=null}
+ return {rows,lab,days,full,sites:sites.length};
+}
+function ecStatus(k){
+ const r=S.ec[k].filter(x=>x.mpn!==""&&!isNaN(+x.mpn)).slice().sort((a,b)=>(a.date||"").localeCompare(b.date||""));
+ if(!r.length)return ["","No results yet"];
+ const last=r[r.length-1];
+ if(+last.mpn>=EC_ADV)return ["bad",`Latest ${last.mpn} MPN/100 mL is at or above ${EC_ADV}. Recommend an advisory to the health department.`];
+ if(S.mode==="flood"&&k==="R")return ["ok","Below "+EC_ADV+". Stop E. coli follow-up here."];
+ if(k==="P"){for(let i=r.length-1;i>0;i--){const a=r[i],b=r[i-1];if(+a.mpn<EC_ADV&&+b.mpn<EC_ADV&&a.date&&b.date&&(new Date(a.date)-new Date(b.date))/864e5>=7)return ["ok","Two results in a row, a week apart, below "+EC_ADV+". Meets the lift rule."]}
+  return ["warn","Below "+EC_ADV+". A second result at least a week later is needed to lift an advisory."]}
+ return ["ok","Below "+EC_ADV+"."];
+}
+const ecSites=()=>activeSites().filter(s=>!S.sites[s.k].partner&&ecOn(s.k));
+
+/* ================= HELPERS ================= */
+function stamp(){const d=new Date();return d.toLocaleDateString(undefined,{month:"short",day:"numeric"})+" "+d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})}
+function acts(group,items,cls){
+ const st=X()[group];
+ return `<ul class="acts ${cls||""}">${items.map((it,i)=>{const v=st[i],id=`ck_${S.mode}_${group}_${i}`;
+  return `<li class="act"><input type="checkbox" id="${id}" data-ck="${group}" data-i="${i}"${v?" checked":""}><label for="${id}"><b>${esc(it[0])}</b></label>${it[1]?`<span class="d">${esc(it[1])}</span>`:""}<span class="side"><span class="when">${v&&v!==true?esc(v):""}</span></span></li>`}).join("")}</ul>`;
+}
+const head=(t,p)=>`<div class="stage-head"><h2>${esc(t)}</h2>${p?`<p>${p}</p>`:""}</div>`;
+async function copyText(txt,btn){let ok=false;try{await navigator.clipboard.writeText(txt);ok=true}catch(e){try{const ta=document.createElement("textarea");ta.value=txt;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();ok=document.execCommand("copy");ta.remove()}catch(e2){}}
+ if(btn){const o=btn.textContent;btn.textContent=ok?"Copied":"Select and copy";setTimeout(()=>btn.textContent=o,1500)}}
+const chips=a=>a.map(x=>`<span class="chip${x.startsWith("E. coli")?" info":x==="Field"||x==="Download sensors"?"":" warn"}">${esc(x)}</span>`).join(" ");
+const fireName=()=>S.fire.ev.name||"the fire";
+
+/* ================= SECTIONS ================= */
+const SECTIONS=[
+ {id:"fit",t:"Check the fit",count:()=>[stepUp()?"!":"ok"],render(){
+  const up=stepUp(),C=C_();
+  return head("Check the fit",C.fitIntro)+
+  (S.mode==="flood"?`<div class="choice" role="group" aria-label="Event type">
+    <button type="button" data-type="release" aria-pressed="${S.flood.type==="release"}"><b>Flood with a release</b><span>Wastewater bypass, overflow or other pollutant load reaching surface water (Level 2). Four sites.</span></button>
+    <button type="button" data-type="runoff" aria-pressed="${S.flood.type==="runoff"}"><b>Runoff, no known release</b><span>Flood stage or a large storm or snowmelt runoff (Level 1). Three sites.</span></button></div>`:"")+
+  `<div class="block"><h3>Step-up triggers</h3>${acts("stepup",C.stepup,"warn")}</div>
+   ${up?`<div class="banner bad"><span><b>Step up.</b> Use the full ${S.mode==="flood"?"flood protocol":"post-fire response"} for this event, or add the matching samples.</span><a class="btn primary" href="response-guide.html">Open the full Response Guide →</a></div>`
+       :`<div class="banner ok"><span><b>The minimum plan fits.</b> Recheck these triggers at each visit.</span><button type="button" class="primary" data-sec="event">Next: event details →</button></div>`}
+   <details class="why"><summary>What the minimum plan can't tell us</summary><div class="in"><ul>${C.limits.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div></details>`}},
+ {id:"event",t:"Event details",count:()=>{const need=S.mode==="flood"?["name","water","peak"]:["name","water","contain"];const f=need.filter(k=>X().ev[k]).length;return[f+"/3",f===3]},render(){
+  const e=X().ev;
+  if(S.mode==="flood")return head("Event details","The peak date and time sets the visit schedule.")+
+  `<div class="grid">
+   <div class="field"><label for="ev_name">Event name</label><input type="text" id="ev_name" data-ev="name" value="${esc(e.name)}" placeholder="e.g., San Juan flood, Oct 2026"></div>
+   <div class="field"><label for="ev_water">River or reach</label><input type="text" id="ev_water" data-ev="water" value="${esc(e.water)}" placeholder="e.g., San Juan River, Four Corners to Clay Hills"></div>
+   <div class="field"><label for="ev_peak">Peak (date and time)</label><input type="datetime-local" id="ev_peak" data-ev="peak" value="${esc(e.peak)}"></div>
+   <div class="field"><label for="ev_lead">Crew lead</label><input type="text" id="ev_lead" data-ev="lead" value="${esc(e.lead)}"></div>
+   <div class="field"><label for="ev_lab">Lab</label><input type="text" id="ev_lab" data-ev="lab" value="${esc(e.lab)}"></div></div>
+   <p class="note">Don't know the peak yet? Pull the nearest USGS gage. Left blank, the schedule shows days after the peak instead of dates.</p>`;
+  return head("Event details","The containment date sets the baseline deadline. Storm dates go in under Schedule and samples as storms happen.")+
+  `<div class="grid">
+   <div class="field"><label for="ev_name">Fire name</label><input type="text" id="ev_name" data-ev="name" value="${esc(e.name)}" placeholder="e.g., Dixie Fire"></div>
+   <div class="field"><label for="ev_water">Streams draining the burn</label><input type="text" id="ev_water" data-ev="water" value="${esc(e.water)}" placeholder="e.g., Mill Creek, Big Creek"></div>
+   <div class="field"><label for="ev_contain">Containment date</label><input type="date" id="ev_contain" data-ev="contain" value="${esc(e.contain)}"></div>
+   <div class="field"><label for="ev_lead">Crew lead</label><input type="text" id="ev_lead" data-ev="lead" value="${esc(e.lead)}"></div>
+   <div class="field"><label for="ev_lab">Lab</label><input type="text" id="ev_lab" data-ev="lab" value="${esc(e.lab)}"></div></div>
+   <label class="act" style="grid-template-columns:auto 1fr;max-width:640px"><input type="checkbox" id="recOn"${S.fire.rec?" checked":""}><span><b>Recreation at the use point</b><span class="d" style="display:block">Adds E. coli at the use point. Untick for an intake or diversion with no swimming or boating.</span></span></label>`}},
+ {id:"prep",t:"Before you go",count:()=>{const P=C_().prep,c=P.filter((x,i)=>X().prep[i]).length;return[c+"/"+P.length,c===P.length]},render(){
+  return head("Before you go","First calls and checks that keep costs down.")+acts("prep",C_().prep)}},
+ {id:"sites",t:"Sites",count:()=>{const a=activeSites(),c=a.filter(s=>S.sites[s.k].name||S.sites[s.k].partner).length;return[c+"/"+a.length,c===a.length]},render(){
+  return head("Sites",S.mode==="flood"?"One site of each type. Use existing DWQ ambient sites or USGS gages so baseline data exist. If a partner already samples a site, tick it and DWQ skips it.":"One site of each type. Pick sites with safe storm access and a backup station downstream. If a partner already samples a site, tick it and DWQ skips it.")+
+  activeSites().map(s=>{const v=S.sites[s.k];return `<div class="sitebox${v.partner?" covered":""}">
+    <div class="nm"><b>${esc(s.name)}</b><span>${esc(s.where)}</span></div>
+    <div class="field"><label for="sn_${s.k}">Site name</label><input type="text" id="sn_${s.k}" data-site="${s.k}" data-f="name" value="${esc(v.name)}"></div>
+    <div class="field"><label for="si_${s.k}">Site ID (MLID or USGS)</label><input type="text" id="si_${s.k}" data-site="${s.k}" data-f="id" value="${esc(v.id)}"></div>
+    <label class="pc"><input type="checkbox" data-site="${s.k}" data-f="partner"${v.partner?" checked":""}>Partner covers it</label>
+    ${v.partner?`<div class="field pname"><label for="sp_${s.k}">Partner</label><input type="text" id="sp_${s.k}" data-site="${s.k}" data-f="pname" value="${esc(v.pname)}" placeholder="e.g., USGS, Navajo Nation EPA, water system"></div>`:""}
+   </div>`}).join("")+
+  (S.mode==="flood"?(S.flood.type==="release"?`<p class="note">Several releases? Put "Below the release" at the largest one.</p>`:`<p class="note">No release, so there's no below-release site.</p>`):`<p class="note">If the use point is a drinking water intake, sample just above it and share results with DDW and the water system the same day.</p>`)}},
+ {id:"schedule",t:"Schedule and samples",count:()=>{const v=visits(),c=v.filter(x=>X().done[x.id]).length;return[c+"/"+v.length,c===v.length&&c>0]},render(){
+  const sites=activeSites();
+  return head("Schedule and samples","What to collect at each site on each visit. Tick a visit when it's done.")+
+  (S.mode==="fire"?`<div class="key"><b>Go out for a storm when any of these happen:</b><ul style="margin:6px 0 0;padding-left:18px">${FIRE_TRIGGERS.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`
+   :`<div class="key"><b>Hold times set the route.</b> <i>E. coli</i> must be in the incubator within 8 hours, so plan the drive back before the first sample. Take field pH and temperature with every nutrient sample.</div>`)+
+  visits().map(v=>`<div class="visit${X().done[v.id]?" done":""}"><div class="visit-head"><div><h3>${esc(v.title)}</h3><span class="dt">${esc(v.when)}</span></div>
+   <span class="inline">${v.storm!=null?`<label style="font-weight:500">Storm date <input type="date" data-storm="${v.storm}" value="${esc(S.fire.storms[v.storm]||"")}" style="width:auto;padding:5px 8px"></label>`:""}<label><input type="checkbox" data-done="${v.id}"${X().done[v.id]?" checked":""}>Done${X().done[v.id]&&X().done[v.id]!==true?" "+esc(X().done[v.id]):""}</label></span></div>
+   <div class="scroll" style="border:0;border-radius:0"><table><thead><tr><th style="width:28%">Site</th><th>Collect</th></tr></thead><tbody>${sites.map(s=>{const c=collect(s.k,v.v),pv=S.sites[s.k];
+    return `<tr><td><b>${esc(siteLabel(s))}</b>${pv.name?`<br><span class="note">${esc(s.name)}</span>`:""}</td><td>${pv.partner?`<span class="chip">Partner: ${esc(pv.pname||"covers it")}</span>`:c?chips(c):`<span class="note">Stop${s.k==="D"?" (unless a reservoir bloom watch starts)":""}</span>`}</td></tr>`}).join("")}
+    ${qaText(v.v)?`<tr><td><b>QA</b></td><td class="note" style="font-size:14.5px">${esc(qaText(v.v))}</td></tr>`:""}</tbody></table></div>
+   ${v.note?`<p class="note" style="padding:8px 14px 12px">${esc(v.note)}</p>`:""}</div>`).join("")+
+  `<details class="why"><summary>What's in each sample</summary><div class="in"><ul><li><b>Field:</b> temperature, pH, DO, specific conductance and turbidity from the sonde.</li><li><b>Nutrients:</b> the unfiltered nutrient bottle, with ammonia, nitrate + nitrite and total phosphorus only. Take field pH and temperature with it.</li><li><b>TSS:</b> the general chemistry bottle, TSS only.</li><li><b>E. coli:</b> Colilert, run in house, in the incubator within 8 hours.${S.mode==="flood"?" Below a release, add a second bottle run at 1:10 with a dilution blank.":""}</li><li><b>Metals:</b> filtered, ${S.mode==="fire"?"for "+esc(S.fire.metalList||"the metals listed under Cost"):"for the reach's listed or mining-related metals"}, plus calcium and magnesium for hardness. Total metals only where the criterion is total recoverable.</li>${S.mode==="fire"?"<li><b>Download sensors:</b> any existing USGS, DWQ or water-system sonde at the gage.</li>":""}</ul></div></details>`}},
+ {id:"cost",t:"Cost",render(){
+  const C=cost(),p=S.prices;
+  return head("Cost","Lab fees from the DWQ 2027 Field Season Budget Request template; edit the prices if they change. E. coli is run in house (supplies and staff time).")+
+  `<div class="four"><div class="card stat"><span class="lbl">Lab fees</span><span class="big">${money(C.lab)}</span></div><div class="card stat"><span class="lbl">Staff time</span><span class="big">${C.days} days</span><span class="note">Person-days, planning estimate</span></div><div class="card stat"><span class="lbl">DWQ sites</span><span class="big">${C.sites}</span><span class="note">Partner sites excluded</span></div>
+   ${C.full!=null?`<div class="card stat"><span class="lbl">Full protocol, same sites</span><span class="big" style="color:var(--muted)">${money(C.full)}</span><span class="note">Tier A, 5 visits, with QA</span></div>`:`<div class="card stat"><span class="lbl">Full post-fire response</span><span class="note" style="font-size:14.5px">Adds sondes, autosamplers, every storm, an unburned reference and monthly baseflow. Price it in the <a href="sap-builder.html">SAP Builder</a> (fire mode).</span></div>`}</div>
+   <div class="two"><div class="block"><h3>Options</h3>
+    ${S.mode==="flood"?`<label class="act" style="grid-template-columns:auto 1fr"><input type="checkbox" id="metOn"${S.flood.metals?" checked":""}><span><b>Add metals</b><span class="d" style="display:block">Runoff events in reaches with metals listings or mining sources. Upstream boundary and downstream end, visit 1.</span></span></label>
+    ${S.flood.metals?`<div class="field"><label for="metList">Metals of concern (comma-separated)</label><input type="text" id="metList" value="${esc(S.flood.metalList)}" placeholder="e.g., Al, Cu, Fe, Pb, Tl"></div>`:""}
+    <div class="field" style="max-width:260px"><label for="weekly">Weekly E. coli follow-up trips</label><input type="number" id="weekly" min="0" max="8" value="${esc(S.flood.weekly)}"></div>`
+    :`<div class="field"><label for="metList">Metals (comma-separated; ash commonly carries these)</label><input type="text" id="metList" value="${esc(S.fire.metalList)}"></div><p class="note">Calcium and magnesium are added for hardness. Clear the list to drop metals.</p>`}</div>
+   <div class="block"><h3>Unit prices</h3><div class="grid"><div class="field"><label for="p_tss">TSS ($)</label><input type="number" step="0.01" id="p_tss" data-price="tss" value="${p.tss}"></div><div class="field"><label for="p_nut">Nutrient bottle ($)</label><input type="number" step="0.01" id="p_nut" data-price="nut" value="${p.nut}"></div><div class="field"><label for="p_met">Each metal ($)</label><input type="number" step="0.01" id="p_met" data-price="met" value="${p.met}"></div></div></div></div>
+   <div class="scroll"><table><thead><tr><th>Item</th><th class="num">Count</th><th class="num">Unit</th><th class="num">Cost</th></tr></thead><tbody>${C.rows.map(r=>`<tr><td>${esc(r[0])}</td><td class="num">${r[1]}</td><td class="num">${money(r[2])}</td><td class="num">${money(r[3])}</td></tr>`).join("")||`<tr><td colspan="4" class="note">No lab samples: partners cover every site.</td></tr>`}<tr class="total"><td>Lab total</td><td></td><td></td><td class="num">${money(C.lab)}</td></tr></tbody></table></div>
+   <p class="note">${S.mode==="flood"?`Staff time: two people for each of the two full visits, ${S.flood.weekly} half-day E. coli trip${+S.flood.weekly===1?"":"s"}, a day for E. coli reading and lab drop-off, and a day for data entry and the summary.`:"Staff time: two people for the baseline visit and each storm, a half day for the end-of-season check, a day for lab drop-off and E. coli reading, and a day for data entry and the summary."}</p>
+   <details class="why"><summary>Ways to stretch the budget</summary><div class="in"><ul>${C_().stretch.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div></details>`}},
+ {id:"ecoli",t:"E. coli results",count:()=>{const k=ecSites().map(s=>ecStatus(s.k)[0]);if(!k.length)return["–",false];return[k.includes("bad")?"!":k.filter(x=>x==="ok").length+"/"+k.length,k.every(x=>x==="ok")]},render(){
+  const sites=ecSites();
+  return head("E. coli results","Enter results as they come in. Each site shows whether to recommend an advisory, keep sampling or stop. The health department decides on advisories.")+
+  (sites.length?`<div class="two">${sites.map(s=>{const st=ecStatus(s.k);return `<div class="card"><div class="inline" style="justify-content:space-between"><h3>${esc(siteLabel(s))}</h3><span class="chip ${st[0]}">${st[0]==="bad"?"Above "+EC_ADV:st[0]==="ok"?"Clear":st[0]==="warn"?"Keep sampling":"No data"}</span></div>
+    <p style="font-size:14.5px">${esc(st[1])}</p>
+    ${S.ec[s.k].length?`<table><thead><tr><th>Date</th><th class="num">MPN/100 mL</th><th></th></tr></thead><tbody>${S.ec[s.k].map((r,i)=>`<tr><td>${esc(r.date)}</td><td class="num">${esc(r.mpn)}</td><td style="text-align:right"><button type="button" class="small ghost" data-ecdel="${s.k}:${i}">Delete</button></td></tr>`).join("")}</tbody></table>`:""}
+    <div class="inline"><input type="date" id="ecd_${s.k}" aria-label="Sample date" style="max-width:170px"><input type="number" id="ecv_${s.k}" min="0" step="0.1" placeholder="MPN" aria-label="E. coli MPN per 100 mL" style="max-width:120px"><button type="button" class="small" data-ecadd="${s.k}">Add</button></div></div>`}).join("")}</div>`
+   :`<p class="note">No E. coli in this plan. ${S.mode==="fire"?"Turn on “Recreation at the use point” under Event details to add it.":""}</p>`)+
+  `<p class="note">Advisory value: ${EC_ADV} MPN/100 mL. Screen other results against criteria in the <a href="response-guide.html">Response Guide</a>.</p>`}},
+ {id:"plan",t:"Plan summary",render(){
+  return head("Plan summary","Copy it into an email or the event log, or print it for the crew.")+
+  `<div class="inline"><button type="button" class="primary small" id="copyPlan">Copy plan</button><button type="button" class="small" id="printPlan">Print</button><a class="btn small" href="sap-builder.html">Need a full SAP? Open the SAP Builder</a></div><div class="pre" id="planText">${esc(planText())}</div>`}}
+];
+function planText(){
+ const C=cost(),L=[],e=X().ev,fl=S.mode==="flood";
+ L.push(fl?"MINIMUM FLOOD RESPONSE SAMPLING PLAN":"MINIMUM POST-FIRE RESPONSE SAMPLING PLAN");
+ if(fl){L.push(`Event: ${e.name||"[event]"}   River/reach: ${e.water||"[river]"}`);L.push(`Type: ${S.flood.type==="release"?"Flood with a release (Level 2)":"Runoff, no known release (Level 1)"}   Peak: ${e.peak?fdt(new Date(e.peak)):"[peak]"}`)}
+ else{L.push(`Fire: ${e.name||"[fire]"}   Streams: ${e.water||"[streams]"}`);L.push(`Containment: ${e.contain?fd(new Date(e.contain+"T12:00")):"[date]"}   Recreation at use point: ${S.fire.rec?"yes":"no"}`)}
+ L.push(`Crew lead: ${e.lead||"[name]"}   Lab: ${e.lab||"[lab]"}`);
+ if(stepUp())L.push("","STEP UP: a trigger applies. Use the full response: "+C_().stepup.filter((x,i)=>X().stepup[i]).map(x=>x[0]).join("; "));
+ L.push("","SITES");
+ activeSites().forEach(s=>{const v=S.sites[s.k];L.push(`- ${s.name}: ${v.name||"[site]"}${v.id?" ("+v.id+")":""}${v.partner?" - PARTNER COVERS: "+(v.pname||"[partner]"):""}`)});
+ if(!fl)L.push("","STORM TRIGGER: "+FIRE_TRIGGERS.join("; ")+".");
+ L.push("","SCHEDULE");
+ visits().forEach(v=>{L.push(`${v.title} - ${v.when}${X().done[v.id]?" [done]":""}`);activeSites().forEach(s=>{const c=collect(s.k,v.v),pv=S.sites[s.k];if(pv.partner)return;if(c)L.push(`   ${siteLabel(s)}: ${c.join(", ")}`)});
+  if(qaText(v.v))L.push("   QA: "+qaText(v.v))});
+ L.push("","NOTES");
+ L.push("- E. coli in the incubator within 8 hours."+(fl?" Below the release, add a 1:10 dilution bottle and dilution blank.":""));
+ L.push("- Field pH and temperature with every nutrient sample (ammonia criteria).");
+ if(metals().length&&(!fl||S.flood.metals))L.push(`- Metals (filtered): ${X().metalList} plus Ca and Mg for hardness.`);
+ if(fl||S.fire.rec)L.push(`- Advisory value: E. coli ${EC_ADV} MPN/100 mL. Lift after two results in a row, a week apart, below ${EC_ADV} at the use point.`);
+ if(!fl)L.push("- No channel entry during or right after a storm. Two-person crew; burned-area hazard briefing.");
+ L.push("","COST");
+ C.rows.forEach(r=>L.push(`- ${r[0]}: ${r[1]} x ${money(r[2])} = ${money(r[3])}`));
+ L.push(`Lab total: ${money(C.lab)}   Staff: about ${C.days} person-days`);
+ L.push("","STEP UP to the full response if: "+C_().stepup.map(x=>x[0].toLowerCase()).join("; ")+".");
+ return L.join("\n");
+}
+
+/* ================= RENDER ================= */
+function renderHead(){
+ document.title=C_().title;$("#pageTitle").textContent=C_().title;$("#pageLede").innerHTML=C_().lede;
+ document.querySelectorAll("[data-mode]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===S.mode)));
+}
+function renderNav(){
+ $("#steps").innerHTML=SECTIONS.map((s,i)=>{const c=s.count?s.count():null;let tag="",done=false;
+  if(c){if(c[0]==="!")tag=`<span class="c" style="color:var(--bad)">!</span>`;else if(c[0]==="ok")tag=`<span class="c" style="color:var(--good)">ok</span>`;else{tag=`<span class="c">${esc(c[0])}</span>`;done=!!c[1]}}
+  return `<button type="button" data-sec="${s.id}" class="${done?"done":""}"${s.id===S.sec?' aria-current="step"':""}><span class="n">${i+1}</span><span class="t">${esc(s.t)}</span>${tag}</button>`}).join("");
+}
+function renderStage(focus){
+ let i=SECTIONS.findIndex(s=>s.id===S.sec);if(i<0){i=0;S.sec=SECTIONS[0].id}
+ const s=SECTIONS[i],prev=SECTIONS[i-1],next=SECTIONS[i+1];
+ $("#stage").innerHTML=s.render()+`<div class="foot"><span>${prev?`<button type="button" data-sec="${prev.id}">← ${esc(prev.t)}</button>`:""}</span><span>${next?`<button type="button" class="primary" data-sec="${next.id}">${esc(next.t)} →</button>`:""}</span></div>`;
+ if(focus){$("#stage").focus({preventScroll:true});const r=$("#stage").getBoundingClientRect();if(r.top<0)window.scrollTo({top:window.scrollY+r.top-12})}
+}
+function all(){renderHead();renderNav();renderStage()}
+function keepFocus(fn){const a=document.activeElement&&document.activeElement.id;fn();if(a){const el=document.getElementById(a);if(el){el.focus();if(el.setSelectionRange&&el.type==="text"){const n=el.value.length;el.setSelectionRange(n,n)}}}}
+
+/* ================= EVENTS ================= */
+let resetArmed=0;
+document.addEventListener("click",e=>{
+ const b=e.target.closest("button");if(!b)return;
+ if(b.dataset.mode){S.mode=b.dataset.mode;save();all();return}
+ if(b.dataset.sec){S.sec=b.dataset.sec;save();renderNav();renderStage(true);return}
+ if(b.dataset.type){S.flood.type=b.dataset.type;save();all();return}
+ if(b.dataset.ecadd){const k=b.dataset.ecadd,d=$("#ecd_"+k).value,v=$("#ecv_"+k).value;if(v===""){$("#ecv_"+k).focus();return}S.ec[k].push({date:d,mpn:v});S.ec[k].sort((a,b)=>(a.date||"").localeCompare(b.date||""));save();all();return}
+ if(b.dataset.ecdel){const [k,i]=b.dataset.ecdel.split(":");S.ec[k].splice(+i,1);save();all();return}
+ switch(b.id){
+  case "printBtn":case "printPlan":window.print();break;
+  case "copyPlan":copyText(planText(),b);break;
+  case "resetBtn":if(Date.now()-resetArmed<4000){const m=S.mode;S=JSON.parse(JSON.stringify(DEF));S.mode=m;save();b.textContent="Start a new event";all()}else{resetArmed=Date.now();b.textContent="Click again to clear everything";setTimeout(()=>b.textContent="Start a new event",4000)}break;
+ }
+});
+document.addEventListener("change",e=>{
+ const t=e.target;
+ if(t.dataset.ck){const g=t.dataset.ck,i=t.dataset.i;if(t.checked)X()[g][i]=stamp();else delete X()[g][i];save();all();return}
+ if(t.dataset.done){if(t.checked)X().done[t.dataset.done]=stamp();else delete X().done[t.dataset.done];save();all();return}
+ if(t.dataset.storm){S.fire.storms[+t.dataset.storm]=t.value;save();all();return}
+ if(t.dataset.site&&t.dataset.f==="partner"){S.sites[t.dataset.site].partner=t.checked;save();all();return}
+ if(t.id==="metOn"){S.flood.metals=t.checked;save();all();return}
+ if(t.id==="recOn"){S.fire.rec=t.checked;save();renderNav();return}
+ if(t.dataset.ev==="peak"||t.dataset.ev==="contain"){X().ev[t.dataset.ev]=t.value;save();renderNav();return}
+});
+document.addEventListener("input",e=>{
+ const t=e.target;
+ if(t.dataset.ev&&t.dataset.ev!=="peak"&&t.dataset.ev!=="contain"){X().ev[t.dataset.ev]=t.value;save();clearTimeout(window.__n);window.__n=setTimeout(renderNav,300);return}
+ if(t.dataset.site&&t.dataset.f!=="partner"){S.sites[t.dataset.site][t.dataset.f]=t.value;save();clearTimeout(window.__n);window.__n=setTimeout(renderNav,300);return}
+ if(t.id==="metList"){X().metalList=t.value;save();clearTimeout(window.__c);window.__c=setTimeout(()=>keepFocus(all),500);return}
+ if(t.id==="weekly"){S.flood.weekly=Math.max(0,Math.min(8,parseInt(t.value||"0",10)||0));save();clearTimeout(window.__c);window.__c=setTimeout(()=>keepFocus(all),400);return}
+ if(t.dataset.price){const v=parseFloat(t.value);if(!isNaN(v)){S.prices[t.dataset.price]=v;save();clearTimeout(window.__c);window.__c=setTimeout(()=>keepFocus(all),500)}return}
+});
+all();
+})();
+</script>
+</body>
+</html>
