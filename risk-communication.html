@@ -239,11 +239,25 @@ const RULES=[
  ["Go first","Send a precautionary message as soon as a release or major runoff is confirmed. Don't wait for lab results."],
  ["Be right","Say what you know, what you don't, and when results are expected. Fix errors openly."],
  ["Speak with one voice","Every agency uses the same cleared words and the same numbers from the data hub."],
- ["Tell people what to do","Every message has an action: stay out, wash after contact, use another water source, report a fish kill."],
- ["Keep it short","Three key messages, 27 words or fewer, at a 6th–8th grade level. Repeat them."],
+ ["Tell people what to do","Every message has an action: how to recognize the problem, what to avoid, the symptoms to watch for in people and pets, and who to call."],
+ ["Keep it calm and short","Most waters are safe, most of the time. When in doubt, stay out. Build confidence; three key messages, 27 words or fewer."],
  ["Show empathy and respect","Acknowledge lost recreation, irrigation and income. Translate. Coordinate with tribes government to government."]
 ];
-const AVOID=[["Absolutes","no, never, nothing, “no risk”"],["Labels","“safe” or “dangerous”; say what results mean for what people want to do"],["Jargon","MPN, NTU, IR, 303(d)"],["Guessing","worst cases or dates you can't promise"],["Blame","pointing at other agencies"]];
+const AVOID=[["Alarm","wording that scares people away from water that's fine; build confidence instead"],["Absolutes","no, never, nothing, “no risk”"],["Labels","“safe” or “dangerous”; say what results mean for what people want to do"],["Jargon","MPN, NTU, IR, 303(d)"],["Guessing","worst cases or dates you can't promise"],["Blame","pointing at other agencies"]];
+const HAB_WEB="https://habs.utah.gov",SIGNS_URL="https://deq.utah.gov/dwq/habs-waterborne-pathogens-signage";
+const CONTACTS=[["Report a bloom, spill or fish kill","DEQ Spill Line (24-hour)","(801) 536-4123"],["Possible exposure, people or pets","Utah Poison Control","(800) 222-1222"],["Current advisories","habs.utah.gov","Shows only waters sampled recently; not a complete or real-time map"]];
+/* Ready-made materials from the Recreational Water Quality Strategic Communication Workgroup (2026 HAB Communications Strategy). */
+const MATERIALS=[
+ ["Dog owners","Your Dog and Harmful Algae tri-fold","https://lf-public.deq.utah.gov/WebLink/ElectronicFile.aspx?docid=554840&eqdocs=DWQ-2025-003445&dbid=0&repo=Public"],
+ ["Parents","Your Kids and Harmful Algae tri-fold","https://lf-public.deq.utah.gov/WebLink/ElectronicFile.aspx?docid=611596&eqdocs=DWQ-2025-003816"],
+ ["Veterinarians","Diagnostic and Treatment Toolkit for Veterinarians","https://lf-public.deq.utah.gov/WebLink/ElectronicFile.aspx?docid=554887&eqdocs=DWQ-2025-003449"],
+ ["Veterinarians","Poster: Harmful algae can make your dog sick","https://lf-public.deq.utah.gov/WebLink/ElectronicFile.aspx?docid=554838&eqdocs=DWQ-2025-003446&dbid=0&repo=Public"],
+ ["Veterinarians","Fact sheet: Identifying harmful algae pet exposure","https://lf-public.deq.utah.gov/WebLink/ElectronicFile.aspx?docid=577025&eqdocs=DWQ-2025-005081"],
+ ["Healthcare providers","Clinician Brief on HABs (DHHS)","https://appletree.utah.gov/wp-content/uploads/Clinician-Brief-Harmfal-Algal-Blooms-HABs-FNL-10.1.2025.pdf"],
+ ["Gardeners and farmers","HAB risks to food in Utah (USU Extension)","https://extension.usu.edu/foodsafety/research/harmful-algal-blooms-risks-for-food-in-utah"],
+ ["Everyone","How to do the stick test","https://www.pca.state.mn.us/sites/default/files/wq-swm1-04.pdf"],
+ ["Partners","Temporary advisory signs and social media images (DWQ)","https://deq.utah.gov/dwq/habs-waterborne-pathogens-signage"]
+];
 const LEADS=[
  ["Health department","Speaks for every health advisory and lift. Posts signs. Tribal health agencies on tribal lands."],
  ["DEQ Communications","Coordinates wording across agencies, handles water quality media questions, runs DEQ web and social."],
@@ -256,12 +270,15 @@ const AGENCIES=[
  ["DWQ","Data, maps and what results mean; advisory recommendations (Recreational Health Coordinator, Spills Coordinator, basin coordinator, monitoring staff)","Subject-matter spokesperson; fact-checks every release"],
  ["Drinking Water and water systems","Customer notices (boil water, do not use); intake status","Same wording on whether tap water is safe"],
  ["DEM","Joint Information Center; emergency alerts","Local emergency managers"],
- ["Wildlife Resources","Fish kills and fishing advisories","Anglers' channels"],
+ ["Wildlife Resources","Fish kills and fishing advisories","Anglers' and waterfowl hunters' channels; joint fall HAB release with DEQ"],
+ ["State Parks","Messaging at state park waters","Park signs, staff and social media"],
+ ["Health and Human Services","Health thresholds for advisories; clinician and veterinarian guidance","Clinician brief; vet toolkit with DWQ"],
+ ["Utah Poison Control","Exposure calls from the public and clinicians","Symptoms line: (800) 222-1222"],
  ["Agriculture and Food","Irrigation and livestock guidance","Producer lists; extension"],
  ["Land managers","Closures on federal land; post-fire hazards with BAER teams","Trailhead and river-access signs"],
  ["Upstream states and EPA","Messaging for their waters and facilities","Shared timing on interstate rivers"]
 ];
-const STANDING=[["Contact roster","PIO and backup for every agency."],["Clearance group","Technical reviewer, PIO and health contact; one-hour turnaround."],["Shared message file","Current message, Q&A and translations in one place."],["Coordination call","Communications is a standing item on the response call."]];
+const STANDING=[["Contact roster","PIO and backup for every agency, from the workgroup's member list."],["Clearance group","Technical reviewer, PIO and health contact from the workgroup; one-hour turnaround."],["Shared message file","Current message, Q&A and translations in one place."],["Coordination call","The workgroup's monthly meeting between events; communications as a standing item on the response call during one."]];
 
 /* DWQ advisory levels (deq.utah.gov/dwq/recreational-water-quality).
    Algal toxin thresholds: DEQ recreational health advisory guidance for HABs. */
@@ -289,8 +306,12 @@ const AUD=[
  ["River and lake users","Where not to go, for how long, why","Signs at ramps and access points; outfitter and permit-office emails; social; local TV and radio"],
  ["Residents along the reach","Contact risk, kids and pets, cleanup safety","Local radio and papers; county and city social; community boards"],
  ["Tribal communities","Same message in Navajo or the community's language, endorsed by the tribe","Tribal health and EPA; chapter houses; KNDN 960 AM, KTNN; Navajo Times"],
+ ["Dog owners","Dogs are most at risk: how to spot blooms and mats, symptoms, call a vet","Dog tri-fold; pet events; vet offices; social media"],
+ ["Parents and kids","Keep kids out of scums; the stick test; symptoms","Kids tri-fold; schools and kids' science events"],
+ ["Anglers, boaters and waterfowl hunters","How to spot a bloom; cleaning fish; dogs on hunts","DEQ and DNR fall release; WMA signs; bait, tackle and rental shops"],
+ ["Veterinarians and healthcare providers","What exposure looks like and how to treat it","Vet toolkit and poster; DHHS clinician brief; Poison Control"],
  ["Private well owners","Whether to test and disinfect; where to get kits","Health department; county extension; well-owner lists"],
- ["Irrigators and livestock owners","Whether to divert; other stock water","UDAF producer lists; canal companies; conservation districts; ag radio"],
+ ["Irrigators, gardeners and livestock owners","Whether to divert; other stock water; produce safety","UDAF producer lists; canal companies; conservation districts; USU Extension"],
  ["Drinking water customers","Whether tap water is safe","Water system notices with DDW; repeat in partner posts"],
  ["Spanish-speaking residents","All of the above in Spanish","Spanish-language radio and social; community groups"],
  ["Media","Facts, data, a spokesperson, next update time","News release; briefings; one media contact line"],
@@ -299,7 +320,7 @@ const AUD=[
 const CHANNELS=[
  ["News outlets",["Send the release and call the main outlets","Hold a joint briefing for major events; post the recording","Keep a media list by basin, including Spanish and Navajo stations"]],
  ["Social media",["Post on all partner accounts at the same time, same words and graphic","Share partners' posts instead of writing new ones","Pin the advisory; check comments twice a day"]],
- ["Web and signs",["One advisory page per event; every post links to it","Signs match the web wording, with the date and a phone number","Take signs down when the advisory lifts"]]
+ ["Web and signs",["Point every post and sign to the advisory page or habs.utah.gov","Use DWQ's temporary sign and social media templates; date them and take them down when the advisory lifts","Permanent educational signs at waters with recurring blooms teach people to spot them"]]
 ];
 const TIMELINE=[
  ["Before an event","Each spring, before monsoon",["Update media and PIO lists","Pre-approve templates and translations","Print blank signs","Test the advisory web page"]],
@@ -314,18 +335,20 @@ const TIMELINE=[
 const SITS=[
  ["before","Release or runoff, no results yet",f=>`Floodwater in ${f("water","river")} from ${f("from","place")} to ${f("to","place")} may carry sewage, bacteria and chemicals.`,f=>"Avoid swimming, wading and boating. Keep children and pets out. Wash hands after contact.",f=>`${f("facility","Facility")} reported a release on ${f("date","date")}. Samples are being analyzed.`],
  ["ecoli","High E. coli",f=>`Bacteria levels in ${f("water","river/reach")} are high enough to make people sick.`,f=>"Don't swim or put your head under water. Wash with clean water after contact.",f=>`Results from ${f("date","date")} at ${f("site","site")} were above Utah's advisory level.`],
- ["hab","Harmful algal bloom",f=>`A toxic algal bloom has been found at ${f("water","lake")}.`,f=>"Avoid scums and green water. Keep pets and livestock away. Clean fish well.",f=>`Samples confirmed ${f("toxin","toxin")} on ${f("date","date")}.`],
+ ["hab","Harmful algal bloom",f=>`A toxic algal bloom has been found at ${f("water","lake")}.`,f=>"Avoid scums, green water and mats. Keep pets and livestock away. When in doubt, stay out.",f=>`Samples confirmed ${f("toxin","toxin")} on ${f("date","date")}.`],
  ["fire","Post-fire runoff",f=>`Rain on the ${f("fire","fire")} burn scar is washing ash, sediment and debris into ${f("water","stream")}.`,f=>"Stay out of channels during and after storms. Flash floods can arrive with no rain where you are.",f=>`NWS warnings and stream readings on ${f("date","date")}.`],
  ["ag","Irrigation and stock water",f=>`Water at the ${f("water","diversion")} diversion may carry bacteria, ash or metals.`,f=>"Hold off irrigating crops eaten raw. Use another stock water source until levels drop.",f=>`Results at ${f("site","site")} on ${f("date","date")}.`],
  ["wells","Flooded private wells",f=>"Floodwater can get into private wells.",f=>`Don't drink well water until it's disinfected and tested. Contact ${f("health","health department")} for kits.`,f=>`Wells near ${f("from","area")} were under water on ${f("date","date")}.`],
  ["lifted","Advisory lifted",f=>`${f("water","River/lake")} has met recreation guidelines.`,f=>"Normal use can resume. As always, avoid the water after heavy rain.",f=>`Results from ${f("date","dates")} were below advisory levels.`]
 ];
-const QA=["Is my tap water safe?","Can I eat fish from the river?","Can I water my garden?","Is it safe for my animals?","How long will this last?","Where can I see the data?"];
+const QA=["How can I tell if there's a bloom?","What are the symptoms in people and pets, and who do I call?","Is my tap water safe?","Can I eat fish from the river?","Can I water my garden?","Is it safe for my animals?","How long will this last?","Where can I see the data?"];
 const CLEAR=[["DWQ technical reviewer","Facts and data"],["DEQ public information officer","Wording and channels"],["Health department or tribal agency","Health guidance. Must reply for new advisories and lifts."],["Translations started","Spanish and tribal languages"]];
 const DOS=[["Say what you know and don't know","Speculate or guess"],["Explain terms; use maps and pictures","Use jargon or acronyms"],["Say “we”; own your part","Blame other agencies"],["Promise only what you can deliver, with dates","Promise “no risk”"],["Correct a claim without repeating it","Repeat negative words"],["Answer the worry behind a yes/no question","Get pushed into a misleading yes or no"],["Keep answers under 2 minutes","Debate technical details"],["Assume you're on the record","Go “off the record”"]];
-const EVAL=[["Time to first message","From confirmed risk to first public message"],["Same wording","Did every partner use the cleared words?"],["Affected people first","Did they hear before the media?"],["Reach","Media pickup and social reach"],["Unanswered questions","What did people ask that we couldn't answer?"],["Tribal and Spanish audiences","Were they reached, in their language?"],["Illness reports","Any reported illnesses?"],["Update templates and lists","Fix what didn't work"]];
+const EVAL=[["Time to first message","From confirmed risk to first public message"],["Same wording","Did every partner use the cleared words?"],["Affected people first","Did they hear before the media?"],["Reach","Media pickup and social reach"],["Unanswered questions","What did people ask that we couldn't answer?"],["Tribal and Spanish audiences","Were they reached, in their language?"],["Illness reports","Any reported illnesses, including Poison Control calls and pet illnesses?"],
+ ["Website visits","Visits to the advisory page and habs.utah.gov, compared with last year"],
+["Public reports","Blooms and fish kills reported to the DEQ Spill Line"],["Update templates and lists","Fix what didn't work"]];
 const CYCLE=[["Name the issue and concerns",""],["Set measurable objectives","e.g., first message within 1 hour"],["Find affected communities and barriers","Remote areas, no internet, language"],["Know your audiences","Local media, trusted messengers, past experience"],["Draft and test message maps",""],["Choose methods",""],["Assign tasks, spokespeople and timelines",""],["Evaluate and follow up with the community",""]];
-const OPEN=[["Confirm who leads","DEQ Communications coordinates; health departments speak for advisories"],["Name PIOs and backups","Add them to the response roster"],["Pick a home for the shared message file and advisory page",""],["Line up translators","Spanish and Navajo, before monsoon season"]];
+const OPEN=[["Take this plan to the workgroup","Add flood and post-fire messaging to the Recreational Water Quality Strategic Communication Workgroup and its Partner Communication Guide (being updated under the new MOU)"],["Confirm who leads","DEQ Communications coordinates; health departments speak for advisories"],["Name PIOs and backups","Add them to the response roster"],["Pick a home for the shared message file and advisory page",""],["Line up translators","Spanish and Navajo, before monsoon season"],["Book community events early","Reserve tables months ahead, before the recreation season"]];
 
 /* ================= HELPERS ================= */
 function stamp(){const d=new Date();return d.toLocaleDateString(undefined,{month:"short",day:"numeric"})+" "+d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})}
@@ -355,6 +378,7 @@ function msgs(){
   const posts=[
    ["Precautionary",f=>`Avoid contact with the ${f("water","river")} from ${f("from","A")} to ${f("to","B")} after ${f===H?ph:pt}. Keep kids and pets out. Testing is under way; next update ${f("next","date")}. ${f("link","link")}`],
    ["Advisory ("+tr.name+")",f=>`${tr.name} for the ${f("water","river")} at ${f("site","place")}. ${tr.tell.split(". ").slice(0,2).join(". ").replace(/\.?$/,".")} Details: ${f("link","link")}`],
+   ["Know before you go",f=>`Most Utah waters are safe, most of the time. Before you or your dog go in, look for scums, green water or mats. When in doubt, stay out. Current advisories: habs.utah.gov`],
    ["Post-fire storm",f=>`Storms are forecast over the ${f("fire","fire")} burn scar. Flash floods and debris can come fast, even if it isn't raining where you are. Stay out of channels. ${f("link","link")}`],
    ["Lifted",f=>`The advisory for the ${f("water","river")} has been lifted. Recent tests meet recreation guidelines. Thank you for your patience. ${f("link","link")}`]
   ];
@@ -399,6 +423,8 @@ const SECTIONS=[
   `<div class="tiers" role="group" aria-label="Advisory level">${TIER_ORDER.map(k=>`<button type="button" class="t-${k}" data-tier="${k}" aria-pressed="${S.tier===k}"><b>${esc(TIERS[k].name)}</b><span>${esc(TIERS[k].short)}</span></button>`).join("")}</div>
    <div class="tier-detail t-${S.tier}"><div class="two"><div class="block"><h3>When</h3>${ul(t.when)}<p class="note"><b>Who:</b> ${esc(t.who)}</p></div>
    <div class="block"><h3>Tell the public</h3>${msgBox("tier",t.name,`<b>${esc(t.name)}</b> for ${H("water","water")}: ${esc(t.tell)}`,`${t.name} for ${T("water","water")}: ${t.tell}`)}</div></div></div>
+   <div class="three">${CONTACTS.map(c=>`<div class="card"><span class="lbl">${esc(c[0])}</span><h3>${esc(c[1])}</h3><p style="color:var(--ink);font-size:16px;font-weight:600">${esc(c[2])}</p></div>`).join("")}</div>
+   <div class="key"><b>Teach people to recognize it.</b> Scums, green or discolored water, and mats on the bottom or shore. Show the stick test. Most waters are safe, most of the time; when in doubt, stay out.</div>
    <div class="key"><b>Lifting an advisory:</b> two samples in a row, at least a week apart, below the health thresholds. The local health department lifts it.</div>
    <p class="note">Source: <a href="https://deq.utah.gov/dwq/recreational-water-quality" target="_blank" rel="noopener">DWQ recreational water quality</a> and DEQ's recreational health advisory guidance for harmful algal blooms.</p>`}},
  {g:"Plan",id:"rules",t:"Messaging rules",render(){
@@ -409,7 +435,8 @@ const SECTIONS=[
  {id:"lead",t:"Who speaks",render(){
   const a=AGENCIES[S.agency]||AGENCIES[0];
   return head("Who speaks","Recommended split, for partner agreement.")+
-  `<div class="three">${LEADS.map(l=>`<div class="card"><h3>${esc(l[0])}</h3><p>${esc(l[1])}</p></div>`).join("")}</div>
+  `<div class="key"><b>Use the workgroup that already exists.</b> The Recreational Water Quality Strategic Communication Workgroup (DEQ, DWQ, Drinking Water, DNR, State Parks, DWR, UDAF, DHHS, Utah Poison Control, all 13 local health departments and federal land managers) meets monthly and has a Partner Communication Guide. DWQ supplies content and expertise; partners deliver it to the public.</div>
+   <div class="three">${LEADS.map(l=>`<div class="card"><h3>${esc(l[0])}</h3><p>${esc(l[1])}</p></div>`).join("")}</div>
    <div class="block"><h3>Find an agency's lane</h3><div class="pick" role="group" aria-label="Agency">${AGENCIES.map((g,i)=>`<button type="button" class="small" data-agency="${i}" aria-pressed="${i===S.agency}">${esc(g[0])}</button>`).join("")}</div>
    <div class="two"><div class="card"><span class="lbl">Leads</span><p style="color:var(--ink);font-size:15.5px">${esc(a[1])}</p></div><div class="card"><span class="lbl">Supports</span><p style="color:var(--ink);font-size:15.5px">${esc(a[2])}</p></div></div></div>
    <div class="block"><h3>Keep in place between events</h3><div class="grid">${STANDING.map(c=>`<div class="card"><h3 style="font-size:17px">${esc(c[0])}</h3><p>${esc(c[1])}</p></div>`).join("")}</div></div>
@@ -417,8 +444,9 @@ const SECTIONS=[
  {id:"audiences",t:"Reach people",count:()=>[countFor("aud",AUD.length),AUD.length],render(){
   return head("Reach people","Tell affected people directly, before or with the media. Tick each audience as you reach it.")+
   acts("aud",AUD.map(r=>[r[0],r[1]+" · "+r[2]]))+
-  `<div class="three">${CHANNELS.map(c=>`<div class="card"><h3>${esc(c[0])}</h3><ul>${c[1].map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`).join("")}</div>
-   ${why("Presenting data",`<ul><li>Compare results with something people can judge: the Utah criterion or advisory level, the same site before the event, the same site over time.</li><li>Use the advisory level names, not “safe” or “dangerous.”</li><li>Share preliminary data when people are at risk, say what you don't know yet, and explain how sampling works while results are pending.</li></ul>`)}`}},
+  `<div class="block"><h3>Ready-made materials</h3><div class="scroll"><table><thead><tr><th>For</th><th>Material</th></tr></thead><tbody>${MATERIALS.map(m=>`<tr><td>${esc(m[0])}</td><td><a href="${m[2]}" target="_blank" rel="noopener">${esc(m[1])}</a></td></tr>`).join("")}</tbody></table></div><p class="note">From the Recreational Water Quality Strategic Communication Workgroup. DWQ supplies content; partners hand it out.</p></div>
+   <div class="three">${CHANNELS.map(c=>`<div class="card"><h3>${esc(c[0])}</h3><ul>${c[1].map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`).join("")}</div>
+   ${why("Presenting data",`<ul><li>Compare results with something people can judge: the Utah criterion or advisory level, the same site before the event, the same site over time.</li><li>Use the advisory level names, not “safe” or “dangerous.”</li><li>Say what the habs.utah.gov map can't show: it covers only waters sampled recently, so an unmarked water isn't a clean bill of health. Teach people to look for themselves.</li><li>Share preliminary data when people are at risk, say what you don't know yet, and explain how sampling works while results are pending.</li></ul>`)}`}},
  {id:"timeline",t:"Timeline",count:()=>{let c=0,n=0;TIMELINE.forEach((p,i)=>{n+=p[2].length;c+=countFor("tl"+i,p[2].length)});return[c,n]},render(){
   return head("Timeline","Holding message within an hour, joint release within 24 hours, then scheduled updates until the advisory lifts.")+
   `<div class="two">${TIMELINE.map((p,i)=>{const c=countFor("tl"+i,p[2].length);return `<div class="msg"><div class="msg-head"><h4>${esc(p[0])}${p[1]?` <span class="note">· ${esc(p[1])}</span>`:""}</h4><span class="chip ${c===p[2].length?"ok":""}">${c} of ${p[2].length}</span></div><div style="padding:10px">${acts("tl"+i,p[2].map(x=>[x]))}</div></div>`}).join("")}</div>`}},
@@ -471,6 +499,8 @@ const SECTIONS=[
   `<ul style="padding-left:20px;display:flex;flex-direction:column;gap:10px;margin:0">
    <li>Utah DWQ. <a href="https://deq.utah.gov/dwq/recreational-water-quality" target="_blank" rel="noopener">Recreational water quality</a> (advisory levels and public guidance).</li>
    <li>Utah DEQ. <a href="https://deq.utah.gov/health-advisory-panel/harmful-algal-blooms-habs/recreational-health-advisory-guidance-for-harmful-algal-blooms" target="_blank" rel="noopener">Recreational health advisory guidance for harmful algal blooms</a> (toxin thresholds, lifting advisories).</li>
+   <li>Recreational Water Quality Strategic Communication Workgroup (2026). <i>2026 Harmful Algal Bloom (HAB) Communications Strategy</i> (draft, internal): workgroup roles, core messages, audiences, materials and success measures.</li>
+   <li>Utah DEQ. <a href="https://deq.utah.gov/water-quality/contact-information-harmful-algal-blooms" target="_blank" rel="noopener">Contact information: harmful algal blooms</a> (DEQ Spill Line, Utah Poison Control).</li>
    <li>Covello, V.T. (2006). Risk communication and message mapping. <i>Journal of Emergency Management</i> 4(3).</li>
    <li>Interstate Technology and Regulatory Council (2020). <a href="https://rct-1.itrcweb.org" target="_blank" rel="noopener">Risk Communication Toolkit</a>.</li>
    <li>EPA (2007). <i>Risk Communication in Action: The Risk Communication Workbook.</i> EPA/625/R-05/003.</li>
