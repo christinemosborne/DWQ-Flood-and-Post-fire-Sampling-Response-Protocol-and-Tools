@@ -302,7 +302,7 @@ function collect(k,v){
   const m=S.flood.metals&&metals().length>0&&(k==="U"||k==="D");
   if(v==="v1")return {U:["Field","E. coli","TSS","Nutrients"].concat(m?["Metals"]:[]),R:["Field","E. coli + 1:10 dilution bottle","TSS","Nutrients"],P:["Field","E. coli","TSS"],D:["Field","E. coli","TSS","Nutrients"].concat(m?["Metals"]:[])}[k];
   if(v==="v2")return {U:["Field","E. coli"],R:["Field","E. coli","Nutrients"],P:["Field","E. coli"],D:["Field","E. coli"]}[k];
-  return {U:null,R:["E. coli until below "+EC_ADV],P:["E. coli until two results in a row, a week apart, are below "+EC_ADV],D:null}[k];
+  return {U:null,R:["E. coli until below "+EC_ADV],P:["E. coli weekly until at least two weeks of results are below "+EC_ADV],D:null}[k];
  }
  const met=metals().length?["Metals"]:[];
  const T={
@@ -344,10 +344,14 @@ function ecStatus(k){
  const r=S.ec[k].filter(x=>x.mpn!==""&&!isNaN(+x.mpn)).slice().sort((a,b)=>(a.date||"").localeCompare(b.date||""));
  if(!r.length)return ["","No results yet"];
  const last=r[r.length-1];
- if(+last.mpn>=EC_ADV)return ["bad",`Latest ${last.mpn} MPN/100 mL is at or above ${EC_ADV}. Recommend an advisory to the health department.`];
+ if(+last.mpn>=EC_ADV)return ["bad",`Latest ${last.mpn} MPN/100 mL is at or above ${EC_ADV}. Resample within 24 hours to confirm, then recommend an advisory to the health department.`];
  if(S.mode==="flood"&&k==="R")return ["ok","Below "+EC_ADV+". Stop E. coli follow-up here."];
- if(k==="P"){for(let i=r.length-1;i>0;i--){const a=r[i],b=r[i-1];if(+a.mpn<EC_ADV&&+b.mpn<EC_ADV&&a.date&&b.date&&(new Date(a.date)-new Date(b.date))/864e5>=7)return ["ok","Two results in a row, a week apart, below "+EC_ADV+". Meets the lift rule."]}
-  return ["warn","Below "+EC_ADV+". A second result at least a week later is needed to lift an advisory."]}
+ if(k==="P"){
+  // DEQ waterborne pathogens guidance: lift after at least two weeks of results show the hazard has passed.
+  let i=r.length-1;while(i>0&&+r[i-1].mpn<EC_ADV)i--;
+  const first=r[i],span=first.date&&last.date?(new Date(last.date)-new Date(first.date))/864e5:0;
+  if(r.length-i>=2&&span>=14)return ["ok","Two weeks of results below "+EC_ADV+". Meets the lift guidance."];
+  return ["warn","Below "+EC_ADV+". Keep sampling weekly until results have stayed below "+EC_ADV+" for at least two weeks."]}
  return ["ok","Below "+EC_ADV+"."];
 }
 const ecSites=()=>activeSites().filter(s=>!S.sites[s.k].partner&&ecOn(s.k));
@@ -441,7 +445,7 @@ const SECTIONS=[
     ${S.ec[s.k].length?`<table><thead><tr><th>Date</th><th class="num">MPN/100 mL</th><th></th></tr></thead><tbody>${S.ec[s.k].map((r,i)=>`<tr><td>${esc(r.date)}</td><td class="num">${esc(r.mpn)}</td><td style="text-align:right"><button type="button" class="small ghost" data-ecdel="${s.k}:${i}">Delete</button></td></tr>`).join("")}</tbody></table>`:""}
     <div class="inline"><input type="date" id="ecd_${s.k}" aria-label="Sample date" style="max-width:170px"><input type="number" id="ecv_${s.k}" min="0" step="0.1" placeholder="MPN" aria-label="E. coli MPN per 100 mL" style="max-width:120px"><button type="button" class="small" data-ecadd="${s.k}">Add</button></div></div>`}).join("")}</div>`
    :`<p class="note">No E. coli in this plan. ${S.mode==="fire"?"Turn on “Recreation at the use point” under Event details to add it.":""}</p>`)+
-  `<p class="note">Advisory value: ${EC_ADV} MPN/100 mL. Screen other results against criteria in the <a href="response-guide.html">Response Guide</a>.</p>`}},
+  `<p class="note">Advisory value: ${EC_ADV} MPN/100 mL; resample within 24 hours to confirm an exceedance. Lift after at least two weeks of results below it (<a href="https://deq.utah.gov/dwq/health-advisory-waterborne-pathogens" target="_blank" rel="noopener">DEQ waterborne pathogens guidance</a>). Screen other results against criteria in the <a href="response-guide.html">Response Guide</a>.</p>`}},
  {id:"plan",t:"Plan summary",render(){
   return head("Plan summary","Copy it into an email or the event log, or print it for the crew.")+
   `<div class="inline"><button type="button" class="primary small" id="copyPlan">Copy plan</button><button type="button" class="small" id="printPlan">Print</button><a class="btn small" href="sap-builder.html">Need a full SAP? Open the SAP Builder</a></div><div class="pre" id="planText">${esc(planText())}</div>`}}
@@ -463,7 +467,7 @@ function planText(){
  L.push("- E. coli in the incubator within 8 hours."+(fl?" Below the release, add a 1:10 dilution bottle and dilution blank.":""));
  L.push("- Field pH and temperature with every nutrient sample (ammonia criteria).");
  if(metals().length&&(!fl||S.flood.metals))L.push(`- Metals (filtered): ${X().metalList} plus Ca and Mg for hardness.`);
- if(fl||S.fire.rec)L.push(`- Advisory value: E. coli ${EC_ADV} MPN/100 mL. Lift after two results in a row, a week apart, below ${EC_ADV} at the use point.`);
+ if(fl||S.fire.rec)L.push(`- Advisory value: E. coli ${EC_ADV} MPN/100 mL; resample within 24 hours to confirm. Lift after at least two weeks of results below ${EC_ADV} at the use point.`);
  if(!fl)L.push("- No channel entry during or right after a storm. Two-person crew; burned-area hazard briefing.");
  L.push("","COST");
  C.rows.forEach(r=>L.push(`- ${r[0]}: ${r[1]} x ${money(r[2])} = ${money(r[3])}`));
